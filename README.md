@@ -1,38 +1,64 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Moshe Malka's Portfolio
 
-## Getting Started
+Welcome to Moshe Malka's personal portfolio, a showcase of his work, experience, and skills. This Next.js project is written in TypeScript and demonstrates Moshe's expertise as a Senior Software Engineer.
 
-First, run the development server:
+### Overview
 
+- **Age Calculator**: Moshe's age is dynamically calculated based on his birth year.
+- **Company Cycle**: A rotating display of companies Moshe has worked for in the past.
+- **Split Testing**: A simple implementation of A/B testing to show different career blocks.
+- **Social Media Links**: Direct links to Moshe's LinkedIn, Stack Overflow, and GitHub profiles.
+- **Founder and CEO**: Moshe introduces his venture, Quentin Code, a firm dedicated to helping non-tech business owners scale their businesses with custom software solutions.
+
+### Installation and Development
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+git clone https://github.com/moshejs/moshemalka-dot-com
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Navigate to the project directory and install the dependencies:
+```bash
+cd moshemalka-dot-com
+npm install
+```
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+3. Run the development server:
+```bash
+npm run dev
+```
+You can now access the website at [http://localhost:3000](http://localhost:3000).
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+### Technologies Used
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+- **Next.js**: A React framework for server-rendered applications.
+- **TypeScript**: A typed superset of JavaScript that adds static types.
+- **React**: A JavaScript library for building user interfaces.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+### Main Components
 
-## Learn More
+- **Home**: The main landing page of the portfolio.
+- **CompanyCycle**: Displays a rotating list of companies I have worked with.
+- **SplitTest**: An A/B testing component to showcase different elements.
+- **CareerBlockA and CareerBlockB**: Two variations of Moshe's career journey.
 
-To learn more about Next.js, take a look at the following resources:
+### Dependencies
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This project uses a variety of libraries and tools listed in the `package.json`. Notable ones include:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+- `next`: The core framework.
+- `react` and `react-dom`: Essential for building and rendering React components.
+- `@types/*`: Type definitions for TypeScript.
+- `eslint` and `eslint-config-next`: Linting tools for cleaner code.
 
-## Deploy on Vercel
+### Contributions
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Feel free to fork the project, submit issues, or send pull requests. Feedback and contributions are always welcome!
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+### Deployment
+
+You can deploy this Next.js project using the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js. Check out the [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+
+---
+
+This README provides a more personalized touch to your project, explaining its main features and how to get started with it. You can always expand upon or modify the details as you see fit.
