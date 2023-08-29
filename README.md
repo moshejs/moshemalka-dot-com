@@ -58,7 +58,3 @@ Feel free to fork the project, submit issues, or send pull requests. Feedback an
 ### Deployment
 
 You can deploy this Next.js project using the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js. Check out the [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
-
----
-
-This README provides a more personalized touch to your project, explaining its main features and how to get started with it. You can always expand upon or modify the details as you see fit.
