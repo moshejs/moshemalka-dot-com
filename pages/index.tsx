@@ -110,7 +110,7 @@ export default function Home() {
 
           <SplitTest elements={[CareerBlockA, CareerBlockB]} />
 
-          <p>I&apos;m the founder and CEO of <a style={{textDecoration: 'none'}} href='https://www.quentin.software' target='_blank'><b>Quentin Code</b></a> a firm that helps non-tech business owners in creating bespoke software solutions and workflows that scale their business.</p>
+          <p>I&apos;m the founder and CEO of <a style={{textDecoration: 'none'}} href='https://www.quentin.software' target='_blank'><b>Quentin Code</b></a> a firm that helps non-tech business owners create bespoke software solutions.</p>
           </div>
         {/* Add content */}
       </main>
