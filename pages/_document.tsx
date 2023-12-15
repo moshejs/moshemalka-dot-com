@@ -5,7 +5,7 @@ export default function Document() {
   return (
     <Html lang="en">
     <Head>
-    <script dangerouslySetInnerHTML={{ 
+    <script id="runRdOnLoad" dangerouslySetInnerHTML={{ 
           __html: `
             function __rdOnLoad() {
               RumDash.init({
