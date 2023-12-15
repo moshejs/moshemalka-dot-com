@@ -22,7 +22,7 @@ function CompanyCycle() {
 
     return (
         <span className="company-cycle">
-            I&apos;m an ex-
+            I&apos;m a former{' '}
             {companies.map((company, index) => (
                 <span
                     key={company.title}
@@ -31,20 +31,20 @@ function CompanyCycle() {
                     <a href={company.url} style={{textDecoration: 'none', color: company.color }}>{company.title} </a>
                 </span>
             ))}
-            Software Engineer.
+            Senior Software Engineer.
         </span>
     );
 }
 
 const CareerBlockA = () => (<p>
-  I&apos;m an{' '}
+  I was formerly at{' '}
   {companies.map((company, index) => (
     <span key={index}>
-      ex-<a style={{textDecoration: 'none', color: company.color}} href={company.url}>{company.title}</a>
+      <a style={{textDecoration: 'none', color: company.color}} href={company.url}>{company.title}</a>
       {index !== companies.length - 1 ? ', ': ' '}
     </span>
   ))} 
-  Software Engineer.
+  where I have mastered the art of crafting performant and inspiring full-stack web applications.
 </p>);
 
 const CareerBlockB = () => (<p><CompanyCycle /></p>)
@@ -63,14 +63,6 @@ const SplitTest: React.FC<SplitTestProps> = ({ elements }) => {
 };
 
 export default function Home() {
-  const getAge = () => {
-    const birthYear = 1996;
-    const currentYear = new Date().getFullYear();
-    return new Date() > new Date(`02/02/${currentYear}`)
-      ? currentYear - birthYear
-      : currentYear - birthYear - 1;
-  }
-
   return (
     <div>
       <Head>
@@ -106,13 +98,12 @@ export default function Home() {
               /></a>
             </li>
           </ul>
-          <p>I&apos;m a {getAge()}-year-old, New-York-city-born software entrepreneur with a knack for patterns.</p> {/* 🇮🇱 שלום , Israeli-American*/}
-
+          {/* 🇮🇱 שלום , Israeli-American*/}
+          <p>I&apos;m a software visionary born in the dynamic heart of New York City, renowned for my exceptional ability to decode and harness complex patterns.</p>
           <SplitTest elements={[CareerBlockA, CareerBlockB]} />
 
-          <p>I&apos;m the founder and CEO of <a style={{textDecoration: 'none'}} href='https://www.quentin.software' target='_blank'><b>Quentin Code</b></a> a firm that helps non-tech business owners create bespoke software solutions.</p>
+          <p>I&apos;m the founder and CEO of <a style={{textDecoration: 'none'}} href='https://www.quentin.software' target='_blank'><b>Quentin Code</b></a> a firm that helps non-tech entrepreneurs architect digital solutions that transform their vision into a tangible, thriving reality.</p>
           </div>
-        {/* Add content */}
       </main>
 
       {/* <Footer /> */}
