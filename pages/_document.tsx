@@ -17,7 +17,8 @@ export default function Document() {
             }
           `
         }} />
-      <Script 
+      <Script
+        id="rumdashLoader"
         src="https://cdn.rumdash.io/client.js" 
         strategy="afterInteractive" 
       />
