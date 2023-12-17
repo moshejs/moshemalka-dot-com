@@ -22,7 +22,7 @@ function CompanyCycle() {
 
     return (
         <span className="company-cycle">
-            I&apos;m a former
+            I&apos;m a former 
             {companies.map((company, index) => (
                 <span
                     key={company.title}
