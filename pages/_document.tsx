@@ -21,16 +21,6 @@ export default function Document() {
         src="https://cdn.rumdash.io/client.js" 
         strategy="afterInteractive" 
       />
-      <Script src="https://www.googletagmanager.com/gtag/js?id=G-L1ETKYXNV4" />
-      <Script id="google-analytics">
-        {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
- 
-          gtag('config', 'G-L1ETKYXNV4');
-        `}
-      </Script>
     </Head>
     <body>
       <Main />

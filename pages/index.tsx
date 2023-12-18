@@ -1,4 +1,5 @@
 import Head from 'next/head';
+import Script from 'next/script'
 import React, { useState, useEffect } from 'react';
 // import Header from '../components/Header';
 // import Footer from '../components/Footer';
@@ -65,6 +66,18 @@ const SplitTest: React.FC<SplitTestProps> = ({ elements }) => {
 export default function Home() {
   return (
     <div>
+      <div className='container'>
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-L1ETKYXNV4" />
+        <Script id="google-analytics">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+  
+            gtag('config', 'G-L1ETKYXNV4');
+          `}
+        </Script>
+      </div>
       <Head>
         <title>Moshe Malka | Senior Software Engineer</title>
         <link rel="icon" href="/favicon.ico" />
