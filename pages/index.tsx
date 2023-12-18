@@ -22,7 +22,7 @@ function CompanyCycle() {
 
     return (
         <span className="company-cycle">
-            I&apos;m a former 
+            I&apos;m a former{' '}
             {companies.map((company, index) => (
                 <span
                     key={company.title}
@@ -31,20 +31,20 @@ function CompanyCycle() {
                     <a href={company.url} style={{textDecoration: 'none', color: company.color }}>{company.title} </a>
                 </span>
             ))}
-            Software Engineer.
+            Senior Software Engineer.
         </span>
     );
 }
 
 const CareerBlockA = () => (<p>
-  I&apos;m an{' '}
+  I was formerly at{' '}
   {companies.map((company, index) => (
     <span key={index}>
-      formerly at <a style={{textDecoration: 'none', color: company.color}} href={company.url}>{company.title}</a>
+      <a style={{textDecoration: 'none', color: company.color}} href={company.url}>{company.title}</a>
       {index !== companies.length - 1 ? ', ': ' '}
     </span>
   ))} 
-  Software Engineer.
+  as a Senior Software Engineer specializing in full-stack web applications.
 </p>);
 
 const CareerBlockB = () => (<p><CompanyCycle /></p>)
