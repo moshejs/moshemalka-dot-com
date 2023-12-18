@@ -44,7 +44,7 @@ const CareerBlockA = () => (<p>
       {index !== companies.length - 1 ? ', ': ' '}
     </span>
   ))} 
-  as a Senior Software Engineer specializing in full-stack web applications.
+  where I have mastered the art of crafting performant and inspiring full-stack web applications.
 </p>);
 
 const CareerBlockB = () => (<p><CompanyCycle /></p>)
@@ -98,13 +98,12 @@ export default function Home() {
               /></a>
             </li>
           </ul>
-          <p>I&apos;m a New-York-city-born software entrepreneur with a knack for patterns.</p> {/* 🇮🇱 שלום , Israeli-American*/}
-
+          {/* 🇮🇱 שלום , Israeli-American*/}
+          <p>I&apos;m a software visionary born in the dynamic heart of New York City, renowned for my exceptional ability to decode and harness complex patterns.</p>
           <SplitTest elements={[CareerBlockA, CareerBlockB]} />
 
-          <p>I&apos;m the founder and CEO of <a style={{textDecoration: 'none'}} href='https://www.quentin.software' target='_blank'><b>Quentin Code</b></a> a firm that helps non-tech business owners create bespoke software solutions.</p>
+          <p>I&apos;m the founder and CEO of <a style={{textDecoration: 'none'}} href='https://www.quentin.software' target='_blank'><b>Quentin Code</b></a> a firm that helps non-tech entrepreneurs architect digital solutions that transform their vision into a tangible, thriving reality.</p>
           </div>
-        {/* Add content */}
       </main>
 
       {/* <Footer /> */}
