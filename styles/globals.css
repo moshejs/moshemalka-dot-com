@@ -41,7 +41,7 @@ a:hover {
 @media (max-width: 500px) {
   #main-container {
     top: 0%;
-    width: 100%;
+    width: 90vw;
     padding: 30px;
   }
 }
@@ -73,8 +73,17 @@ a:hover {
   padding: 0 4px;
 }
 
+/* Adjusting clickable elements */
 #social-media-icons > li > a > img {
   width: 30px;
+  margin: 0 8px; /* Increase spacing */
+}
+
+/* Adjusting text size for mobile */
+@media (max-width: 500px) {
+  body, p, a, .company-name {
+    font-size: 16px; /* Increase text size */
+  }
 }
 
 #description {

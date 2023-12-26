@@ -4,8 +4,6 @@ import React, { useState, useEffect } from 'react';
 // import Header from '../components/Header';
 // import Footer from '../components/Footer';
 
-
-
 const companies = [{ title: 'Peloton', url: 'https://www.onepeloton.com', color: 'rgb(223, 28, 47)' }, { title: 'CBRE', url: 'https://www.cbre.com', color: 'darkgreen' }, { title: 'ICE', url: 'https://www.ice.com', color: 'rgb(113, 197, 232)' }]
 
 function CompanyCycle() {
