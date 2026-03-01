@@ -1,70 +1,79 @@
+import React from "react";
 import Head from 'next/head';
 import Script from 'next/script'
-import React, { useState, useEffect } from 'react';
-// import Header from '../components/Header';
-// import Footer from '../components/Footer';
 
-const companies = [{ title: 'Peloton', url: 'https://www.onepeloton.com', color: 'rgb(223, 28, 47)' }, { title: 'CBRE', url: 'https://www.cbre.com', color: 'darkgreen' }, { title: 'ICE', url: 'https://www.ice.com', color: 'rgb(113, 197, 232)' }]
+/**
+ * Moshe Malka — Intersection
+ *
+ * Not resume.
+ * Not corporate.
+ * Just signal + energy.
+ */
 
-function CompanyCycle() {
-    const [currentIndex, setCurrentIndex] = useState(0);
+function Theme() {
+  return (
+    <style>{`
+      :root {
+        --bg: #0A0C10;
+        --ink: #FFFFFF;
+        --muted: rgba(255,255,255,0.65);
+        --soft: rgba(255,255,255,0.35);
+        --line: rgba(255,255,255,0.06);
 
-    useEffect(() => {
-      setCurrentIndex(0); // Set the initial index after mount
+        --green: #00F5A0;
+        --blue: #4DA3FF;
+        --gold: #E6B566;
+        --violet: #B07CFF;
+      }
 
-      const interval = setInterval(() => {
-          setCurrentIndex((prevIndex) => (prevIndex + 1) % companies.length);
-      }, 1200);
+      body { background: var(--bg); }
 
-      return () => clearInterval(interval);
-  }, []);
+      .mm-sans { font-family: ui-sans-serif, system-ui, -apple-system; }
+      .mm-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.08em; text-transform: uppercase; }
+      .mm-title { letter-spacing: -0.04em; }
 
-    return (
-        <span className="company-cycle">
-            I&apos;m a former{' '}
-            {companies.map((company, index) => (
-                <span
-                    key={company.title}
-                    className={`company-name ${currentIndex === index ? 'active' : ''}`}
-                >
-                    <a href={company.url} style={{textDecoration: 'none', color: company.color }}>{company.title} </a>
-                </span>
-            ))}
-            Senior Software Engineer.
-        </span>
-    );
+      @keyframes drift {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-12px); }
+        100% { transform: translateY(0px); }
+      }
+    `}</style>
+  );
 }
 
-const CareerBlockA = () => (<p>
-  I was formerly at{' '}
-  {companies.map((company, index) => (
-    <span key={index}>
-      <a style={{textDecoration: 'none', color: company.color}} href={company.url}>{company.title}</a>
-      {index !== companies.length - 1 ? ', ': ' '}
-    </span>
-  ))} 
-  where I have mastered the art of crafting performant and inspiring full-stack web applications.
-</p>);
-
-const CareerBlockB = () => (<p><CompanyCycle /></p>)
-
-interface SplitTestProps {
-  elements: React.FC[];
+function Orb({ color, size, top, left }: { color: string; size: number; top: string; left: string }) {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top,
+        left,
+        width: size,
+        height: size,
+        background: `radial-gradient(circle, ${color}55 0%, transparent 70%)`,
+        filter: "blur(80px)",
+        animation: "drift 14s ease-in-out infinite",
+        pointerEvents: "none",
+      }}
+    />
+  );
 }
 
-const SplitTest: React.FC<SplitTestProps> = ({ elements }) => {
-  // Use the current date as a seed to select an index from the provided elements
-  const day = new Date().getDate();
-  const randomIndex = day % elements.length;
-  const SelectedElement = elements[randomIndex];
-
-  return <SelectedElement />;
-};
+function Divider() {
+  return <div className="h-px w-full my-28" style={{ background: "var(--line)" }} />;
+}
 
 export default function Home() {
   return (
-    <div>
-      <div className='container'>
+    <div className="mm-sans min-h-screen text-white relative overflow-hidden">
+      <Theme />
+
+      {/* Motion background */}
+      <Orb color="#00F5A0" size={500} top="5%" left="10%" />
+      <Orb color="#4DA3FF" size={600} top="60%" left="60%" />
+      <Orb color="#B07CFF" size={400} top="30%" left="75%" />
+
+        <div className='container'>
         <Script src="https://www.googletagmanager.com/gtag/js?id=G-L1ETKYXNV4" />
         <Script id="google-analytics">
           {`
@@ -82,42 +91,93 @@ export default function Home() {
         <meta name="description" content="Moshe Malka is a NYC born senior software engineer" />
         <meta name="keywords" content="moshe malka, software engineer new york city" />
       </Head>
+      <main className="mx-auto max-w-5xl px-6 relative z-10">
 
-      {/* <Header /> */}
-
-      <main>
-        <div id='main-container'>
-          <h1 style={{fontWeight: '400', fontSize: '40px'}}>Hello</h1> {/* 🇺🇸🇮🇱 שלום */}
-          <h2 style={{fontWeight: '400', fontSize: '20px'}}> My name is Moshe Malka</h2>
-          <img id="image" src="moshemalka.png" />
-          <ul id="social-media-icons">
-            <li>
-              <a
-                href="https://www.linkedin.com/in/moshenyc"
-                target="_blank"
-                ><img className="icon" src="linkedin-logo.svg" alt="LinkedIn"
-              /></a>
-            </li>
-            <li>
-              <a href="https://stackoverflow.com/users/7381252/moshe" target="_blank"
-                ><img className="icon" src="stackoverflow-logo.svg" alt="Stack Overflow"
-              /></a>
-            </li>
-            <li>
-              <a href="https://github.com/moshejs" target="_blank"
-                ><img className="icon" src="github-logo.svg" alt="GitHub"
-              /></a>
-            </li>
-          </ul>
-          {/* 🇮🇱 שלום , Israeli-American*/}
-          <p>I&apos;m a software visionary born in the dynamic heart of New York City, renowned for my exceptional ability to decode and harness complex patterns.</p>
-          <SplitTest elements={[CareerBlockA, CareerBlockB]} />
-
-          <p>I&apos;m the founder and CEO of <a style={{textDecoration: 'none'}} href='https://www.quentin.software' target='_blank'><b>Quentin Code</b></a> a firm that helps non-tech entrepreneurs architect digital solutions that transform their vision into a tangible, thriving reality.</p>
+        {/* HERO */}
+        <section className="pt-40 pb-40">
+          <div className="mm-mono text-sm" style={{ color: "var(--soft)" }}>
+            Moshe Malka
           </div>
-      </main>
 
-      {/* <Footer /> */}
+          <h1 className="mm-title mt-12 text-6xl md:text-8xl font-bold leading-[1.05]">
+            I like building
+            <br />
+            things that move.
+          </h1>
+
+          <p className="mt-16 text-2xl max-w-3xl" style={{ color: "var(--muted)" }}>
+            Capital moving across exchanges.
+            <br />
+            Data moving through pipelines.
+            <br />
+            Interfaces moving portfolios.
+            <br />
+            People moving across cities.
+          </p>
+        </section>
+
+        <Divider />
+
+        {/* GRID INTERSECTION */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-20 text-xl">
+
+          <div>
+            <div className="mm-mono text-xs" style={{ color: "var(--green)" }}>Trading</div>
+            <p className="mt-6" style={{ color: "var(--muted)" }}>
+              Arbitrage systems under 26ms.
+              Real-time volatility across 40+ exchanges.
+              Infrastructure where milliseconds change outcomes.
+            </p>
+          </div>
+
+          <div>
+            <div className="mm-mono text-xs" style={{ color: "var(--blue)" }}>Institutional Finance</div>
+            <p className="mt-6" style={{ color: "var(--muted)" }}>
+              Portfolio systems at Goldman.
+              Interfaces that brokers and high-net-worth clients rely on.
+              Precision, governance, responsibility.
+            </p>
+          </div>
+
+          <div>
+            <div className="mm-mono text-xs" style={{ color: "var(--gold)" }}>Real Estate</div>
+            <p className="mt-6" style={{ color: "var(--muted)" }}>
+              Operational platforms for coworking and physical space.
+              Software that touches real-world infrastructure.
+            </p>
+          </div>
+
+          <div>
+            <div className="mm-mono text-xs" style={{ color: "var(--violet)" }}>Modern Web & AI</div>
+            <p className="mt-6" style={{ color: "var(--muted)" }}>
+              NextJS, React, LangChain, GPT-4.
+              Tools that compress iteration cycles.
+              Product built fast, but built right.
+            </p>
+          </div>
+
+        </section>
+
+        <Divider />
+
+        {/* PERSONAL ENERGY */}
+        <section className="max-w-3xl pb-40">
+          <div className="mm-mono text-xs" style={{ color: "var(--soft)" }}>Energy</div>
+
+          <p className="mt-10 text-2xl leading-relaxed" style={{ color: "var(--muted)" }}>
+            I’m interested in leverage.
+            <br /><br />
+            Code that moves capital.
+            <br />
+            Systems that scale without drama.
+            <br />
+            Architecture that survives constraints.
+            <br /><br />
+            And environments that expand perspective.
+          </p>
+        </section>
+
+      </main>
     </div>
   );
 }
