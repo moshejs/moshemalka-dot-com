@@ -78,6 +78,45 @@ function Theme() {
         }
       }
 
+      @keyframes streamX {
+        0% {
+          transform: translateX(-130%) scaleX(0.9);
+          opacity: 0;
+        }
+        18% {
+          opacity: 0.75;
+        }
+        82% {
+          opacity: 0.75;
+        }
+        100% {
+          transform: translateX(130%) scaleX(1.08);
+          opacity: 0;
+        }
+      }
+
+      @keyframes pulseDot {
+        0%, 100% {
+          transform: scale(0.75);
+          opacity: 0.35;
+        }
+        50% {
+          transform: scale(1.18);
+          opacity: 1;
+        }
+      }
+
+      @keyframes waveBar {
+        0%, 100% {
+          transform: scaleY(0.25);
+          opacity: 0.4;
+        }
+        50% {
+          transform: scaleY(1);
+          opacity: 1;
+        }
+      }
+
       .mm-reveal {
         opacity: 0;
         animation: heroIn 850ms cubic-bezier(0.18, 0.8, 0.2, 1) forwards;
@@ -206,6 +245,66 @@ function Theme() {
         transform: scaleX(1);
       }
 
+      .mm-hero {
+        position: relative;
+        isolation: isolate;
+      }
+
+      .mm-hero-motion {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      .mm-stream {
+        position: absolute;
+        height: 2px;
+        border-radius: 9999px;
+        background: linear-gradient(90deg, transparent, rgba(77,163,255,0.9), rgba(0,245,160,0.4), transparent);
+        filter: drop-shadow(0 0 12px rgba(77,163,255,0.45));
+        animation: streamX var(--duration, 6s) linear var(--delay, 0s) infinite;
+      }
+
+      .mm-stream--soft {
+        background: linear-gradient(90deg, transparent, rgba(176,124,255,0.7), rgba(230,181,102,0.45), transparent);
+        filter: drop-shadow(0 0 10px rgba(176,124,255,0.35));
+      }
+
+      .mm-dot-lane {
+        position: absolute;
+        display: flex;
+        gap: 0.45rem;
+        align-items: center;
+      }
+
+      .mm-dot-lane span {
+        width: 6px;
+        height: 6px;
+        border-radius: 9999px;
+        background: rgba(255,255,255,0.8);
+        animation: pulseDot 2.2s ease-in-out infinite;
+        animation-delay: calc(var(--i, 0) * 110ms);
+      }
+
+      .mm-wave {
+        position: absolute;
+        display: flex;
+        align-items: end;
+        gap: 4px;
+        height: 28px;
+      }
+
+      .mm-wave span {
+        width: 3px;
+        height: 100%;
+        border-radius: 9999px;
+        transform-origin: bottom;
+        background: linear-gradient(180deg, rgba(0,245,160,0.95), rgba(77,163,255,0.55));
+        animation: waveBar 1.35s ease-in-out infinite;
+        animation-delay: calc(var(--i, 0) * 95ms);
+      }
+
       @media (prefers-reduced-motion: reduce) {
         .mm-reveal,
         .mm-grid::before,
@@ -215,7 +314,10 @@ function Theme() {
         .mm-chip,
         .mm-divider::after,
         .mm-hover-line,
-        .mm-hover-line::after {
+        .mm-hover-line::after,
+        .mm-stream,
+        .mm-dot-lane span,
+        .mm-wave span {
           animation: none !important;
           transition: none !important;
           transform: none !important;
@@ -279,7 +381,31 @@ export default function Home() {
       <main className="mx-auto max-w-5xl px-6 relative z-10">
 
         {/* HERO */}
-        <section className="pt-40 pb-40">
+        <section className="pt-40 pb-40 mm-hero">
+          <div className="mm-hero-motion" aria-hidden>
+            <div className="mm-stream" style={{ top: '18%', left: '-4%', width: '48%', ['--duration' as string]: '7.2s', ['--delay' as string]: '0.3s' }} />
+            <div className="mm-stream mm-stream--soft" style={{ top: '33%', left: '12%', width: '62%', ['--duration' as string]: '8.8s', ['--delay' as string]: '1.4s' }} />
+            <div className="mm-stream" style={{ top: '67%', left: '6%', width: '56%', ['--duration' as string]: '7.8s', ['--delay' as string]: '0.9s' }} />
+
+            <div className="mm-dot-lane" style={{ top: '26%', right: '4%' }}>
+              {Array.from({ length: 8 }).map((_, index) => (
+                <span key={`hero-dot-top-${index}`} style={{ ['--i' as string]: index }} />
+              ))}
+            </div>
+
+            <div className="mm-dot-lane" style={{ bottom: '18%', left: '0%' }}>
+              {Array.from({ length: 10 }).map((_, index) => (
+                <span key={`hero-dot-bottom-${index}`} style={{ ['--i' as string]: index + 2 }} />
+              ))}
+            </div>
+
+            <div className="mm-wave" style={{ right: '8%', bottom: '20%' }}>
+              {Array.from({ length: 12 }).map((_, index) => (
+                <span key={`hero-wave-${index}`} style={{ ['--i' as string]: index }} />
+              ))}
+            </div>
+          </div>
+
           <div className="mm-mono text-sm mm-reveal" style={{ color: "var(--soft)" }}>
             Moshe Malka
           </div>
