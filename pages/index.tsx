@@ -78,6 +78,39 @@ function Theme() {
         }
       }
 
+      @keyframes orbitSpin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
+      @keyframes nodePulse {
+        0%, 100% {
+          transform: scale(0.84);
+          opacity: 0.45;
+          box-shadow: 0 0 0 0 rgba(255,255,255,0.08);
+        }
+        50% {
+          transform: scale(1);
+          opacity: 0.95;
+          box-shadow: 0 0 0 18px rgba(255,255,255,0);
+        }
+      }
+
+      @keyframes streamFloat {
+        0% {
+          transform: translate3d(-16px, 0, 0);
+          opacity: 0.25;
+        }
+        50% {
+          transform: translate3d(16px, -8px, 0);
+          opacity: 0.8;
+        }
+        100% {
+          transform: translate3d(-16px, 0, 0);
+          opacity: 0.25;
+        }
+      }
+
       .mm-reveal {
         opacity: 0;
         animation: heroIn 850ms cubic-bezier(0.18, 0.8, 0.2, 1) forwards;
@@ -206,6 +239,73 @@ function Theme() {
         transform: scaleX(1);
       }
 
+      .mm-hero-wrap {
+        position: relative;
+      }
+
+      .mm-hero-orbit {
+        position: absolute;
+        right: -3rem;
+        top: 2rem;
+        width: min(42vw, 420px);
+        aspect-ratio: 1 / 1;
+        border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.12);
+        mask-image: radial-gradient(circle at center, transparent 53%, black 55%);
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      .mm-hero-orbit::before,
+      .mm-hero-orbit::after {
+        content: '';
+        position: absolute;
+        inset: 10%;
+        border: 1px dashed rgba(255,255,255,0.14);
+        border-radius: 50%;
+        animation: orbitSpin 24s linear infinite;
+      }
+
+      .mm-hero-orbit::after {
+        inset: 23%;
+        border-style: solid;
+        border-color: rgba(77,163,255,0.16);
+        animation-duration: 18s;
+        animation-direction: reverse;
+      }
+
+      .mm-orbit-node {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--ink);
+        animation: nodePulse 2.8s ease-in-out infinite;
+      }
+
+      .mm-orbit-node.a { top: 16%; left: 58%; animation-delay: 0.1s; }
+      .mm-orbit-node.b { top: 74%; left: 66%; animation-delay: 0.9s; background: var(--blue); }
+      .mm-orbit-node.c { top: 52%; left: 12%; animation-delay: 1.5s; background: var(--green); }
+
+      .mm-stream {
+        position: absolute;
+        right: 0;
+        bottom: -2rem;
+        display: grid;
+        gap: 0.65rem;
+        pointer-events: none;
+      }
+
+      .mm-stream-line {
+        height: 1px;
+        width: min(45vw, 340px);
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.42), transparent);
+        animation: streamFloat 8s ease-in-out infinite;
+      }
+
+      .mm-stream-line:nth-child(2) { animation-delay: 1s; width: min(36vw, 270px); }
+      .mm-stream-line:nth-child(3) { animation-delay: 1.8s; width: min(30vw, 220px); }
+
       @media (prefers-reduced-motion: reduce) {
         .mm-reveal,
         .mm-grid::before,
@@ -220,6 +320,29 @@ function Theme() {
           transition: none !important;
           transform: none !important;
           opacity: 1 !important;
+        }
+
+        .mm-hero-orbit,
+        .mm-hero-orbit::before,
+        .mm-hero-orbit::after,
+        .mm-stream-line,
+        .mm-orbit-node {
+          animation: none !important;
+        }
+      }
+
+      @media (max-width: 900px) {
+        .mm-hero-orbit,
+        .mm-stream {
+          opacity: 0.45;
+          right: -4rem;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .mm-hero-orbit,
+        .mm-stream {
+          display: none;
         }
       }
     `}</style>
@@ -279,7 +402,19 @@ export default function Home() {
       <main className="mx-auto max-w-5xl px-6 relative z-10">
 
         {/* HERO */}
-        <section className="pt-40 pb-40">
+        <section className="pt-40 pb-40 mm-hero-wrap">
+          <div className="mm-hero-orbit" aria-hidden>
+            <span className="mm-orbit-node a" />
+            <span className="mm-orbit-node b" />
+            <span className="mm-orbit-node c" />
+          </div>
+
+          <div className="mm-stream" aria-hidden>
+            <span className="mm-stream-line" />
+            <span className="mm-stream-line" />
+            <span className="mm-stream-line" />
+          </div>
+
           <div className="mm-mono text-sm mm-reveal" style={{ color: "var(--soft)" }}>
             Moshe Malka
           </div>
