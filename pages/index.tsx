@@ -62,6 +62,59 @@ function Theme() {
         }
       }
 
+      @keyframes heroGlow {
+        0%,
+        100% {
+          text-shadow: 0 0 0 rgba(77, 163, 255, 0);
+          filter: saturate(100%);
+        }
+        50% {
+          text-shadow: 0 0 26px rgba(77, 163, 255, 0.38), 0 0 42px rgba(0, 245, 160, 0.2);
+          filter: saturate(120%);
+        }
+      }
+
+      @keyframes heroWordPulse {
+        0%,
+        100% {
+          transform: translate3d(0, 0, 0) scale(1);
+          letter-spacing: -0.04em;
+        }
+        50% {
+          transform: translate3d(0, -2px, 0) scale(1.018);
+          letter-spacing: -0.028em;
+        }
+      }
+
+      @keyframes heroLineBreathe {
+        0%,
+        100% {
+          transform: translateX(0);
+          opacity: 0.68;
+        }
+        50% {
+          transform: translateX(7px);
+          opacity: 1;
+        }
+      }
+
+      @keyframes accentSweep {
+        0% {
+          transform: translateX(-130%);
+          opacity: 0;
+        }
+        20% {
+          opacity: 0.5;
+        }
+        70% {
+          opacity: 0.35;
+        }
+        100% {
+          transform: translateX(170%);
+          opacity: 0;
+        }
+      }
+
       @keyframes softSweep {
         0% { transform: translateX(-130%); }
         100% { transform: translateX(220%); }
@@ -91,6 +144,62 @@ function Theme() {
       .mm-grid {
         position: relative;
       }
+
+      .mm-hero-title {
+        position: relative;
+        display: inline-block;
+        animation: heroGlow 4.6s ease-in-out infinite;
+      }
+
+      .mm-hero-title::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -0.12em;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, rgba(77, 163, 255, 0.75), rgba(0, 245, 160, 0.75), transparent);
+        transform: translateX(-130%);
+        animation: accentSweep 5.4s ease-in-out infinite;
+      }
+
+      .mm-hero-word {
+        display: inline-block;
+        will-change: transform;
+        animation: heroWordPulse 3.2s cubic-bezier(0.18, 0.8, 0.2, 1) infinite;
+      }
+
+      .mm-hero-word.mm-hero-word-2 {
+        animation-delay: 320ms;
+      }
+
+      .mm-hero-lines {
+        display: grid;
+        gap: 0.3rem;
+      }
+
+      .mm-hero-line {
+        position: relative;
+        display: inline-block;
+        width: fit-content;
+        max-width: 100%;
+        animation: heroLineBreathe 4.8s ease-in-out infinite;
+      }
+
+      .mm-hero-line::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: -0.14em;
+        width: 100%;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(255,255,255,0.35), rgba(77, 163, 255, 0.7), transparent 85%);
+        opacity: 0.38;
+      }
+
+      .mm-hero-line-2 { animation-delay: 180ms; }
+      .mm-hero-line-3 { animation-delay: 360ms; }
+      .mm-hero-line-4 { animation-delay: 540ms; }
 
       .mm-grid::before {
         content: '';
@@ -209,6 +318,11 @@ function Theme() {
       @media (prefers-reduced-motion: reduce) {
         .mm-reveal,
         .mm-grid::before,
+        .mm-hero-title,
+        .mm-hero-title::after,
+        .mm-hero-word,
+        .mm-hero-line,
+        .mm-hero-line::after,
         .mm-card,
         .mm-card::before,
         .mm-card::after,
@@ -284,20 +398,17 @@ export default function Home() {
             Moshe Malka
           </div>
 
-          <h1 className="mm-title mt-12 text-6xl md:text-8xl font-bold leading-[1.05] mm-reveal mm-delay-1">
-            I like building
+          <h1 className="mm-title mm-hero-title mt-12 text-6xl md:text-8xl font-bold leading-[1.05] mm-reveal mm-delay-1">
+            I like <span className="mm-hero-word">building</span>
             <br />
-            things that move.
+            things that <span className="mm-hero-word mm-hero-word-2">move.</span>
           </h1>
 
-          <p className="mt-16 text-2xl max-w-3xl mm-reveal mm-delay-2" style={{ color: "var(--muted)" }}>
-            Capital moving across exchanges.
-            <br />
-            Data moving through pipelines.
-            <br />
-            Interfaces moving portfolios.
-            <br />
-            People moving across cities.
+          <p className="mm-hero-lines mt-16 text-2xl max-w-3xl mm-reveal mm-delay-2" style={{ color: "var(--muted)" }}>
+            <span className="mm-hero-line mm-hero-line-1">Capital moving across exchanges.</span>
+            <span className="mm-hero-line mm-hero-line-2">Data moving through pipelines.</span>
+            <span className="mm-hero-line mm-hero-line-3">Interfaces moving portfolios.</span>
+            <span className="mm-hero-line mm-hero-line-4">People moving across cities.</span>
           </p>
         </section>
 
