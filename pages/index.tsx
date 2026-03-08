@@ -62,6 +62,23 @@ function Theme() {
         }
       }
 
+      @keyframes gradientSlide {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+      @keyframes dataFlow {
+        0% { transform: translateX(-12%); opacity: 0.22; }
+        50% { opacity: 0.75; }
+        100% { transform: translateX(12%); opacity: 0.22; }
+      }
+
+      @keyframes pulseDot {
+        0%, 100% { transform: scale(0.9); opacity: 0.45; }
+        50% { transform: scale(1.45); opacity: 1; }
+      }
+
       @keyframes softSweep {
         0% { transform: translateX(-130%); }
         100% { transform: translateX(220%); }
@@ -206,6 +223,44 @@ function Theme() {
         transform: scaleX(1);
       }
 
+      .mm-hero-stage {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 18px;
+        padding: 1.2rem;
+        margin-top: 2rem;
+        background: linear-gradient(120deg, rgba(77,163,255,0.08), rgba(176,124,255,0.08), rgba(0,245,160,0.08));
+        background-size: 240% 240%;
+        animation: gradientSlide 16s ease infinite;
+      }
+
+      .mm-hero-track {
+        display: flex;
+        align-items: center;
+        gap: 1.15rem;
+        white-space: nowrap;
+        animation: dataFlow 7s ease-in-out infinite alternate;
+      }
+
+      .mm-flow-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        background: var(--ink);
+        box-shadow: 0 0 16px currentColor;
+        animation: pulseDot 1.3s ease-in-out infinite;
+      }
+
+      .mm-flow-dot:nth-child(4n + 1) { color: var(--green); animation-delay: 0ms; }
+      .mm-flow-dot:nth-child(4n + 2) { color: var(--blue); animation-delay: 220ms; }
+      .mm-flow-dot:nth-child(4n + 3) { color: var(--gold); animation-delay: 410ms; }
+      .mm-flow-dot:nth-child(4n + 4) { color: var(--violet); animation-delay: 620ms; }
+
+      .mm-hero-word {
+        color: rgba(255,255,255,0.72);
+      }
+
       @media (prefers-reduced-motion: reduce) {
         .mm-reveal,
         .mm-grid::before,
@@ -215,7 +270,10 @@ function Theme() {
         .mm-chip,
         .mm-divider::after,
         .mm-hover-line,
-        .mm-hover-line::after {
+        .mm-hover-line::after,
+        .mm-hero-stage,
+        .mm-hero-track,
+        .mm-flow-dot {
           animation: none !important;
           transition: none !important;
           transform: none !important;
@@ -299,6 +357,23 @@ export default function Home() {
             <br />
             People moving across cities.
           </p>
+
+          <div className="mm-hero-stage mm-reveal mm-delay-3">
+            <div className="mm-hero-track mm-mono text-xs">
+              <span className="mm-flow-dot" />
+              <span className="mm-hero-word">orders</span>
+              <span className="mm-flow-dot" />
+              <span className="mm-hero-word">signals</span>
+              <span className="mm-flow-dot" />
+              <span className="mm-hero-word">portfolios</span>
+              <span className="mm-flow-dot" />
+              <span className="mm-hero-word">product</span>
+              <span className="mm-flow-dot" />
+              <span className="mm-hero-word">people</span>
+              <span className="mm-flow-dot" />
+              <span className="mm-hero-word">systems</span>
+            </div>
+          </div>
         </section>
 
         <Divider />
