@@ -38,6 +38,24 @@ function Theme() {
         100% { transform: translate3d(0, 0, 0) scale(1); }
       }
 
+      @keyframes spinRing {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
+      @keyframes travelX {
+        0% { transform: translateX(-10%) scaleX(0.7); opacity: 0; }
+        20% { opacity: 0.8; }
+        80% { opacity: 0.8; }
+        100% { transform: translateX(140%) scaleX(1.1); opacity: 0; }
+      }
+
+      @keyframes riseParticle {
+        0% { transform: translate3d(0, 20px, 0) scale(0.8); opacity: 0; }
+        20% { opacity: 0.7; }
+        100% { transform: translate3d(-10px, -100px, 0) scale(1.2); opacity: 0; }
+      }
+
       @keyframes floatX {
         0% { transform: translateX(-2%); }
         50% { transform: translateX(2%); }
@@ -206,6 +224,72 @@ function Theme() {
         transform: scaleX(1);
       }
 
+      .mm-hero-motion {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+      }
+
+      .mm-hero-ring {
+        position: absolute;
+        right: 5%;
+        top: 14%;
+        width: min(38vw, 360px);
+        aspect-ratio: 1;
+        border-radius: 9999px;
+        border: 1px solid rgba(255,255,255,0.2);
+        box-shadow: inset 0 0 100px rgba(77,163,255,0.12);
+        animation: spinRing 24s linear infinite;
+      }
+
+      .mm-hero-ring::before,
+      .mm-hero-ring::after {
+        content: '';
+        position: absolute;
+        inset: 20%;
+        border-radius: inherit;
+        border: 1px dashed rgba(255,255,255,0.14);
+        animation: spinRing 18s linear infinite reverse;
+      }
+
+      .mm-hero-ring::after {
+        inset: 38%;
+        border-style: solid;
+        border-color: rgba(0,245,160,0.4);
+        animation-duration: 12s;
+      }
+
+      .mm-hero-stream {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent 0%, rgba(77,163,255,0.2) 35%, rgba(0,245,160,0.55) 50%, rgba(176,124,255,0.2) 70%, transparent 100%);
+        opacity: 0.75;
+      }
+
+      .mm-hero-stream::after {
+        content: '';
+        position: absolute;
+        width: 20%;
+        max-width: 180px;
+        min-width: 90px;
+        inset: 0 auto 0 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent);
+        animation: travelX 5.8s ease-in-out infinite;
+      }
+
+      .mm-hero-particle {
+        position: absolute;
+        width: 7px;
+        height: 7px;
+        border-radius: 9999px;
+        background: rgba(255,255,255,0.8);
+        box-shadow: 0 0 15px rgba(255,255,255,0.5);
+        animation: riseParticle 5.2s ease-in infinite;
+      }
+
       @media (prefers-reduced-motion: reduce) {
         .mm-reveal,
         .mm-grid::before,
@@ -215,7 +299,12 @@ function Theme() {
         .mm-chip,
         .mm-divider::after,
         .mm-hover-line,
-        .mm-hover-line::after {
+        .mm-hover-line::after,
+        .mm-hero-ring,
+        .mm-hero-ring::before,
+        .mm-hero-ring::after,
+        .mm-hero-stream::after,
+        .mm-hero-particle {
           animation: none !important;
           transition: none !important;
           transform: none !important;
@@ -280,6 +369,19 @@ export default function Home() {
 
         {/* HERO */}
         <section className="pt-40 pb-40">
+          <div className="mm-hero-motion" aria-hidden="true">
+            <div className="mm-hero-ring" />
+
+            <div className="mm-hero-stream" style={{ top: '22%' }} />
+            <div className="mm-hero-stream" style={{ top: '40%', opacity: 0.5 }} />
+            <div className="mm-hero-stream" style={{ top: '58%', opacity: 0.38 }} />
+
+            <div className="mm-hero-particle" style={{ left: '12%', bottom: '20%', animationDelay: '0s' }} />
+            <div className="mm-hero-particle" style={{ left: '28%', bottom: '14%', animationDelay: '1.4s', background: 'rgba(77,163,255,0.9)' }} />
+            <div className="mm-hero-particle" style={{ left: '42%', bottom: '18%', animationDelay: '2.3s', background: 'rgba(0,245,160,0.85)' }} />
+            <div className="mm-hero-particle" style={{ left: '58%', bottom: '12%', animationDelay: '0.8s', background: 'rgba(176,124,255,0.9)' }} />
+          </div>
+
           <div className="mm-mono text-sm mm-reveal" style={{ color: "var(--soft)" }}>
             Moshe Malka
           </div>
