@@ -63,6 +63,12 @@ function Theme() {
         --green:  var(--crystal);
         --violet: var(--steel);
 
+        /* Custom easing curves — built-in ease is too weak.
+           Use these everywhere; reserve linear for constant motion. */
+        --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
+        --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+        --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
         --cx: 50vw;
         --cy: 30vh;
       }
@@ -253,8 +259,10 @@ function Theme() {
         animation: tickerScroll 64s linear infinite;
         will-change: transform;
       }
-      .mm-ticker:hover .mm-ticker-track {
-        animation-play-state: paused;
+      @media (hover: hover) and (pointer: fine) {
+        .mm-ticker:hover .mm-ticker-track {
+          animation-play-state: paused;
+        }
       }
       @keyframes tickerScroll {
         from { transform: translate3d(0, 0, 0); }
@@ -298,7 +306,7 @@ function Theme() {
       .mm-candle {
         opacity: 0;
         transform-origin: center;
-        animation: candleIn 700ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        animation: candleIn 700ms var(--ease-out) forwards;
       }
       .mm-candle-wick {
         stroke: var(--accent, var(--crystal));
@@ -314,7 +322,9 @@ function Theme() {
         filter: drop-shadow(0 0 3px rgba(217, 52, 47, 0.35));
       }
       @keyframes candleIn {
-        0%   { opacity: 0; transform: scaleY(0); }
+        /* Start at scaleY(0.6), not 0 — nothing in the real world appears
+           from nothing. The candle should grow into place, not pop in. */
+        0%   { opacity: 0; transform: scaleY(0.6); }
         100% { opacity: 1; transform: scaleY(1); }
       }
       .mm-candle-baseline {
@@ -445,10 +455,12 @@ function Theme() {
         vertical-align: middle;
       }
       .mm-hold tbody tr {
-        transition: background-color 220ms ease;
+        transition: background-color 200ms var(--ease-out);
       }
-      .mm-hold tbody tr:hover {
-        background: rgba(255, 255, 255, 0.018);
+      @media (hover: hover) and (pointer: fine) {
+        .mm-hold tbody tr:hover {
+          background: rgba(255, 255, 255, 0.018);
+        }
       }
       .mm-hold-tkr {
         color: var(--ink);
@@ -530,12 +542,19 @@ function Theme() {
         letter-spacing: 0.18em;
         color: var(--muted);
         cursor: pointer;
-        transition: border-color 240ms ease, color 240ms ease, background 240ms ease;
+        transition:
+          border-color 220ms var(--ease-out),
+          color 220ms var(--ease-out),
+          background 220ms var(--ease-out),
+          transform 140ms var(--ease-out);
       }
-      .mm-audio:hover {
-        border-color: rgba(255, 255, 255, 0.18);
-        color: var(--ink);
+      @media (hover: hover) and (pointer: fine) {
+        .mm-audio:hover {
+          border-color: rgba(255, 255, 255, 0.18);
+          color: var(--ink);
+        }
       }
+      .mm-audio:active { transform: scale(0.97); }
       .mm-audio-icon {
         font-size: 12px;
         line-height: 1;
@@ -554,6 +573,11 @@ function Theme() {
         cursor: pointer;
         user-select: none;
       }
+      .mm-traj-row:focus-visible {
+        outline: 1px solid var(--accent, var(--steel));
+        outline-offset: -1px;
+        background: rgba(255, 255, 255, 0.022);
+      }
       .mm-traj-row[aria-expanded="true"] {
         background: rgba(255, 255, 255, 0.022);
         padding-left: 1.5rem;
@@ -564,7 +588,7 @@ function Theme() {
       }
       .mm-traj-row .mm-traj-chevron {
         display: inline-block;
-        transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        transition: transform 220ms var(--ease-out);
         color: var(--soft);
         font-size: 0.7rem;
         margin-left: 0.5rem;
@@ -724,8 +748,8 @@ function Theme() {
         border-bottom: 1px solid var(--line);
         position: relative;
         --accent: rgba(255, 255, 255, 0.5);
-        transition: padding-left 360ms cubic-bezier(0.2, 0.8, 0.2, 1),
-                    background-color 320ms ease;
+        transition: padding-left 220ms var(--ease-out),
+                    background-color 220ms var(--ease-out);
       }
       .mm-traj-row::before {
         content: "";
@@ -738,24 +762,30 @@ function Theme() {
         opacity: 0;
         transform: scaleY(0.3);
         transform-origin: center;
-        transition: opacity 320ms ease,
-                    transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        transition: opacity 220ms var(--ease-out),
+                    transform 280ms var(--ease-out);
       }
-      .mm-traj-row:hover {
-        padding-left: 1.5rem;
-        background: rgba(255, 255, 255, 0.018);
+      @media (hover: hover) and (pointer: fine) {
+        .mm-traj-row:hover {
+          padding-left: 1.5rem;
+          background: rgba(255, 255, 255, 0.018);
+        }
+        .mm-traj-row:hover::before { opacity: 1; transform: scaleY(1); }
       }
-      .mm-traj-row:hover::before { opacity: 1; transform: scaleY(1); }
+      /* Press feedback — clickable row should respond to a press */
+      .mm-traj-row:active { background: rgba(255, 255, 255, 0.04); }
 
       .mm-traj-year {
         color: var(--soft);
         letter-spacing: 0.18em;
         font-size: 11px;
-        transition: color 320ms ease, transform 320ms ease;
+        transition: color 220ms var(--ease-out), transform 220ms var(--ease-out);
       }
-      .mm-traj-row:hover .mm-traj-year {
-        color: var(--accent);
-        transform: translateX(2px);
+      @media (hover: hover) and (pointer: fine) {
+        .mm-traj-row:hover .mm-traj-year {
+          color: var(--accent);
+          transform: translateX(2px);
+        }
       }
       .mm-traj-co {
         color: var(--ink);
@@ -787,19 +817,21 @@ function Theme() {
         font-size: 0.85rem;
         letter-spacing: -0.005em;
         background: rgba(255, 255, 255, 0.018);
-        transition: color 280ms ease,
-                    border-color 280ms ease,
-                    transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1),
-                    background-color 280ms ease,
-                    box-shadow 280ms ease;
+        transition: color 200ms var(--ease-out),
+                    border-color 200ms var(--ease-out),
+                    transform 220ms var(--ease-out),
+                    background-color 200ms var(--ease-out),
+                    box-shadow 220ms var(--ease-out);
         cursor: default;
       }
-      .mm-tag:hover {
-        color: var(--ink);
-        border-color: rgba(255, 255, 255, 0.28);
-        background: rgba(255, 255, 255, 0.06);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      @media (hover: hover) and (pointer: fine) {
+        .mm-tag:hover {
+          color: var(--ink);
+          border-color: rgba(255, 255, 255, 0.28);
+          background: rgba(255, 255, 255, 0.06);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
       }
 
       /* ── Pull quote ───────────────────────────────────────── */
@@ -847,12 +879,13 @@ function Theme() {
         letter-spacing: -0.005em;
         --magx: 0px;
         --magy: 0px;
-        transform: translate3d(var(--magx), var(--magy), 0);
+        --press: 1;
+        transform: translate3d(var(--magx), var(--magy), 0) scale(var(--press));
         transition:
-          transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
-          border-color 320ms ease,
-          background 360ms ease,
-          box-shadow 360ms ease;
+          transform 200ms var(--ease-out),
+          border-color 220ms var(--ease-out),
+          background 220ms var(--ease-out),
+          box-shadow 220ms var(--ease-out);
         overflow: hidden;
       }
       .mm-cta::before {
@@ -862,27 +895,33 @@ function Theme() {
         border-radius: inherit;
         background: linear-gradient(120deg, var(--z-blue), var(--crystal), var(--lightning));
         opacity: 0;
-        transition: opacity 320ms ease;
+        transition: opacity 220ms var(--ease-out);
         z-index: -1;
         filter: blur(18px);
       }
-      .mm-cta:hover {
-        border-color: rgba(255, 255, 255, 0.32);
-        background:
-          linear-gradient(
-            120deg,
-            rgba(46, 111, 187, 0.28),
-            rgba(93, 187, 154, 0.22) 50%,
-            rgba(255, 164, 46, 0.28)
-          );
-        box-shadow: 0 14px 50px rgba(255, 164, 46, 0.22);
+      @media (hover: hover) and (pointer: fine) {
+        .mm-cta:hover {
+          border-color: rgba(255, 255, 255, 0.32);
+          background:
+            linear-gradient(
+              120deg,
+              rgba(46, 111, 187, 0.28),
+              rgba(93, 187, 154, 0.22) 50%,
+              rgba(255, 164, 46, 0.28)
+            );
+          box-shadow: 0 14px 50px rgba(255, 164, 46, 0.22);
+        }
+        .mm-cta:hover::before { opacity: 0.55; }
       }
-      .mm-cta:hover::before { opacity: 0.55; }
+      /* Compose with the magnetic + scale transform via custom prop */
+      .mm-cta:active { --press: 0.97; }
       .mm-cta-arrow {
         display: inline-block;
-        transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        transition: transform 200ms var(--ease-out);
       }
-      .mm-cta:hover .mm-cta-arrow { transform: translateX(5px); }
+      @media (hover: hover) and (pointer: fine) {
+        .mm-cta:hover .mm-cta-arrow { transform: translateX(5px); }
+      }
 
       /* ── Page-wide cursor spotlight ───────────────────────── */
       .mm-spotlight {
@@ -925,13 +964,19 @@ function Theme() {
         background: rgba(10, 12, 16, 0.55);
         backdrop-filter: blur(10px) saturate(140%);
         -webkit-backdrop-filter: blur(10px) saturate(140%);
-        transition: border-color 260ms ease, background-color 260ms ease, transform 260ms ease;
+        transition:
+          border-color 220ms var(--ease-out),
+          background-color 220ms var(--ease-out),
+          transform 160ms var(--ease-out);
       }
-      .mm-status:hover {
-        border-color: rgba(255, 255, 255, 0.16);
-        background: rgba(10, 12, 16, 0.7);
-        transform: translateY(-1px);
+      @media (hover: hover) and (pointer: fine) {
+        .mm-status:hover {
+          border-color: rgba(255, 255, 255, 0.16);
+          background: rgba(10, 12, 16, 0.7);
+          transform: translateY(-1px);
+        }
       }
+      .mm-status:active { transform: scale(0.97); }
       .mm-status-dot {
         width: 7px;
         height: 7px;
@@ -1006,8 +1051,8 @@ function Theme() {
         opacity: 0;
         transform: translateY(28px);
         transition:
-          opacity 900ms cubic-bezier(0.2, 0.8, 0.2, 1),
-          transform 900ms cubic-bezier(0.2, 0.8, 0.2, 1);
+          opacity 600ms var(--ease-out),
+          transform 600ms var(--ease-out);
         transition-delay: var(--mm-delay, 0ms);
         will-change: transform, opacity;
       }
@@ -1060,10 +1105,10 @@ function Theme() {
           rotateY(var(--ry));
         transform-style: preserve-3d;
         transition:
-          transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1),
-          border-color 320ms ease,
-          box-shadow 420ms ease,
-          background-color 320ms ease;
+          transform 240ms var(--ease-out),
+          border-color 220ms var(--ease-out),
+          box-shadow 240ms var(--ease-out),
+          background-color 220ms var(--ease-out);
         overflow: hidden;
       }
       .mm-card::before {
@@ -1076,7 +1121,7 @@ function Theme() {
           transparent 55%
         );
         opacity: 0;
-        transition: opacity 320ms ease;
+        transition: opacity 220ms var(--ease-out);
         pointer-events: none;
         border-radius: inherit;
         mix-blend-mode: screen;
@@ -1095,17 +1140,19 @@ function Theme() {
         pointer-events: none;
         border-radius: inherit;
       }
-      .mm-card:hover {
-        --ty: -6px;
-        border-color: color-mix(in oklab, var(--accent) 38%, rgba(255, 255, 255, 0.2));
-        box-shadow:
-          0 28px 70px rgba(0, 0, 0, 0.5),
-          0 0 60px color-mix(in oklab, var(--accent) 12%, transparent),
-          0 1px 0 rgba(255, 255, 255, 0.06) inset;
-        background-color: rgba(255, 255, 255, 0.022);
+      @media (hover: hover) and (pointer: fine) {
+        .mm-card:hover {
+          --ty: -6px;
+          border-color: color-mix(in oklab, var(--accent) 38%, rgba(255, 255, 255, 0.2));
+          box-shadow:
+            0 28px 70px rgba(0, 0, 0, 0.5),
+            0 0 60px color-mix(in oklab, var(--accent) 12%, transparent),
+            0 1px 0 rgba(255, 255, 255, 0.06) inset;
+          background-color: rgba(255, 255, 255, 0.022);
+        }
+        .mm-card:hover::before { opacity: 1; }
+        .mm-card:hover::after  { animation: softSweep 800ms var(--ease-out); }
       }
-      .mm-card:hover::before { opacity: 1; }
-      .mm-card:hover::after  { animation: softSweep 1.1s cubic-bezier(0.2, 0.8, 0.2, 1); }
 
       .mm-card-number {
         position: absolute;
@@ -1114,26 +1161,30 @@ function Theme() {
         font-size: 10px;
         letter-spacing: 0.22em;
         color: rgba(255, 255, 255, 0.22);
-        transition: color 360ms ease, transform 360ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        transition: color 200ms var(--ease-out), transform 200ms var(--ease-out);
         pointer-events: none;
       }
-      .mm-card:hover .mm-card-number {
-        color: var(--accent);
-        transform: translateX(-4px);
-        text-shadow: 0 0 16px color-mix(in oklab, var(--accent) 50%, transparent);
+      @media (hover: hover) and (pointer: fine) {
+        .mm-card:hover .mm-card-number {
+          color: var(--accent);
+          transform: translateX(-4px);
+          text-shadow: 0 0 16px color-mix(in oklab, var(--accent) 50%, transparent);
+        }
       }
 
       .mm-chip {
         display: inline-block;
         transition:
-          transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1),
-          text-shadow 320ms ease,
-          letter-spacing 320ms ease;
+          transform 200ms var(--ease-out),
+          text-shadow 200ms var(--ease-out),
+          letter-spacing 200ms var(--ease-out);
       }
-      .mm-card:hover .mm-chip {
-        transform: translateX(6px);
-        text-shadow: 0 0 18px rgba(255, 255, 255, 0.28);
-        letter-spacing: 0.18em;
+      @media (hover: hover) and (pointer: fine) {
+        .mm-card:hover .mm-chip {
+          transform: translateX(6px);
+          text-shadow: 0 0 18px rgba(255, 255, 255, 0.28);
+          letter-spacing: 0.18em;
+        }
       }
 
       /* ── Divider ──────────────────────────────────────────── */
@@ -1160,7 +1211,7 @@ function Theme() {
       .mm-hover-line {
         position: relative;
         display: inline-block;
-        transition: color 220ms ease;
+        transition: color 200ms var(--ease-out);
       }
       .mm-hover-line::after {
         content: "";
@@ -1173,12 +1224,14 @@ function Theme() {
         transform: scaleX(0.18);
         opacity: 0;
         transform-origin: left;
-        transition: transform 360ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 320ms ease;
+        transition: transform 260ms var(--ease-out), opacity 220ms var(--ease-out);
       }
-      .mm-hover-line:hover { color: rgba(255, 255, 255, 0.95); }
-      .mm-hover-line:hover::after {
-        opacity: 1;
-        transform: scaleX(1);
+      @media (hover: hover) and (pointer: fine) {
+        .mm-hover-line:hover { color: rgba(255, 255, 255, 0.95); }
+        .mm-hover-line:hover::after {
+          opacity: 1;
+          transform: scaleX(1);
+        }
       }
 
       /* ── Footer ───────────────────────────────────────────── */
@@ -1187,9 +1240,11 @@ function Theme() {
       }
       .mm-foot a {
         color: var(--muted);
-        transition: color 220ms ease;
+        transition: color 200ms var(--ease-out);
       }
-      .mm-foot a:hover { color: var(--ink); }
+      @media (hover: hover) and (pointer: fine) {
+        .mm-foot a:hover { color: var(--ink); }
+      }
 
       /* ── Reduced motion ───────────────────────────────────── */
       @media (prefers-reduced-motion: reduce) {
