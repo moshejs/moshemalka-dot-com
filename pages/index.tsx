@@ -340,6 +340,41 @@ function Theme() {
         fill: var(--soft);
         text-transform: uppercase;
       }
+      /* Live-tick marker — solid dot pulses gently in size, a hollow ring
+         radars outward and fades. Both scale from their own center via
+         transform-box: fill-box (SVG default origin is the viewport (0,0)). */
+      .mm-candle-live {
+        fill: var(--accent, var(--crystal));
+        transform-box: fill-box;
+        transform-origin: center;
+        opacity: 0;
+        filter: drop-shadow(0 0 2px color-mix(in oklab, var(--accent) 70%, transparent));
+        animation:
+          candleLiveIn 500ms var(--ease-out) forwards,
+          candleLivePulse 1.8s var(--ease-in-out) infinite;
+        animation-delay: 0ms, 500ms;
+      }
+      .mm-candle-ping {
+        fill: none;
+        stroke: var(--accent, var(--crystal));
+        stroke-width: 0.4;
+        transform-box: fill-box;
+        transform-origin: center;
+        opacity: 0;
+        animation: candleLivePing 1.8s var(--ease-out) infinite;
+      }
+      @keyframes candleLiveIn {
+        0%   { opacity: 0; transform: scale(0.4); }
+        100% { opacity: 1; transform: scale(1); }
+      }
+      @keyframes candleLivePulse {
+        0%, 100% { transform: scale(1);    opacity: 1;   }
+        50%      { transform: scale(1.25); opacity: 0.85; }
+      }
+      @keyframes candleLivePing {
+        0%       { opacity: 0.55; transform: scale(0.6); stroke-width: 0.5; }
+        70%, 100%{ opacity: 0;    transform: scale(2.6); stroke-width: 0.15; }
+      }
 
       /* ── Session pill (top-left — trading-session reframe) ── */
       .mm-session {
@@ -1273,6 +1308,8 @@ function Theme() {
         .mm-tag,
         .mm-ticker-track,
         .mm-candle,
+        .mm-candle-live,
+        .mm-candle-ping,
         .mm-session-dot,
         .mm-spec-live-dot,
         .mm-tear,
@@ -1494,11 +1531,11 @@ declare global {
 function ensureAudioModule() {
   if (typeof window === "undefined") return null;
   if (window.__mmAudio) return window.__mmAudio;
-  const stored =
-    typeof localStorage !== "undefined" && localStorage.getItem("mm-audio");
-  const enabled = stored === null ? true : stored === "on";
+  // Audio is ON by default at every page load. The toggle mutes only the
+  // current tab — no localStorage persistence, so a fresh visit always opts
+  // the user into the trading-floor sound bed.
   const mod: MMAudio = {
-    enabled,
+    enabled: true,
     ctx: null,
     play(freq, ms, vol = 0.07) {
       if (!this.enabled) return;
@@ -1548,9 +1585,6 @@ function AudioToggle() {
     const next = !on;
     m.enabled = next;
     setOn(next);
-    try {
-      localStorage.setItem("mm-audio", next ? "on" : "off");
-    } catch {}
     if (next) {
       // confirmation chord
       m.play(660, 70, 0.06);
@@ -1749,14 +1783,27 @@ function CandleChart({ accent = "var(--crystal)" }: { accent?: string }) {
           </g>
         );
       })}
-      {/* "live" marker on the latest candle */}
+      {/* Live-tick marker on the latest candle —
+          two layers: a solid dot + an expanding ping ring */}
       <circle
-        className="mm-candle"
+        className="mm-candle-ping"
         cx={lastCx}
         cy={last.bt - 0.6}
-        r={0.9}
-        fill="var(--accent, var(--crystal))"
-        style={{ animationDelay: `${CANDLES.length * 70 + 80}ms` }}
+        r={1.2}
+        style={{ animationDelay: `${CANDLES.length * 70 + 220}ms` }}
+      />
+      <circle
+        className="mm-candle-live"
+        cx={lastCx}
+        cy={last.bt - 0.6}
+        r={1}
+        style={{
+          // Two animations on this element — entry, then loop. Delays must be
+          // a matching comma-separated tuple so the loop starts after entry.
+          animationDelay: `${CANDLES.length * 70 + 80}ms, ${
+            CANDLES.length * 70 + 580
+          }ms`,
+        }}
       />
     </svg>
   );
@@ -2268,6 +2315,39 @@ export default function Home() {
     };
     document.body.addEventListener("mouseover", onOver);
     return () => document.body.removeEventListener("mouseover", onOver);
+  }, []);
+
+  // Browsers block AudioContext until a user gesture. Without this, the very
+  // first hover ticks are silent until the user happens to click an element
+  // that has its own audio handler. Listen once for any pointerdown / keydown
+  // anywhere on the document, force-create + resume the context inside that
+  // gesture, so subsequent hover ticks play immediately.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const prime = () => {
+      const m = ensureAudioModule();
+      if (!m) return;
+      try {
+        const Ctx =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext })
+            .webkitAudioContext;
+        if (!Ctx) return;
+        if (!m.ctx) m.ctx = new Ctx();
+        if (m.ctx.state === "suspended") m.ctx.resume();
+      } catch {
+        /* ignore — audio is best-effort */
+      }
+    };
+    const opts: AddEventListenerOptions = { once: true, passive: true };
+    document.addEventListener("pointerdown", prime, opts);
+    document.addEventListener("keydown", prime, opts);
+    document.addEventListener("touchstart", prime, opts);
+    return () => {
+      document.removeEventListener("pointerdown", prime);
+      document.removeEventListener("keydown", prime);
+      document.removeEventListener("touchstart", prime);
+    };
   }, []);
 
   return (
