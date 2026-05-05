@@ -2340,7 +2340,7 @@ export default function Home() {
         <Divider />
 
         {/* GRID INTERSECTION */}
-        <section className="mm-grid grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-24 text-xl">
+        <section className="mm-grid grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-20 text-xl">
           <Card chipColor="var(--lightning)" label="Trading" idx={0} chart>
             Arbitrage systems under 26ms. Real-time volatility across 40+
             exchanges. Infrastructure where milliseconds change outcomes.
@@ -2380,7 +2380,7 @@ export default function Home() {
           <SectionMarker>Energy</SectionMarker>
 
           <p
-            className="mt-10 text-2xl leading-relaxed"
+            className="mt-8 text-2xl leading-relaxed"
             style={{ color: "var(--muted)" }}
           >
             I’m interested in leverage.
