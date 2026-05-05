@@ -1923,7 +1923,7 @@ function PositionBook() {
   );
 
   return (
-    <section className="pb-12">
+    <section>
       <div className="mm-watch">
         <SectionMarker>Position Book · click to expand tear sheet</SectionMarker>
       </div>
@@ -1947,7 +1947,7 @@ function Holdings() {
   // Largest position weight, used to scale the bars to fill the column
   const max = Math.max(...HOLDINGS.map((h) => h.wt));
   return (
-    <section className="pb-12">
+    <section>
       <div className="mm-watch">
         <SectionMarker>Holdings · stack as fund allocation</SectionMarker>
       </div>
@@ -2157,7 +2157,7 @@ function Divider() {
 
 function FootNow() {
   return (
-    <footer className="mm-foot mm-watch mt-24 pt-12 pb-16">
+    <footer className="mm-foot mm-watch mt-16 pt-12 pb-16">
       <div className="flex flex-wrap items-end justify-between gap-10">
         <div className="max-w-md">
           <SectionMarker>Now</SectionMarker>
@@ -2376,7 +2376,7 @@ export default function Home() {
         <Divider />
 
         {/* PERSONAL ENERGY */}
-        <section className="max-w-3xl pb-40 mm-watch">
+        <section className="max-w-3xl pb-20 mm-watch">
           <SectionMarker>Energy</SectionMarker>
 
           <p
