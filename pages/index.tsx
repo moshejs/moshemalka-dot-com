@@ -1358,6 +1358,91 @@ function Theme() {
         }
       }
 
+      /* ── Trader signature (photo at end of Energy) ──────────── */
+      /* Avatar treatment: brushed-steel ring with a faint Milgauss
+         lightning halo on hover. Sits at the close of the Energy
+         section like an editorial author byline — the human behind
+         the trading desk metaphor. */
+      .mm-signature {
+        display: inline-flex;
+        align-items: center;
+        gap: 1.2rem;
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--line);
+        text-decoration: none;
+        color: inherit;
+      }
+      .mm-avatar {
+        position: relative;
+        width: 96px;
+        height: 96px;
+        border-radius: 999px;
+        overflow: hidden;
+        flex: 0 0 auto;
+        border: 1px solid rgba(184, 197, 214, 0.36);
+        background: rgba(255, 255, 255, 0.02);
+        box-shadow:
+          0 0 0 1px rgba(255, 164, 46, 0.16),
+          0 8px 28px rgba(0, 0, 0, 0.45);
+        transition:
+          box-shadow 280ms var(--ease-out),
+          transform 280ms var(--ease-out),
+          border-color 280ms var(--ease-out);
+      }
+      @media (min-width: 768px) {
+        .mm-avatar { width: 112px; height: 112px; }
+      }
+      .mm-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center 25%;
+        display: block;
+      }
+      .mm-avatar::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.04),
+          transparent 50%,
+          rgba(0, 0, 0, 0.18)
+        );
+        pointer-events: none;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .mm-signature:hover .mm-avatar {
+          transform: scale(1.05);
+          border-color: var(--lightning);
+          box-shadow:
+            0 0 0 1px rgba(255, 164, 46, 0.55),
+            0 14px 40px rgba(46, 111, 187, 0.36);
+        }
+        .mm-signature:hover .mm-signature-name {
+          color: var(--ink);
+        }
+      }
+      .mm-signature-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+      }
+      .mm-signature-name {
+        font-size: 1.1rem;
+        letter-spacing: -0.005em;
+        color: var(--muted);
+        transition: color 200ms var(--ease-out);
+      }
+      .mm-signature-locale {
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--soft);
+      }
+
       /* ── Footer ───────────────────────────────────────────── */
       .mm-foot {
         border-top: 1px solid var(--line);
@@ -1926,7 +2011,8 @@ function Theme() {
         .mm-movement,
         .mm-movement-flow-dot,
         .mm-fund-stat,
-        .mm-fund-key-dot {
+        .mm-fund-key-dot,
+        .mm-avatar {
           animation: none !important;
           transition: none !important;
           transform: none !important;
@@ -3676,6 +3762,34 @@ export default function Home() {
             <br /><br />
             And environments that expand perspective.
           </p>
+
+          <a
+            className="mm-signature"
+            href="https://www.linkedin.com/in/moshenyc/"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-tick="990"
+            data-tick-vol="0.022"
+            aria-label="Moshe Malka on LinkedIn"
+          >
+            <div className="mm-avatar">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/moshe.jpg"
+                alt="Moshe Malka"
+                width="112"
+                height="112"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <div className="mm-signature-meta">
+              <div className="mm-signature-name">Moshe Malka</div>
+              <div className="mm-signature-locale mm-mono">
+                NYC · est. 2014
+              </div>
+            </div>
+          </a>
         </section>
 
         <FootNow onOpenTicket={() => setTicketOpen(true)} />
