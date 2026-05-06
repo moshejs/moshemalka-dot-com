@@ -931,10 +931,10 @@ function Theme() {
       }
 
       /* ── City watermarks (micro-SVGs of NYC + MIA landmarks) ── */
-      /* Anchored to the page wrapper, so they pass by as the user
-         scrolls. Drawn at 6–9% opacity so they read as ambient
-         signature rather than ornament. NYC pieces are in steel +
-         lightning (yellow cab); MIA pieces are in mia-teal + mia-pink. */
+      /* Four hand-tuned silhouettes anchored to the page wrapper, so
+         they pass by as the user scrolls. Drawn at 6–9% opacity so
+         they read as ambient signature rather than ornament. NYC in
+         steel; MIA in mia-teal + mia-pink. */
       .mm-cities {
         position: absolute;
         inset: 0;
@@ -946,19 +946,17 @@ function Theme() {
         position: absolute;
         fill: currentColor;
       }
-      .mm-city-empire  { top:  4%; right:  4%; width: 56px; color: var(--steel);     opacity: 0.07; }
-      .mm-city-liberty { top: 30%; left:   3%; width: 50px; color: var(--steel);     opacity: 0.07; }
-      .mm-city-cab     { top: 92%; left:   5%; width: 78px; color: var(--lightning); opacity: 0.08; }
-      .mm-city-palm    { top: 17%; right:  2%; width: 62px; color: var(--mia-teal);  opacity: 0.09; }
-      .mm-city-deco    { top: 70%; right:  5%; width: 58px; color: var(--mia-pink);  opacity: 0.08; }
-      .mm-city-wave    { top: 50%; right:  3%; width: 80px; color: var(--mia-teal);  opacity: 0.06; }
+      .mm-city-skyline { top:  4%; right: 3%; width: 120px; color: var(--steel);    opacity: 0.07; }
+      .mm-city-bridge  { top: 44%; left:  2%; width: 130px; color: var(--steel);    opacity: 0.06; }
+      .mm-city-palm    { top: 22%; right: 2%; width:  82px; color: var(--mia-teal); opacity: 0.09; }
+      .mm-city-sun     { top: 72%; right: 4%; width:  92px; color: var(--mia-pink); opacity: 0.08; }
       @media (max-width: 640px) {
-        /* On phones the icons would crowd the narrower content well —
-           hide a couple and shrink the rest. */
-        .mm-city-cab, .mm-city-wave { display: none; }
-        .mm-city-empire, .mm-city-liberty, .mm-city-palm, .mm-city-deco {
-          width: 42px;
-        }
+        /* On phones the icons crowd the narrower content well — drop
+           the bridge (left margin is already tight) and shrink the rest. */
+        .mm-city-bridge { display: none; }
+        .mm-city-skyline { width: 80px; }
+        .mm-city-palm    { width: 56px; }
+        .mm-city-sun     { width: 64px; }
       }
 
       /* ── Page-wide cursor spotlight ───────────────────────── */
@@ -2451,80 +2449,72 @@ function AudioToggle() {
 }
 
 /* ── City watermarks · NYC + MIA micro-SVGs ──────────────────
-   Tiny landmark silhouettes scattered behind content as ambient
-   signature. All <80px, 6–9% opacity, decorative only. */
+   Four hand-tuned silhouettes scattered behind content as ambient
+   signature. Each is a single shape, drawn at 6–9% opacity so they
+   read as watermark, not ornament. */
 function CityIcons() {
   return (
     <div className="mm-cities" aria-hidden>
-      {/* NYC · Empire State Building — stepped silhouette + spire */}
-      <svg className="mm-city mm-city-empire" viewBox="0 0 80 180" xmlns="http://www.w3.org/2000/svg">
-        <rect x="38" y="0"   width="4"  height="22" />
-        <rect x="32" y="22"  width="16" height="14" />
-        <rect x="28" y="36"  width="24" height="10" />
-        <rect x="22" y="46"  width="36" height="50" />
-        <rect x="14" y="96"  width="52" height="84" />
+      {/* NYC · Skyline — varying-height buildings, one tapered tower */}
+      <svg className="mm-city mm-city-skyline" viewBox="0 0 140 80" xmlns="http://www.w3.org/2000/svg">
+        <path d="
+          M0 80 L0 56 L14 56 L14 44 L26 44 L26 56 L36 56
+          L36 30 L44 30 L44 18 L48 18 L48 8 L52 8 L52 0 L54 0
+          L54 8 L58 8 L58 18 L62 18 L62 30 L70 30 L70 56
+          L80 56 L80 36 L96 36 L96 56 L106 56 L106 22 L114 22
+          L114 56 L122 56 L122 48 L140 48 L140 80 Z
+        " />
       </svg>
 
-      {/* NYC · Statue of Liberty — torch raised, crown spikes */}
-      <svg className="mm-city mm-city-liberty" viewBox="0 0 80 200" xmlns="http://www.w3.org/2000/svg">
-        {/* pedestal */}
-        <rect x="20" y="180" width="40" height="20" />
-        <rect x="25" y="170" width="30" height="10" />
-        {/* robe */}
-        <path d="M30 110 L50 110 L55 170 L25 170 Z" />
-        {/* head */}
-        <circle cx="40" cy="100" r="8" />
-        {/* crown spikes */}
-        <polygon points="40,82 38,92 42,92" />
-        <polygon points="32,86 30,94 34,94" />
-        <polygon points="48,86 50,94 46,94" />
-        <polygon points="36,84 34,92 38,92" />
-        <polygon points="44,84 46,92 42,92" />
-        {/* raised torch arm */}
-        <rect x="48" y="65" width="4" height="40" />
-        <circle cx="50" cy="60" r="6" />
-        <polygon points="50,40 46,55 54,55" />
-        {/* tablet */}
-        <rect x="22" y="115" width="9" height="14" />
+      {/* NYC · Brooklyn Bridge — twin gothic towers + suspension cables */}
+      <svg className="mm-city mm-city-bridge" viewBox="0 0 140 70" xmlns="http://www.w3.org/2000/svg">
+        {/* left tower */}
+        <path d="M30 70 L30 22 Q30 14 34 14 L34 6 L36 6 L36 14 Q40 14 40 22 L40 70 Z" />
+        <path d="M32 50 L32 26 L34 26 L34 50 Z M36 50 L36 26 L38 26 L38 50 Z" fill="#060912" />
+        {/* right tower */}
+        <path d="M100 70 L100 22 Q100 14 104 14 L104 6 L106 6 L106 14 Q110 14 110 22 L110 70 Z" />
+        <path d="M102 50 L102 26 L104 26 L104 50 Z M106 50 L106 26 L108 26 L108 50 Z" fill="#060912" />
+        {/* main suspension cables (parabolic between towers) */}
+        <path d="M0 50 Q18 18 35 14 Q35 18 70 48 Q105 18 105 14 Q122 18 140 50"
+              stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+        {/* vertical suspenders */}
+        <path d="M48 32 L48 50 M58 42 L58 50 M70 48 L70 50 M82 42 L82 50 M92 32 L92 50"
+              stroke="currentColor" strokeWidth="0.6" />
+        {/* deck */}
+        <path d="M0 50 L140 50 L140 53 L0 53 Z" />
       </svg>
 
-      {/* NYC · Yellow cab — checker stripe across the body */}
-      <svg className="mm-city mm-city-cab" viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
-        <path d="M5 35 L20 18 L65 18 L80 30 L95 30 L95 45 L5 45 Z" />
-        <circle cx="22" cy="48" r="6" fill="#060912" />
-        <circle cx="22" cy="48" r="3" />
-        <circle cx="78" cy="48" r="6" fill="#060912" />
-        <circle cx="78" cy="48" r="3" />
-        <rect x="40" y="8"  width="20" height="6" />
+      {/* MIA · Palm tree — curved trunk + sweeping fronds + coconuts */}
+      <svg className="mm-city mm-city-palm" viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg">
+        {/* trunk */}
+        <path d="M50 48 C 42 70, 50 95, 46 138 L 56 138 C 52 95, 60 70, 50 48 Z" />
+        {/* fronds — 5 sweeping outward */}
+        <path d="M50 48 C 36 38, 18 36, 4 44 C 22 42, 38 48, 50 56 Z" />
+        <path d="M50 48 C 64 38, 82 36, 96 44 C 78 42, 62 48, 50 56 Z" />
+        <path d="M50 48 C 38 28, 24 12, 14 2 C 32 18, 44 36, 52 56 Z" />
+        <path d="M50 48 C 62 28, 76 12, 86 2 C 68 18, 56 36, 48 56 Z" />
+        <path d="M50 48 C 50 30, 46 14, 44 0 C 50 18, 52 36, 52 56 Z" />
+        {/* coconuts at the crown */}
+        <circle cx="46" cy="52" r="2.5" />
+        <circle cx="54" cy="54" r="2" />
       </svg>
 
-      {/* MIA · Palm tree — curved trunk, fronds spreading */}
-      <svg className="mm-city mm-city-palm" viewBox="0 0 80 160" xmlns="http://www.w3.org/2000/svg">
-        <path d="M38 50 Q34 100 36 158 L44 158 Q42 100 42 50 Z" />
-        <path d="M40 50 Q22 38  6 48 Q26 46 40 56 Z" />
-        <path d="M40 50 Q58 38 74 48 Q54 46 40 56 Z" />
-        <path d="M40 50 Q26 22 16  6 Q34 26 44 56 Z" />
-        <path d="M40 50 Q54 22 64  6 Q46 26 36 56 Z" />
-        <path d="M40 50 Q40 16 38  0 Q42 20 42 56 Z" />
-        <circle cx="42" cy="55" r="2" />
-        <circle cx="38" cy="58" r="2" />
-      </svg>
-
-      {/* MIA · Art Deco lifeguard tower — South Beach iconic */}
-      <svg className="mm-city mm-city-deco" viewBox="0 0 80 160" xmlns="http://www.w3.org/2000/svg">
-        <rect x="20" y="100" width="6"  height="60" />
-        <rect x="54" y="100" width="6"  height="60" />
-        <rect x="20" y="130" width="40" height="3"  />
-        <rect x="14" y="60"  width="52" height="40" />
-        <rect x="32" y="72"  width="16" height="14" fill="#060912" />
-        <polygon points="14,60 40,30 66,60" />
-        <rect    x="38" y="10" width="2" height="22" />
-        <polygon points="40,10 50,15 40,20" />
-      </svg>
-
-      {/* MIA · Wave — three crests, ocean line */}
-      <svg className="mm-city mm-city-wave" viewBox="0 0 100 28" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0 16 Q12 4 24 16 Q36 28 48 16 Q60 4 72 16 Q84 28 96 16 L100 16 L100 22 L0 22 Z" />
+      {/* MIA · Sun over wavy horizon — South Beach signature */}
+      <svg className="mm-city mm-city-sun" viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg">
+        {/* sun */}
+        <circle cx="60" cy="36" r="16" />
+        {/* sun rays */}
+        <path d="
+          M60 8  L60 14   M60 58 L60 64
+          M28 36 L34 36   M86 36 L92 36
+          M37 13 L41 17   M79 55 L83 59
+          M83 13 L79 17   M41 55 L37 59
+        " stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        {/* horizon water */}
+        <path d="
+          M0 70 Q15 65 30 70 Q45 75 60 70 Q75 65 90 70 Q105 75 120 70
+          L120 90 L0 90 Z
+        " />
       </svg>
     </div>
   );
