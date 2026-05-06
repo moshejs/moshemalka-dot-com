@@ -57,6 +57,11 @@ function Theme() {
         --steel:     #b8c5d6;
         --red:       #d9342f;
 
+        /* Miami after-hours pepper — used as accent stops in the
+           hero gradient and the energy-line hover sweep. Just a touch. */
+        --mia-pink:  #ff6b9d;
+        --mia-teal:  #4ecdc4;
+
         /* legacy aliases — keep mapping so existing references stay valid */
         --blue:   var(--z-blue);
         --gold:   var(--lightning);
@@ -165,10 +170,12 @@ function Theme() {
       .mm-grad-word {
         background: linear-gradient(
           120deg,
-          var(--z-blue)   0%,
-          var(--crystal)  35%,
-          var(--lightning) 65%,
-          var(--z-blue)   100%
+          var(--z-blue)    0%,
+          var(--crystal)   22%,
+          var(--mia-teal)  38%,
+          var(--lightning) 56%,
+          var(--mia-pink)  74%,
+          var(--z-blue)    100%
         );
         background-size: 240% 100%;
         background-position: 0% 50%;
@@ -1344,7 +1351,7 @@ function Theme() {
         bottom: -0.22em;
         width: 100%;
         height: 1px;
-        background: linear-gradient(90deg, var(--blue), rgba(0, 245, 160, 0.65), transparent);
+        background: linear-gradient(90deg, var(--blue), var(--mia-pink), var(--mia-teal), transparent);
         transform: scaleX(0.18);
         opacity: 0;
         transform-origin: left;
@@ -2264,8 +2271,8 @@ function HeroStats() {
       <div className="mm-spec-rule" />
       <div className="mm-spec" data-tick="1200">
         <div className="mm-spec-key">desk</div>
-        <div className="mm-spec-val">NYC</div>
-        <div className="mm-spec-ctx">since ’14</div>
+        <div className="mm-spec-val">NYC ↔ MIA</div>
+        <div className="mm-spec-ctx">dual desk · since ’14</div>
       </div>
       <div className="mm-spec-rule" />
       <div className="mm-spec" data-tick="1140">
@@ -2473,7 +2480,7 @@ function SessionStatus() {
     return (
       <div className="mm-session mm-mono mm-reveal" data-tick="1480" aria-hidden>
         <span className="mm-session-dot" />
-        <span className="mm-session-tkr">MM.NYC</span>
+        <span className="mm-session-tkr">MM.NYC.MIA</span>
         <span className="mm-tick-sep">·</span>
         <span className="mm-session-key">SESSION</span>
         <span className="mm-session-val">OPEN</span>
@@ -2488,7 +2495,7 @@ function SessionStatus() {
       aria-label={`Session open — ${up.years}y ${up.remDays}d`}
     >
       <span className="mm-session-dot" />
-      <span className="mm-session-tkr">MM.NYC</span>
+      <span className="mm-session-tkr">MM.NYC.MIA</span>
       <span className="mm-tick-sep">·</span>
       <span className="mm-session-key">SESSION</span>
       <span className="mm-session-val">
@@ -3162,7 +3169,7 @@ function TradeTicket({
           <TicketRow k="Quantity" v="1 INTRO" />
           <TicketRow k="Limit Px" v="$0.00" />
           <TicketRow k="TIF" v="GTC" />
-          <TicketRow k="Settlement" v="T+1 · NYC" />
+          <TicketRow k="Settlement" v="T+1 · NYC ↔ MIA" />
           <TicketRow k="Venue" v="hello@moshemalka.com" />
         </div>
         <div className="mm-ticket-foot">
@@ -3526,7 +3533,7 @@ function FootNow({ onOpenTicket }: { onOpenTicket: () => void }) {
         className="mt-12 pt-8 flex flex-wrap items-center justify-between gap-4 text-[11px] mm-mono"
         style={{ color: "var(--soft)", borderTop: "1px solid var(--line)" }}
       >
-        <span>Moshe Malka · NYC · 2026</span>
+        <span>Moshe Malka · NYC ↔ MIA · 2026</span>
         <span>Full-stack engineer · TypeScript · Next.js · Node</span>
       </div>
     </footer>
