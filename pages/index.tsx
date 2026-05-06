@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, type ReactNode } from "react";
+import React, { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Head from "next/head";
 import Script from "next/script";
 import { Inter, JetBrains_Mono } from "next/font/google";
@@ -1246,6 +1246,502 @@ function Theme() {
         .mm-foot a:hover { color: var(--ink); }
       }
 
+      /* ── Order-type badges (MKT · LMT · GTC · RFQ) ─────────── */
+      .mm-ordtype {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.06rem 0.36rem;
+        margin-right: 0.5rem;
+        font-family: var(--font-mono), ui-monospace, monospace;
+        font-size: 9px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        color: var(--soft);
+        background: rgba(255, 255, 255, 0.018);
+        vertical-align: 1px;
+        line-height: 1.4;
+        transition:
+          color 200ms var(--ease-out),
+          border-color 200ms var(--ease-out),
+          background 200ms var(--ease-out);
+      }
+      .mm-ordtype[data-type="MKT"] {
+        color: var(--lightning);
+        border-color: rgba(255, 164, 46, 0.34);
+        background: rgba(255, 164, 46, 0.07);
+      }
+      .mm-ordtype[data-type="LMT"] {
+        color: var(--z-blue);
+        border-color: rgba(46, 111, 187, 0.40);
+        background: rgba(46, 111, 187, 0.08);
+      }
+      .mm-ordtype[data-type="GTC"] {
+        color: var(--crystal);
+        border-color: rgba(93, 187, 154, 0.36);
+        background: rgba(93, 187, 154, 0.07);
+      }
+      .mm-ordtype[data-type="RFQ"] {
+        color: var(--steel);
+        border-color: rgba(184, 197, 214, 0.24);
+        background: rgba(184, 197, 214, 0.05);
+      }
+
+      /* ── Settlement microcopy (under email CTA) ────────────── */
+      .mm-settle {
+        font-family: var(--font-mono), ui-monospace, monospace;
+        font-size: 9.5px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--soft);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .mm-settle::before {
+        content: "";
+        width: 5px;
+        height: 5px;
+        border-radius: 999px;
+        background: var(--crystal);
+        box-shadow: 0 0 6px rgba(93, 187, 154, 0.6);
+        animation: settlePulse 2.4s ease-in-out infinite;
+      }
+      @keyframes settlePulse {
+        0%, 100% { opacity: 0.65; transform: scale(1); }
+        50%      { opacity: 1;    transform: scale(1.15); }
+      }
+
+      /* ── Fund-stats banner (above Holdings table) ──────────── */
+      .mm-fund-stats {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: stretch;
+        gap: 0;
+        padding: 0.85rem 0;
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 0.6rem;
+        background:
+          linear-gradient(
+            180deg,
+            rgba(46, 111, 187, 0.04),
+            rgba(0, 0, 0, 0.18)
+          );
+      }
+      .mm-fund-stat {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.2rem;
+        padding: 0 1.1rem;
+        border-right: 1px solid var(--line);
+        flex: 1 1 auto;
+        min-width: 110px;
+      }
+      .mm-fund-stat:last-child { border-right: none; }
+      .mm-fund-stat:first-child { padding-left: 0.5rem; }
+      .mm-fund-key {
+        font-size: 9.5px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--soft);
+      }
+      .mm-fund-val {
+        font-family: var(--font-mono), ui-monospace, monospace;
+        font-variant-numeric: tabular-nums;
+        font-size: 0.92rem;
+        letter-spacing: 0.04em;
+        color: var(--ink);
+      }
+      .mm-fund-val.mm-fund-pos { color: var(--crystal); }
+
+      /* ── Trade-ticket modal (email CTA confirmation) ───────── */
+      .mm-ticket-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        background: rgba(6, 9, 18, 0.72);
+        backdrop-filter: blur(8px) saturate(120%);
+        -webkit-backdrop-filter: blur(8px) saturate(120%);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 220ms var(--ease-out);
+      }
+      .mm-ticket-overlay[data-open="true"] {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .mm-ticket {
+        position: relative;
+        width: 100%;
+        max-width: 480px;
+        background:
+          linear-gradient(
+            180deg,
+            rgba(20, 28, 46, 0.96),
+            rgba(8, 12, 22, 0.96)
+          );
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        border-radius: 6px;
+        box-shadow:
+          0 30px 80px rgba(0, 0, 0, 0.55),
+          0 0 0 1px rgba(255, 164, 46, 0.06),
+          0 0 60px rgba(46, 111, 187, 0.18);
+        font-family: var(--font-mono), ui-monospace, monospace;
+        transform: translateY(8px) scale(0.985);
+        transition:
+          transform 280ms var(--ease-out),
+          opacity 220ms var(--ease-out);
+        opacity: 0;
+      }
+      .mm-ticket-overlay[data-open="true"] .mm-ticket {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+      .mm-ticket-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.85rem 1.1rem;
+        border-bottom: 1px solid var(--line);
+        background: linear-gradient(180deg, rgba(255, 164, 46, 0.06), transparent);
+      }
+      .mm-ticket-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        font-size: 10px;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: var(--lightning);
+      }
+      .mm-ticket-title::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: var(--lightning);
+        box-shadow: 0 0 8px rgba(255, 164, 46, 0.8);
+        animation: settlePulse 2.4s ease-in-out infinite;
+      }
+      .mm-ticket-tkr {
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        color: var(--soft);
+      }
+      .mm-ticket-close {
+        background: transparent;
+        border: 1px solid transparent;
+        color: var(--soft);
+        font-size: 18px;
+        line-height: 1;
+        width: 26px;
+        height: 26px;
+        border-radius: 4px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          color 200ms var(--ease-out),
+          border-color 200ms var(--ease-out),
+          background 200ms var(--ease-out);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .mm-ticket-close:hover {
+          color: var(--ink);
+          border-color: var(--line);
+          background: rgba(255, 255, 255, 0.04);
+        }
+      }
+      .mm-ticket-body {
+        padding: 0.4rem 1.1rem 1rem;
+      }
+      .mm-ticket-row {
+        display: grid;
+        grid-template-columns: 110px 1fr;
+        gap: 0.6rem;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.025);
+      }
+      .mm-ticket-row:last-child { border-bottom: none; }
+      .mm-ticket-key {
+        font-size: 9.5px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--soft);
+      }
+      .mm-ticket-val {
+        font-size: 0.84rem;
+        letter-spacing: 0.06em;
+        color: var(--ink);
+      }
+      .mm-ticket-val[data-side="BUY"]   { color: var(--crystal); }
+      .mm-ticket-val[data-side="MKT"]   { color: var(--lightning); }
+      .mm-ticket-val[data-side="ACCENT"]{ color: var(--lightning); }
+      .mm-ticket-foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.8rem;
+        padding: 0.85rem 1.1rem;
+        border-top: 1px solid var(--line);
+        background: linear-gradient(180deg, transparent, rgba(46, 111, 187, 0.05));
+      }
+      .mm-ticket-hint {
+        font-size: 9px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--soft);
+      }
+      .mm-ticket-hint kbd {
+        display: inline-block;
+        padding: 0.06rem 0.34rem;
+        margin-right: 0.3rem;
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.025);
+        color: var(--muted);
+        font-family: inherit;
+        font-size: 9px;
+      }
+      .mm-ticket-submit {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.55rem 0.9rem;
+        font-size: 10px;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        color: #060912;
+        background: linear-gradient(120deg, var(--lightning), #ffc46a);
+        border: 1px solid rgba(255, 164, 46, 0.6);
+        border-radius: 4px;
+        cursor: pointer;
+        text-decoration: none;
+        transition:
+          transform 160ms var(--ease-out),
+          box-shadow 220ms var(--ease-out),
+          background 220ms var(--ease-out);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .mm-ticket-submit:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 10px 30px rgba(255, 164, 46, 0.32);
+          background: linear-gradient(120deg, #ffb958, var(--lightning));
+        }
+      }
+      .mm-ticket-submit:active { transform: translateY(0) scale(0.98); }
+
+      /* ── Cmd+K Bloomberg-style command terminal ─────────────── */
+      .mm-term-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 70;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 8vh 1.5rem 1.5rem;
+        background: rgba(6, 9, 18, 0.72);
+        backdrop-filter: blur(8px) saturate(120%);
+        -webkit-backdrop-filter: blur(8px) saturate(120%);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 220ms var(--ease-out);
+      }
+      .mm-term-overlay[data-open="true"] {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .mm-term {
+        width: 100%;
+        max-width: 560px;
+        background:
+          linear-gradient(180deg, rgba(12, 16, 28, 0.97), rgba(6, 10, 20, 0.97));
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 6px;
+        box-shadow:
+          0 30px 80px rgba(0, 0, 0, 0.6),
+          0 0 60px rgba(46, 111, 187, 0.16);
+        font-family: var(--font-mono), ui-monospace, monospace;
+        overflow: hidden;
+        transform: translateY(-12px);
+        opacity: 0;
+        transition:
+          transform 240ms var(--ease-out),
+          opacity 200ms var(--ease-out);
+      }
+      .mm-term-overlay[data-open="true"] .mm-term {
+        transform: translateY(0);
+        opacity: 1;
+      }
+      .mm-term-input-row {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.85rem 1rem;
+        border-bottom: 1px solid var(--line);
+      }
+      .mm-term-prompt {
+        font-size: 11px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--lightning);
+        white-space: nowrap;
+      }
+      .mm-term-input {
+        flex: 1 1 auto;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--ink);
+        font-family: inherit;
+        font-size: 0.95rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 0;
+      }
+      .mm-term-input::placeholder {
+        color: var(--soft);
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        font-size: 0.78rem;
+      }
+      .mm-term-go {
+        font-size: 9.5px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--soft);
+      }
+      .mm-term-go kbd {
+        display: inline-block;
+        padding: 0.06rem 0.34rem;
+        margin-left: 0.3rem;
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.025);
+        color: var(--muted);
+        font-family: inherit;
+        font-size: 9px;
+      }
+      .mm-term-list {
+        list-style: none;
+        margin: 0;
+        padding: 0.4rem 0;
+        max-height: 50vh;
+        overflow-y: auto;
+      }
+      .mm-term-item {
+        display: grid;
+        grid-template-columns: 96px 1fr auto;
+        gap: 0.8rem;
+        align-items: center;
+        padding: 0.55rem 1rem;
+        cursor: pointer;
+        border-left: 2px solid transparent;
+        transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out);
+      }
+      .mm-term-item[data-active="true"] {
+        background: rgba(255, 164, 46, 0.06);
+        border-left-color: var(--lightning);
+      }
+      .mm-term-tkr {
+        font-size: 0.78rem;
+        letter-spacing: 0.14em;
+        color: var(--ink);
+      }
+      .mm-term-desc {
+        font-size: 0.78rem;
+        color: var(--muted);
+        text-transform: none;
+        letter-spacing: 0;
+      }
+      .mm-term-cmd {
+        font-size: 9.5px;
+        letter-spacing: 0.2em;
+        color: var(--soft);
+      }
+      .mm-term-empty {
+        padding: 1rem;
+        color: var(--soft);
+        font-size: 0.78rem;
+        text-align: center;
+      }
+      .mm-term-foot {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.55rem 1rem;
+        border-top: 1px solid var(--line);
+        font-size: 9px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--soft);
+      }
+      .mm-term-foot kbd {
+        display: inline-block;
+        padding: 0.06rem 0.34rem;
+        margin-right: 0.3rem;
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.025);
+        color: var(--muted);
+        font-family: inherit;
+        font-size: 9px;
+      }
+
+      /* ── Hint pill (Cmd+K nudge in StatusPill area) ─────────── */
+      .mm-cmdk-hint {
+        position: fixed;
+        bottom: 1.3rem;
+        left: 1.4rem;
+        z-index: 30;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+        background: rgba(6, 9, 18, 0.55);
+        backdrop-filter: blur(10px) saturate(140%);
+        -webkit-backdrop-filter: blur(10px) saturate(140%);
+        font-family: var(--font-mono), ui-monospace, monospace;
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+        cursor: pointer;
+        transition:
+          color 220ms var(--ease-out),
+          border-color 220ms var(--ease-out),
+          background 220ms var(--ease-out),
+          transform 140ms var(--ease-out);
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .mm-cmdk-hint:hover {
+          color: var(--ink);
+          border-color: rgba(255, 255, 255, 0.18);
+        }
+      }
+      .mm-cmdk-hint:active { transform: scale(0.97); }
+      .mm-cmdk-hint kbd {
+        display: inline-block;
+        padding: 0.06rem 0.34rem;
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.04);
+        font-family: inherit;
+        font-size: 9px;
+        color: var(--ink);
+      }
+
       /* ── Reduced motion ───────────────────────────────────── */
       @media (prefers-reduced-motion: reduce) {
         .mm-reveal,
@@ -1276,7 +1772,11 @@ function Theme() {
         .mm-session-dot,
         .mm-spec-live-dot,
         .mm-tear,
-        .mm-hold-bar-fill {
+        .mm-hold-bar-fill,
+        .mm-settle::before,
+        .mm-ticket,
+        .mm-ticket-title::before,
+        .mm-term {
           animation: none !important;
           transition: none !important;
           transform: none !important;
@@ -1532,6 +2032,34 @@ function ensureAudioModule() {
   return mod;
 }
 
+/* ── Haptic feedback (Web Vibration API) ───────────────────── */
+/* No-ops on iOS Safari + desktop. Subtle by design — finance UIs
+   should feel like a quote-tick, not a phone notification. */
+
+type HapticPattern = "tick" | "tap" | "chunk" | "fill" | "pulse";
+
+const HAPTIC_PATTERNS: Record<HapticPattern, number | number[]> = {
+  pulse: 5,
+  tick:  10,
+  tap:   16,
+  chunk: [12, 28, 18],
+  fill:  [14, 22, 12, 22, 26],
+};
+
+function haptic(pattern: HapticPattern) {
+  if (typeof navigator === "undefined") return;
+  if (typeof window === "undefined") return;
+  const nav = navigator as Navigator & { vibrate?: (p: number | number[]) => boolean };
+  if (typeof nav.vibrate !== "function") return;
+  // Respect the OS-level reduced-motion preference — vibration is motion.
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+  try {
+    nav.vibrate(HAPTIC_PATTERNS[pattern]);
+  } catch {
+    /* swallow — some browsers throw on certain patterns */
+  }
+}
+
 function AudioToggle() {
   const [on, setOn] = React.useState(true);
   const [mounted, setMounted] = React.useState(false);
@@ -1548,6 +2076,7 @@ function AudioToggle() {
     const next = !on;
     m.enabled = next;
     setOn(next);
+    haptic("tick");
     try {
       localStorage.setItem("mm-audio", next ? "on" : "off");
     } catch {}
@@ -1887,10 +2416,16 @@ function PositionBook() {
   const toggle = (id: string, side: Position["side"]) => {
     const next = expanded === id ? null : id;
     setExpanded(next);
+    if (next) {
+      // Expand → directional fill (audio + haptic both follow the same
+      // OPEN/CLOSED/META split).
+      haptic(side === "OPEN" ? "chunk" : side === "CLOSED" ? "tap" : "chunk");
+    } else {
+      haptic("tick");
+    }
     if (typeof window === "undefined" || !window.__mmAudio) return;
     const m = window.__mmAudio;
     if (next) {
-      // expand → "fill" sound, directional by side
       if (side === "OPEN") {
         // BUY fill — rising 2-tone (low → high)
         m.play(660, 55, 0.06);
@@ -1923,7 +2458,7 @@ function PositionBook() {
   );
 
   return (
-    <section>
+    <section id="position-book">
       <div className="mm-watch">
         <SectionMarker>Position Book · click to expand tear sheet</SectionMarker>
       </div>
@@ -1946,12 +2481,54 @@ function PositionBook() {
 function Holdings() {
   // Largest position weight, used to scale the bars to fill the column
   const max = Math.max(...HOLDINGS.map((h) => h.wt));
+
+  // Aggregate stats — read like a fund factsheet. Numbers are derived, not
+  // hardcoded, so they stay in sync if HOLDINGS changes.
+  const names = HOLDINGS.length;
+  const gross = HOLDINGS.reduce((s, h) => s + h.wt, 0);
+  const live = HOLDINGS.filter((h) => h.mark === "LIVE").reduce(
+    (s, h) => s + h.wt,
+    0
+  );
+  const held = gross - live;
+  const avgTenor =
+    HOLDINGS.reduce((s, h) => s + parseFloat(h.tenor), 0) / names;
+  const top = [...HOLDINGS].sort((a, b) => b.wt - a.wt)[0];
+
   return (
-    <section>
+    <section id="holdings">
       <div className="mm-watch">
         <SectionMarker>Holdings · stack as fund allocation</SectionMarker>
       </div>
       <div className="mt-8 mm-watch">
+        <div className="mm-fund-stats" aria-label="Fund factsheet">
+          <div className="mm-fund-stat">
+            <span className="mm-fund-key">Gross</span>
+            <span className="mm-fund-val">{gross.toFixed(1)}%</span>
+          </div>
+          <div className="mm-fund-stat">
+            <span className="mm-fund-key">Live</span>
+            <span className="mm-fund-val mm-fund-pos">
+              {live.toFixed(1)}%
+            </span>
+          </div>
+          <div className="mm-fund-stat">
+            <span className="mm-fund-key">Held</span>
+            <span className="mm-fund-val">{held.toFixed(1)}%</span>
+          </div>
+          <div className="mm-fund-stat">
+            <span className="mm-fund-key">Names</span>
+            <span className="mm-fund-val">{names}</span>
+          </div>
+          <div className="mm-fund-stat">
+            <span className="mm-fund-key">Avg Tenor</span>
+            <span className="mm-fund-val">{avgTenor.toFixed(1)}Y</span>
+          </div>
+          <div className="mm-fund-stat">
+            <span className="mm-fund-key">Top</span>
+            <span className="mm-fund-val">{top.tkr.toUpperCase()}</span>
+          </div>
+        </div>
         <table className="mm-hold">
           <thead>
             <tr>
@@ -2040,9 +2617,13 @@ function ScrollProgress() {
 function MagneticCTA({
   href,
   children,
+  onClick,
+  external = true,
 }: {
   href: string;
   children: ReactNode;
+  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+  external?: boolean;
 }) {
   const ref = useRef<HTMLAnchorElement>(null);
   const handleMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -2064,13 +2645,14 @@ function MagneticCTA({
     <a
       ref={ref}
       href={href}
-      target="_blank"
-      rel="noopener noreferrer"
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
       className="mm-cta"
       data-tick="990"
       data-tick-vol="0.025"
       onMouseMove={handleMove}
       onMouseLeave={handleLeave}
+      onClick={onClick}
     >
       <span>{children}</span>
       <span className="mm-cta-arrow" aria-hidden>
@@ -2155,7 +2737,400 @@ function Divider() {
   );
 }
 
-function FootNow() {
+/* ── Trade ticket modal — email CTA confirmation ──────────── */
+
+function TicketRow({
+  k,
+  v,
+  accent,
+}: {
+  k: string;
+  v: string;
+  accent?: "BUY" | "MKT" | "ACCENT";
+}) {
+  return (
+    <div className="mm-ticket-row">
+      <span className="mm-ticket-key">{k}</span>
+      <span className="mm-ticket-val" data-side={accent}>
+        {v}
+      </span>
+    </div>
+  );
+}
+
+function TradeTicket({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
+  const submitRef = useRef<HTMLAnchorElement>(null);
+  const lastFocused = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    lastFocused.current = (document.activeElement as HTMLElement) ?? null;
+    // Focus submit so Enter immediately fires the mailto.
+    window.setTimeout(() => submitRef.current?.focus(), 60);
+
+    // Open ticket → "ka-chunk" haptic + rising BUY fill audio.
+    haptic("chunk");
+    if (window.__mmAudio) {
+      const m = window.__mmAudio;
+      m.play(660, 55, 0.06);
+      window.setTimeout(() => m.play(990, 70, 0.05), 65);
+    }
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      lastFocused.current?.focus?.();
+    };
+  }, [open, onClose]);
+
+  const handleSubmit = () => {
+    // Submit fill → punchy multi-buzz, paired with the 3-tone chord.
+    haptic("fill");
+    if (window.__mmAudio) {
+      const m = window.__mmAudio;
+      m.play(660, 50, 0.06);
+      window.setTimeout(() => m.play(880, 50, 0.055), 60);
+      window.setTimeout(() => m.play(1320, 80, 0.05), 130);
+    }
+    // Close after the mailto fires so we don't lose focus mid-handoff.
+    window.setTimeout(onClose, 80);
+  };
+
+  return (
+    <div
+      className="mm-ticket-overlay"
+      data-open={open}
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="mm-ticket-title"
+      aria-hidden={!open}
+    >
+      <div className="mm-ticket" onClick={(e) => e.stopPropagation()}>
+        <div className="mm-ticket-head">
+          <span id="mm-ticket-title" className="mm-ticket-title">
+            Trade Ticket · MM.NYC
+          </span>
+          <button
+            className="mm-ticket-close"
+            type="button"
+            aria-label="Close trade ticket"
+            onClick={() => {
+              haptic("tick");
+              onClose();
+            }}
+          >
+            ×
+          </button>
+        </div>
+        <div className="mm-ticket-body">
+          <TicketRow k="Side" v="BUY" accent="BUY" />
+          <TicketRow k="Ticker" v="MM.NYC.HELLO" />
+          <TicketRow k="Order Type" v="MARKET" accent="MKT" />
+          <TicketRow k="Quantity" v="1 INTRO" />
+          <TicketRow k="Limit Px" v="$0.00" />
+          <TicketRow k="TIF" v="GTC" />
+          <TicketRow k="Settlement" v="T+1 · NYC" />
+          <TicketRow k="Venue" v="hello@moshemalka.com" />
+        </div>
+        <div className="mm-ticket-foot">
+          <span className="mm-ticket-hint">
+            <kbd>Esc</kbd>Cancel
+          </span>
+          <a
+            ref={submitRef}
+            className="mm-ticket-submit"
+            href="mailto:hello@moshemalka.com?subject=Hello%20%E2%80%94%20MM.NYC&body=%2F%2F%20fill%20at%20will%0A%0A"
+            onClick={handleSubmit}
+          >
+            Submit Fill →
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Cmd+K Bloomberg-style command terminal ────────────────── */
+
+type TermCmd = {
+  tkr: string;
+  desc: string;
+  match: string[];
+  exec: () => void;
+  closeAfter?: boolean;
+};
+
+function CmdTerminal({
+  open,
+  onClose,
+  onOpenTicket,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onOpenTicket: () => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [activeIdx, setActiveIdx] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const cmds: TermCmd[] = useMemo(() => {
+    const scrollToId = (id: string) => {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+    return [
+      {
+        tkr: "BOOK",
+        desc: "Position book — open + closed positions",
+        match: ["book", "positions", "position", "trading", "trad", "jobs", "career"],
+        exec: () => scrollToId("position-book"),
+      },
+      {
+        tkr: "STACK",
+        desc: "Holdings — fund allocation of the tech stack",
+        match: ["stack", "holdings", "tech", "fund", "allocation", "languages"],
+        exec: () => scrollToId("holdings"),
+      },
+      {
+        tkr: "ENERGY",
+        desc: "Energy — what I'm interested in",
+        match: ["energy", "interest", "leverage", "about"],
+        exec: () => scrollToId("energy"),
+      },
+      {
+        tkr: "MM.NYC",
+        desc: "Hero — top of the page",
+        match: ["mm", "top", "home", "hero", "moshe"],
+        exec: () => window.scrollTo({ top: 0, behavior: "smooth" }),
+      },
+      {
+        tkr: "EMAIL",
+        desc: "Open trade ticket → hello@moshemalka.com",
+        match: ["email", "mail", "contact", "hello", "ticket", "buy", "hire"],
+        exec: () => onOpenTicket(),
+      },
+      {
+        tkr: "LI",
+        desc: "LinkedIn → linkedin.com/in/moshenyc",
+        match: ["li", "linkedin"],
+        exec: () =>
+          window.open(
+            "https://www.linkedin.com/in/moshenyc/",
+            "_blank",
+            "noopener,noreferrer"
+          ),
+      },
+      {
+        tkr: "GH",
+        desc: "GitHub → github.com/moshejs",
+        match: ["gh", "github", "code"],
+        exec: () =>
+          window.open(
+            "https://github.com/moshejs",
+            "_blank",
+            "noopener,noreferrer"
+          ),
+      },
+      {
+        tkr: "SO",
+        desc: "Stack Overflow → users/7381252/moshe",
+        match: ["so", "stack overflow", "stackoverflow", "answers"],
+        exec: () =>
+          window.open(
+            "https://stackoverflow.com/users/7381252/moshe",
+            "_blank",
+            "noopener,noreferrer"
+          ),
+      },
+      {
+        tkr: "AUDIO",
+        desc: "Toggle hover ticks + trade-fill sounds",
+        match: ["audio", "sound", "mute", "unmute", "tick"],
+        exec: () =>
+          document.querySelector<HTMLButtonElement>(".mm-audio")?.click(),
+      },
+    ];
+  }, [onOpenTicket]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return cmds;
+    return cmds.filter(
+      (c) =>
+        c.tkr.toLowerCase().includes(q) ||
+        c.match.some((m) => m.toLowerCase().includes(q))
+    );
+  }, [query, cmds]);
+
+  useEffect(() => {
+    if (!open) return;
+    setQuery("");
+    setActiveIdx(0);
+    window.setTimeout(() => inputRef.current?.focus(), 60);
+    haptic("tap");
+    if (window.__mmAudio) {
+      // Terminal-on triple click: rising
+      const m = window.__mmAudio;
+      m.play(880, 30, 0.04);
+      window.setTimeout(() => m.play(1320, 30, 0.035), 50);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    setActiveIdx(0);
+  }, [query]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        haptic("tick");
+        onClose();
+        return;
+      }
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setActiveIdx((i) => {
+          const next = Math.min(i + 1, Math.max(filtered.length - 1, 0));
+          if (next !== i) haptic("pulse");
+          return next;
+        });
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setActiveIdx((i) => {
+          const next = Math.max(i - 1, 0);
+          if (next !== i) haptic("pulse");
+          return next;
+        });
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        const c = filtered[activeIdx];
+        if (!c) return;
+        haptic("chunk");
+        onClose();
+        // Defer the action so the overlay tear-down doesn't steal focus
+        // from a popup window or the trade-ticket modal that follows.
+        window.setTimeout(() => c.exec(), 60);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, filtered, activeIdx, onClose]);
+
+  return (
+    <div
+      className="mm-term-overlay"
+      data-open={open}
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Command terminal"
+      aria-hidden={!open}
+    >
+      <div className="mm-term" onClick={(e) => e.stopPropagation()}>
+        <div className="mm-term-input-row">
+          <span className="mm-term-prompt" aria-hidden>
+            {"<MM.NYC>"}
+          </span>
+          <input
+            ref={inputRef}
+            className="mm-term-input"
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="ticker or keyword — book, stack, email, gh"
+            autoComplete="off"
+            spellCheck={false}
+            aria-label="Command query"
+          />
+          <span className="mm-term-go" aria-hidden>
+            <kbd>↵</kbd>GO
+          </span>
+        </div>
+        {filtered.length === 0 ? (
+          <div className="mm-term-empty">
+            No match · try BOOK · STACK · EMAIL · GH
+          </div>
+        ) : (
+          <ul className="mm-term-list" role="listbox">
+            {filtered.map((c, i) => (
+              <li
+                key={c.tkr}
+                className="mm-term-item"
+                data-active={i === activeIdx}
+                onMouseEnter={() => setActiveIdx(i)}
+                onClick={() => {
+                  haptic("chunk");
+                  onClose();
+                  window.setTimeout(() => c.exec(), 60);
+                }}
+                role="option"
+                aria-selected={i === activeIdx}
+              >
+                <span className="mm-term-tkr mm-mono">{c.tkr}</span>
+                <span className="mm-term-desc">{c.desc}</span>
+                <span className="mm-term-cmd mm-mono" aria-hidden>↵</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="mm-term-foot">
+          <span>
+            <kbd>↑↓</kbd>nav
+          </span>
+          <span>
+            <kbd>↵</kbd>execute
+          </span>
+          <span>
+            <kbd>esc</kbd>close
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CmdHint({ onOpen }: { onOpen: () => void }) {
+  // Detect mac so we show ⌘ instead of Ctrl
+  const [isMac, setIsMac] = useState(false);
+  useEffect(() => {
+    if (typeof navigator === "undefined") return;
+    setIsMac(/Mac|iPod|iPhone|iPad/.test(navigator.platform));
+  }, []);
+  return (
+    <button
+      type="button"
+      className="mm-cmdk-hint"
+      onClick={() => {
+        haptic("tap");
+        onOpen();
+      }}
+      aria-label="Open command terminal"
+      data-tick="1100"
+      data-tick-vol="0.018"
+    >
+      <kbd>{isMac ? "⌘" : "Ctrl"}</kbd>
+      <kbd>K</kbd>
+      <span>Terminal</span>
+    </button>
+  );
+}
+
+function FootNow({ onOpenTicket }: { onOpenTicket: () => void }) {
   return (
     <footer className="mm-foot mm-watch mt-16 pt-12 pb-16">
       <div className="flex flex-wrap items-end justify-between gap-10">
@@ -2173,9 +3148,22 @@ function FootNow() {
           </div>
         </div>
         <div className="flex flex-col items-start md:items-end gap-4">
-          <MagneticCTA href="mailto:hello@moshemalka.com">
-            hello@moshemalka.com
-          </MagneticCTA>
+          <div className="flex flex-col items-start md:items-end gap-2">
+            <MagneticCTA
+              href="mailto:hello@moshemalka.com"
+              external={false}
+              onClick={(e) => {
+                e.preventDefault();
+                onOpenTicket();
+              }}
+            >
+              <span className="mm-ordtype" data-type="MKT" aria-hidden>MKT</span>
+              hello@moshemalka.com
+            </MagneticCTA>
+            <div className="mm-settle" data-tick="660" data-tick-vol="0.014">
+              T+1 · NYC Hours
+            </div>
+          </div>
           <div className="flex items-center gap-5 text-sm">
             <a
               className="mm-hover-line"
@@ -2185,6 +3173,7 @@ function FootNow() {
               rel="noopener noreferrer"
               style={{ color: "var(--muted)" }}
             >
+              <span className="mm-ordtype" data-type="LMT" aria-hidden>LMT</span>
               LinkedIn
             </a>
             <a
@@ -2195,6 +3184,7 @@ function FootNow() {
               rel="noopener noreferrer"
               style={{ color: "var(--muted)" }}
             >
+              <span className="mm-ordtype" data-type="GTC" aria-hidden>GTC</span>
               GitHub
             </a>
             <a
@@ -2205,6 +3195,7 @@ function FootNow() {
               rel="noopener noreferrer"
               style={{ color: "var(--muted)" }}
             >
+              <span className="mm-ordtype" data-type="RFQ" aria-hidden>RFQ</span>
               Stack Overflow
             </a>
           </div>
@@ -2223,6 +3214,9 @@ function FootNow() {
 }
 
 export default function Home() {
+  const [ticketOpen, setTicketOpen] = useState(false);
+  const [terminalOpen, setTerminalOpen] = useState(false);
+
   // Reveal-on-scroll for everything tagged .mm-watch
   useEffect(() => {
     const els = document.querySelectorAll<HTMLElement>(".mm-watch");
@@ -2270,6 +3264,22 @@ export default function Home() {
     return () => document.body.removeEventListener("mouseover", onOver);
   }, []);
 
+  // Cmd+K (or Ctrl+K) — Bloomberg-style terminal palette.
+  // We catch it globally and ignore when the user is in another input so
+  // typing in any future field doesn't hijack their text.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const isToggle =
+        (e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K");
+      if (!isToggle) return;
+      e.preventDefault();
+      haptic("tap");
+      setTerminalOpen((v) => !v);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
     <div
       className={`${sans.variable} ${mono.variable} mm-sans min-h-screen text-white relative overflow-hidden`}
@@ -2289,6 +3299,20 @@ export default function Home() {
       <SessionStatus />
       <StatusPill />
       <AudioToggle />
+      <CmdHint onOpen={() => setTerminalOpen(true)} />
+
+      <TradeTicket
+        open={ticketOpen}
+        onClose={() => setTicketOpen(false)}
+      />
+      <CmdTerminal
+        open={terminalOpen}
+        onClose={() => setTerminalOpen(false)}
+        onOpenTicket={() => {
+          setTerminalOpen(false);
+          window.setTimeout(() => setTicketOpen(true), 80);
+        }}
+      />
 
       <div className="container">
         <Script src="https://www.googletagmanager.com/gtag/js?id=G-L1ETKYXNV4" />
@@ -2376,7 +3400,7 @@ export default function Home() {
         <Divider />
 
         {/* PERSONAL ENERGY */}
-        <section className="max-w-3xl pb-20 mm-watch">
+        <section id="energy" className="max-w-3xl pb-20 mm-watch">
           <SectionMarker>Energy</SectionMarker>
 
           <p
@@ -2401,7 +3425,7 @@ export default function Home() {
           </p>
         </section>
 
-        <FootNow />
+        <FootNow onOpenTicket={() => setTicketOpen(true)} />
 
       </main>
     </div>
