@@ -1032,6 +1032,43 @@ function Theme() {
         will-change: transform, opacity, filter;
       }
 
+      /* ── Rotating verb (slot-machine style) ────────────────── */
+      /* Reuses the same overflow:hidden trick as .mm-line so each word
+         slides into the slot from below — like a quote refresh on a
+         trading screen. */
+      .mm-rotor {
+        display: inline-block;
+        height: 1.04em;
+        line-height: 1.04;
+        overflow: hidden;
+        vertical-align: bottom;
+        /* Every rotated word is 5–6 chars and the rotor sits at the end
+           of the line, so width changes don't push other text. */
+      }
+      .mm-rotor-inner {
+        display: block;
+        transform: translateY(calc(-1.04em * var(--idx, 0)));
+        transition: transform 620ms cubic-bezier(0.77, 0, 0.175, 1);
+        will-change: transform;
+      }
+      .mm-rotor-word {
+        display: block;
+        height: 1.04em;
+        line-height: 1.04;
+        white-space: nowrap;
+      }
+      .mm-rotor-sr {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
       /* ── Generic eased reveal (top-of-page elements) ──────── */
       @keyframes heroIn {
         from { opacity: 0; transform: translateY(18px); filter: blur(6px); }
@@ -1776,7 +1813,8 @@ function Theme() {
         .mm-settle::before,
         .mm-ticket,
         .mm-ticket-title::before,
-        .mm-term {
+        .mm-term,
+        .mm-rotor-inner {
           animation: none !important;
           transition: none !important;
           transform: none !important;
@@ -1869,6 +1907,66 @@ function StatusPill() {
   );
 }
 
+/* Words the hero verb cycles through — each carries a finance double
+   meaning (move/fill/ship/scale/yield) so the hero "moves" both
+   literally (slot-machine motion) and conceptually. Keep all 5–6 chars
+   so the line doesn't reflow as the word swaps. */
+const HERO_VERBS = ["move.", "fill.", "ship.", "scale.", "yield."] as const;
+
+function RotatingWord({
+  words,
+  interval = 2800,
+  startDelay = 1700,
+}: {
+  words: readonly string[];
+  interval?: number;
+  startDelay?: number;
+}) {
+  const [idx, setIdx] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+    // Wait for the entrance animation to settle before cycling, then
+    // tick on the given interval. Pause when the tab is hidden so the
+    // user doesn't return to a stale-feeling word jumping around.
+    let intervalId: number | null = null;
+    let started = false;
+    const startCycling = () => {
+      if (started) return;
+      started = true;
+      intervalId = window.setInterval(() => {
+        if (document.hidden) return;
+        setIdx((i) => (i + 1) % words.length);
+      }, interval);
+    };
+    const startTimeoutId = window.setTimeout(startCycling, startDelay);
+    return () => {
+      window.clearTimeout(startTimeoutId);
+      if (intervalId !== null) window.clearInterval(intervalId);
+    };
+  }, [words.length, interval, startDelay]);
+
+  return (
+    <span className="mm-rotor">
+      <span
+        className="mm-rotor-inner"
+        style={{ ["--idx" as string]: idx }}
+        aria-hidden
+      >
+        {words.map((w, i) => (
+          <span key={i} className="mm-rotor-word mm-grad-word">
+            {w}
+          </span>
+        ))}
+      </span>
+      <span className="mm-rotor-sr">{words[idx]}</span>
+    </span>
+  );
+}
+
 function HeroHeading() {
   const lineOne = ["I", "like", "building"];
   const lineTwo = ["things", "that"];
@@ -1905,10 +2003,10 @@ function HeroHeading() {
           </React.Fragment>
         ))}
         <span
-          className="mm-word mm-grad-word"
+          className="mm-word"
           style={{ animationDelay: `${base + (totalCount - 1) * step + 120}ms` }}
         >
-          move.
+          <RotatingWord words={HERO_VERBS} />
         </span>
       </span>
     </h1>
