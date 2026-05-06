@@ -1438,6 +1438,9 @@ function Theme() {
       }
 
       /* ── Fund-stats banner (above Holdings table) ──────────── */
+      /* Banner bg kept very light (2% blue tint) so the page-wide
+         cursor spotlight reads through it rather than being dimmed
+         like a "stuck" patch over Holdings. */
       .mm-fund-stats {
         display: flex;
         flex-wrap: wrap;
@@ -1447,12 +1450,7 @@ function Theme() {
         border-top: 1px solid var(--line);
         border-bottom: 1px solid var(--line);
         margin-bottom: 0.6rem;
-        background:
-          linear-gradient(
-            180deg,
-            rgba(46, 111, 187, 0.04),
-            rgba(0, 0, 0, 0.18)
-          );
+        background: rgba(46, 111, 187, 0.02);
       }
       .mm-fund-stat {
         display: flex;
@@ -1463,6 +1461,13 @@ function Theme() {
         border-right: 1px solid var(--line);
         flex: 1 1 auto;
         min-width: 110px;
+        opacity: 0;
+        transform: translateY(4px);
+        animation: fundStatIn 540ms cubic-bezier(0.18, 0.8, 0.2, 1) forwards;
+        animation-delay: var(--mm-delay, 0ms);
+      }
+      @keyframes fundStatIn {
+        to { opacity: 1; transform: translateY(0); }
       }
       .mm-fund-stat:last-child { border-right: none; }
       .mm-fund-stat:first-child { padding-left: 0.5rem; }
@@ -1471,6 +1476,22 @@ function Theme() {
         letter-spacing: 0.22em;
         text-transform: uppercase;
         color: var(--soft);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .mm-fund-key-dot {
+        display: inline-block;
+        width: 5px;
+        height: 5px;
+        border-radius: 999px;
+        background: var(--crystal);
+        box-shadow: 0 0 6px rgba(93, 187, 154, 0.65);
+        animation: fundLivePulse 2.4s ease-in-out infinite;
+      }
+      @keyframes fundLivePulse {
+        0%, 100% { opacity: 0.55; transform: scale(1);    }
+        50%      { opacity: 1;    transform: scale(1.18); }
       }
       .mm-fund-val {
         font-family: var(--font-mono), ui-monospace, monospace;
@@ -1903,7 +1924,9 @@ function Theme() {
         .mm-term,
         .mm-rotor-inner,
         .mm-movement,
-        .mm-movement-flow-dot {
+        .mm-movement-flow-dot,
+        .mm-fund-stat,
+        .mm-fund-key-dot {
           animation: none !important;
           transition: none !important;
           transform: none !important;
@@ -2423,17 +2446,19 @@ function CountUp({
   duration = 1300,
   suffix = "",
   prefix = "",
+  decimals = 0,
 }: {
   to: number;
   duration?: number;
   suffix?: string;
   prefix?: string;
+  decimals?: number;
 }) {
   const [val, setVal] = React.useState(0);
 
   useEffect(() => {
     // For very small targets the ramp would just flicker — skip the animation.
-    if (to <= 1) {
+    if (to <= 1 && decimals === 0) {
       setVal(to);
       return;
     }
@@ -2441,16 +2466,16 @@ function CountUp({
     const id = window.setInterval(() => {
       const t = Math.min((Date.now() - start) / duration, 1);
       const eased = 1 - Math.pow(1 - t, 3);
-      setVal(Math.round(eased * to));
+      setVal(eased * to);
       if (t >= 1) clearInterval(id);
     }, 30);
     return () => clearInterval(id);
-  }, [to, duration]);
+  }, [to, duration, decimals]);
 
   return (
     <span className="mm-count">
       {prefix}
-      {val}
+      {decimals > 0 ? val.toFixed(decimals) : Math.round(val)}
       {suffix}
     </span>
   );
@@ -2684,7 +2709,7 @@ function PositionBook() {
   );
 
   return (
-    <section id="position-book">
+    <section id="position-book" className="mt-16">
       <div className="mm-watch">
         <SectionMarker>Position Book · click to expand tear sheet</SectionMarker>
       </div>
@@ -2728,29 +2753,40 @@ function Holdings() {
       </div>
       <div className="mt-8 mm-watch">
         <div className="mm-fund-stats" aria-label="Fund factsheet">
-          <div className="mm-fund-stat">
+          <div className="mm-fund-stat" style={{ ["--mm-delay" as string]: "0ms" }}>
             <span className="mm-fund-key">Gross</span>
-            <span className="mm-fund-val">{gross.toFixed(1)}%</span>
-          </div>
-          <div className="mm-fund-stat">
-            <span className="mm-fund-key">Live</span>
-            <span className="mm-fund-val mm-fund-pos">
-              {live.toFixed(1)}%
+            <span className="mm-fund-val">
+              <CountUp to={gross} suffix="%" decimals={1} duration={1100} />
             </span>
           </div>
-          <div className="mm-fund-stat">
+          <div className="mm-fund-stat" style={{ ["--mm-delay" as string]: "70ms" }}>
+            <span className="mm-fund-key">
+              <span className="mm-fund-key-dot" aria-hidden />
+              Live
+            </span>
+            <span className="mm-fund-val mm-fund-pos">
+              <CountUp to={live} suffix="%" decimals={1} duration={1300} />
+            </span>
+          </div>
+          <div className="mm-fund-stat" style={{ ["--mm-delay" as string]: "140ms" }}>
             <span className="mm-fund-key">Held</span>
-            <span className="mm-fund-val">{held.toFixed(1)}%</span>
+            <span className="mm-fund-val">
+              <CountUp to={held} suffix="%" decimals={1} duration={900} />
+            </span>
           </div>
-          <div className="mm-fund-stat">
+          <div className="mm-fund-stat" style={{ ["--mm-delay" as string]: "210ms" }}>
             <span className="mm-fund-key">Names</span>
-            <span className="mm-fund-val">{names}</span>
+            <span className="mm-fund-val">
+              <CountUp to={names} duration={900} />
+            </span>
           </div>
-          <div className="mm-fund-stat">
+          <div className="mm-fund-stat" style={{ ["--mm-delay" as string]: "280ms" }}>
             <span className="mm-fund-key">Avg Tenor</span>
-            <span className="mm-fund-val">{avgTenor.toFixed(1)}Y</span>
+            <span className="mm-fund-val">
+              <CountUp to={avgTenor} suffix="Y" decimals={1} duration={1200} />
+            </span>
           </div>
-          <div className="mm-fund-stat">
+          <div className="mm-fund-stat" style={{ ["--mm-delay" as string]: "350ms" }}>
             <span className="mm-fund-key">Top</span>
             <span className="mm-fund-val">{top.tkr.toUpperCase()}</span>
           </div>
@@ -3562,7 +3598,7 @@ export default function Home() {
       <main className="mx-auto max-w-5xl px-6 relative z-10">
 
         {/* HERO */}
-        <section className="pt-32 md:pt-40 pb-32 md:pb-40">
+        <section className="pt-28 md:pt-36 pb-8 md:pb-12">
           <div className="mm-reveal">
             <SectionMarker>Moshe Malka — Senior Software Engineer</SectionMarker>
           </div>
