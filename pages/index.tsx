@@ -1358,89 +1358,61 @@ function Theme() {
         }
       }
 
-      /* ── Trader signature (photo at end of Energy) ──────────── */
-      /* Avatar treatment: brushed-steel ring with a faint Milgauss
-         lightning halo on hover. Sits at the close of the Energy
-         section like an editorial author byline — the human behind
-         the trading desk metaphor. */
-      .mm-signature {
-        display: inline-flex;
-        align-items: center;
-        gap: 1.2rem;
-        margin-top: 3rem;
-        padding-top: 2rem;
-        border-top: 1px solid var(--line);
-        text-decoration: none;
-        color: inherit;
-      }
-      .mm-avatar {
+      /* ── Hero power shot (portrait on the left of the headline) ─ */
+      /* Portrait crop, brushed-steel frame with a faint Milgauss
+         lightning halo. Aspect 3:4 so it sits beside ~3 lines of the
+         h1 without dominating, but reads with weight. Stacks above
+         the heading on mobile. */
+      .mm-power-shot {
         position: relative;
-        width: 96px;
-        height: 96px;
-        border-radius: 999px;
+        aspect-ratio: 3 / 4;
+        width: 100%;
+        max-width: 280px;
+        border-radius: 6px;
         overflow: hidden;
-        flex: 0 0 auto;
-        border: 1px solid rgba(184, 197, 214, 0.36);
         background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(184, 197, 214, 0.32);
         box-shadow:
-          0 0 0 1px rgba(255, 164, 46, 0.16),
-          0 8px 28px rgba(0, 0, 0, 0.45);
+          0 0 0 1px rgba(255, 164, 46, 0.14),
+          0 20px 60px rgba(0, 0, 0, 0.5),
+          0 0 80px rgba(46, 111, 187, 0.10);
         transition:
-          box-shadow 280ms var(--ease-out),
-          transform 280ms var(--ease-out),
-          border-color 280ms var(--ease-out);
+          transform 380ms var(--ease-out),
+          box-shadow 380ms var(--ease-out),
+          border-color 380ms var(--ease-out);
       }
       @media (min-width: 768px) {
-        .mm-avatar { width: 112px; height: 112px; }
+        .mm-power-shot { max-width: 300px; }
       }
-      .mm-avatar img {
+      .mm-power-shot img {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        object-position: center 25%;
+        object-position: center 28%;
         display: block;
       }
-      .mm-avatar::after {
+      .mm-power-shot::after {
         content: "";
         position: absolute;
         inset: 0;
-        border-radius: inherit;
         background: linear-gradient(
           180deg,
-          rgba(255, 255, 255, 0.04),
-          transparent 50%,
-          rgba(0, 0, 0, 0.18)
+          rgba(255, 255, 255, 0.06),
+          transparent 25%,
+          transparent 60%,
+          rgba(0, 0, 0, 0.45)
         );
         pointer-events: none;
       }
       @media (hover: hover) and (pointer: fine) {
-        .mm-signature:hover .mm-avatar {
-          transform: scale(1.05);
+        .mm-power-shot:hover {
+          transform: translateY(-3px);
           border-color: var(--lightning);
           box-shadow:
-            0 0 0 1px rgba(255, 164, 46, 0.55),
-            0 14px 40px rgba(46, 111, 187, 0.36);
+            0 0 0 1px rgba(255, 164, 46, 0.45),
+            0 28px 80px rgba(0, 0, 0, 0.55),
+            0 0 100px rgba(46, 111, 187, 0.18);
         }
-        .mm-signature:hover .mm-signature-name {
-          color: var(--ink);
-        }
-      }
-      .mm-signature-meta {
-        display: flex;
-        flex-direction: column;
-        gap: 0.4rem;
-      }
-      .mm-signature-name {
-        font-size: 1.1rem;
-        letter-spacing: -0.005em;
-        color: var(--muted);
-        transition: color 200ms var(--ease-out);
-      }
-      .mm-signature-locale {
-        font-size: 10px;
-        letter-spacing: 0.22em;
-        text-transform: uppercase;
-        color: var(--soft);
       }
 
       /* ── Footer ───────────────────────────────────────────── */
@@ -2012,7 +1984,7 @@ function Theme() {
         .mm-movement-flow-dot,
         .mm-fund-stat,
         .mm-fund-key-dot,
-        .mm-avatar {
+        .mm-power-shot {
           animation: none !important;
           transition: none !important;
           transform: none !important;
@@ -3685,11 +3657,26 @@ export default function Home() {
 
         {/* HERO */}
         <section className="pt-28 md:pt-36 pb-8 md:pb-12">
-          <div className="mm-reveal">
-            <SectionMarker>Moshe Malka — Senior Software Engineer</SectionMarker>
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] lg:grid-cols-[300px_1fr] gap-x-10 gap-y-8 items-start">
+            <div className="mm-reveal mm-power-shot">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/moshe.jpg"
+                alt="Moshe Malka"
+                width="300"
+                height="400"
+                loading="eager"
+                decoding="async"
+              />
+            </div>
+            <div>
+              <div className="mm-reveal">
+                <SectionMarker>Moshe Malka — Senior Software Engineer</SectionMarker>
+              </div>
 
-          <HeroHeading />
+              <HeroHeading />
+            </div>
+          </div>
 
           <MovementTable />
 
@@ -3762,34 +3749,6 @@ export default function Home() {
             <br /><br />
             And environments that expand perspective.
           </p>
-
-          <a
-            className="mm-signature"
-            href="https://www.linkedin.com/in/moshenyc/"
-            target="_blank"
-            rel="noopener noreferrer"
-            data-tick="990"
-            data-tick-vol="0.022"
-            aria-label="Moshe Malka on LinkedIn"
-          >
-            <div className="mm-avatar">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/moshe.jpg"
-                alt="Moshe Malka"
-                width="112"
-                height="112"
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
-            <div className="mm-signature-meta">
-              <div className="mm-signature-name">Moshe Malka</div>
-              <div className="mm-signature-locale mm-mono">
-                NYC · est. 2014
-              </div>
-            </div>
-          </a>
         </section>
 
         <FootNow onOpenTicket={() => setTicketOpen(true)} />
