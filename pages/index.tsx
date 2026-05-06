@@ -1032,6 +1032,93 @@ function Theme() {
         will-change: transform, opacity, filter;
       }
 
+      /* ── Movement table (hero subtitle, dense factsheet) ───── */
+      /* Replaces the looser 4-line paragraph with 4 dense rows + an
+         animated "flow" indicator per row. The dot drifting along each
+         track is what visually communicates "moving" — no slot machine. */
+      .mm-movements {
+        max-width: 540px;
+        border-top: 1px solid var(--line);
+        margin-top: 3.5rem;
+      }
+      .mm-movement {
+        display: grid;
+        grid-template-columns: 110px 1fr 80px;
+        align-items: center;
+        gap: 1.1rem;
+        padding: 0.6rem 0.1rem;
+        border-bottom: 1px solid var(--line);
+        opacity: 0;
+        transform: translateY(8px);
+        animation: movementIn 720ms cubic-bezier(0.18, 0.8, 0.18, 1) forwards;
+        animation-delay: var(--mm-delay, 0ms);
+      }
+      @keyframes movementIn {
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .mm-movement-asset {
+        font-family: var(--font-mono), ui-monospace, monospace;
+        font-size: 10.5px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--accent, var(--soft));
+        white-space: nowrap;
+      }
+      .mm-movement-venue {
+        color: var(--ink);
+        font-size: 0.98rem;
+        letter-spacing: -0.005em;
+        opacity: 0.92;
+      }
+      .mm-movement-flow {
+        position: relative;
+        display: block;
+        width: 100%;
+        height: 8px;
+      }
+      .mm-movement-flow-track {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50%;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.10) 30%,
+          rgba(255, 255, 255, 0.10) 70%,
+          transparent
+        );
+        transform: translateY(-50%);
+      }
+      .mm-movement-flow-dot {
+        position: absolute;
+        top: 50%;
+        width: 5px;
+        height: 5px;
+        border-radius: 999px;
+        background: var(--accent, var(--ink));
+        box-shadow: 0 0 10px var(--accent, var(--ink));
+        transform: translate(-50%, -50%);
+        animation: flowDrift 4.4s linear infinite;
+        animation-delay: var(--mm-flow-delay, 0ms);
+        will-change: left, opacity;
+      }
+      @keyframes flowDrift {
+        0%   { left: 0%;   opacity: 0; }
+        10%  { opacity: 1; }
+        90%  { opacity: 1; }
+        100% { left: 100%; opacity: 0; }
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .mm-movement:hover {
+          background: rgba(255, 255, 255, 0.018);
+        }
+        .mm-movement:hover .mm-movement-flow-dot {
+          animation-duration: 1.6s;
+        }
+      }
+
       /* ── Rotating verb (slot-machine style) ────────────────── */
       /* Reuses the same overflow:hidden trick as .mm-line so each word
          slides into the slot from below — like a quote refresh on a
@@ -1814,7 +1901,9 @@ function Theme() {
         .mm-ticket,
         .mm-ticket-title::before,
         .mm-term,
-        .mm-rotor-inner {
+        .mm-rotor-inner,
+        .mm-movement,
+        .mm-movement-flow-dot {
           animation: none !important;
           transition: none !important;
           transform: none !important;
@@ -1964,6 +2053,45 @@ function RotatingWord({
       </span>
       <span className="mm-rotor-sr">{words[idx]}</span>
     </span>
+  );
+}
+
+/* The hero's subtitle, dense factsheet edition. Each row carries the
+   same statement the prose used to make ("Capital moving across
+   exchanges.") plus a small flow indicator — a dot drifting along a
+   track in the row's accent color. The dots are offset so they don't
+   sync, which keeps the section feeling alive without a slot-machine. */
+const MOVEMENTS = [
+  { asset: "Capital",    venue: "across exchanges",    accent: "var(--lightning)", flowDelay: "0s"    },
+  { asset: "Data",       venue: "through pipelines",   accent: "var(--z-blue)",    flowDelay: "-1.1s" },
+  { asset: "Interfaces", venue: "moving portfolios",   accent: "var(--crystal)",   flowDelay: "-2.2s" },
+  { asset: "People",     venue: "across cities",       accent: "var(--steel)",     flowDelay: "-3.3s" },
+] as const;
+
+function MovementTable() {
+  return (
+    <div className="mm-movements" aria-label="What I help move">
+      {MOVEMENTS.map((m, i) => (
+        <div
+          key={m.asset}
+          className="mm-movement"
+          style={{
+            ["--mm-delay" as string]: `${480 + i * 110}ms`,
+            ["--accent" as string]: m.accent,
+            ["--mm-flow-delay" as string]: m.flowDelay,
+          }}
+          data-tick={`${1100 - i * 70}`}
+          data-tick-vol="0.014"
+        >
+          <span className="mm-movement-asset">{m.asset}</span>
+          <span className="mm-movement-venue">{m.venue}</span>
+          <span className="mm-movement-flow" aria-hidden>
+            <span className="mm-movement-flow-track" />
+            <span className="mm-movement-flow-dot" />
+          </span>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -3441,23 +3569,10 @@ export default function Home() {
 
           <HeroHeading />
 
-          <p
-            className="mt-14 text-2xl max-w-3xl mm-reveal mm-delay-3 leading-relaxed"
-            style={{ color: "var(--muted)" }}
-          >
-            Capital moving across exchanges.
-            <br />
-            Data moving through pipelines.
-            <br />
-            Interfaces moving portfolios.
-            <br />
-            People moving across cities.
-          </p>
+          <MovementTable />
 
           <HeroStats />
         </section>
-
-        <ExecutionLog />
 
         <Divider />
 
@@ -3486,6 +3601,10 @@ export default function Home() {
         </section>
 
         <Divider />
+
+        {/* Career events feed — sits as a header to the position book
+            since the events ARE what populates it. */}
+        <ExecutionLog />
 
         {/* POSITION BOOK */}
         <PositionBook />
