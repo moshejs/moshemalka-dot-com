@@ -58,3 +58,40 @@ Feel free to fork the project, submit issues, or send pull requests. Feedback an
 ### Deployment
 
 You can deploy this Next.js project using the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js. Check out the [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+
+### The Study (`/study`)
+
+A 3D room — bookshelves, desk, lamp, leather chair — that displays the books I’ve read.
+Click a spine to pull the book out and read its details (notes, rating, dates, subjects).
+Books and shelves live in Postgres; metadata is pulled from Open Library (with Google
+Books as a fallback) when you paste an ISBN at `/study/admin`.
+
+#### One-time setup
+
+1. **Create a Neon Postgres database**. Either:
+   - In the Vercel dashboard: *Storage → Create Database → Neon* (auto-injects `DATABASE_URL`), or
+   - Sign up at [neon.tech](https://neon.tech) and copy the pooled connection string.
+
+2. **Set environment variables** locally (`.env.local`) and on Vercel (Project → Settings → Environment Variables). See `.env.example`:
+   - `DATABASE_URL` — Neon connection string
+   - `SESSION_SECRET` — 32+ random chars (`openssl rand -base64 48`)
+   - `STUDY_PASSWORD` — the passphrase you’ll type at `/study/admin`
+
+3. **Push the schema**:
+   ```bash
+   yarn db:push
+   ```
+   (Use `yarn db:generate` + `yarn db:push` if you prefer migration files.)
+
+#### Adding books
+
+Visit `/study/admin`, unlock with `STUDY_PASSWORD`, then:
+- **By ISBN**: paste any ISBN-10 or ISBN-13 → preview → *shelve*.
+- **By title**: type title (and optional author) for older books without ISBNs.
+- **Manual**: enter title/author/year by hand for one-off entries.
+
+Each book’s spine color is derived from a deterministic palette so the room
+stays visually consistent. You can override it per-book in the admin row.
+
+Create shelves (e.g. *Philosophy*, *Fiction*, *Reference*) and assign books to them;
+each shelf becomes a horizontal row in the 3D bookcase, sorted by `slotIndex`.

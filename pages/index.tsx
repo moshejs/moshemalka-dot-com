@@ -3244,6 +3244,14 @@ function CmdTerminal({
         exec: () => window.scrollTo({ top: 0, behavior: "smooth" }),
       },
       {
+        tkr: "STUDY",
+        desc: "The Study — 3D library of books I’ve read",
+        match: ["study", "books", "library", "reading", "3d", "room"],
+        exec: () => {
+          window.location.assign("/study");
+        },
+      },
+      {
         tkr: "EMAIL",
         desc: "Open trade ticket → hello@moshemalka.com",
         match: ["email", "mail", "contact", "hello", "ticket", "buy", "hire"],
