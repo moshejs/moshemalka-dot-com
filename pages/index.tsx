@@ -38,6 +38,71 @@ const mono = JetBrains_Mono({
   variable: "--font-mono",
 });
 
+// ── SEO ───────────────────────────────────────────────────────────────────
+const SITE_URL = "https://moshemalka.com";
+
+const SEO = {
+  title: "Moshe Malka — Senior Software Engineer",
+  description:
+    "Moshe Malka is a New York City–born senior software engineer building fast, reliable software — from trading systems to web platforms. See his work and get in touch.",
+  ogImage: `${SITE_URL}/og-image.jpg`,
+};
+
+// schema.org @graph — establishes "Moshe Malka" as a single entity Google can
+// reconcile (Person + WebSite + ProfilePage), with sameAs linking the verified
+// social profiles that feed entity/Knowledge-Graph signals for the name query.
+const STRUCTURED_DATA = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "@id": `${SITE_URL}/#person`,
+      name: "Moshe Malka",
+      url: `${SITE_URL}/`,
+      image: `${SITE_URL}/moshe.jpg`,
+      jobTitle: "Senior Software Engineer",
+      description: "New York City–born senior software engineer.",
+      email: "hello@moshemalka.com",
+      birthPlace: { "@type": "Place", name: "New York City, NY, USA" },
+      nationality: { "@type": "Country", name: "United States" },
+      knowsAbout: [
+        "Software Engineering",
+        "Web Development",
+        "TypeScript",
+        "React",
+        "Next.js",
+        "Distributed Systems",
+        "Trading Systems",
+      ],
+      sameAs: [
+        "https://www.linkedin.com/in/moshenyc/",
+        "https://github.com/moshejs",
+        "https://stackoverflow.com/users/7381252/moshe",
+      ],
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      url: `${SITE_URL}/`,
+      name: "Moshe Malka",
+      inLanguage: "en",
+      publisher: { "@id": `${SITE_URL}/#person` },
+      about: { "@id": `${SITE_URL}/#person` },
+    },
+    {
+      "@type": "ProfilePage",
+      "@id": `${SITE_URL}/#webpage`,
+      url: `${SITE_URL}/`,
+      name: "Moshe Malka — Senior Software Engineer",
+      isPartOf: { "@id": `${SITE_URL}/#website` },
+      about: { "@id": `${SITE_URL}/#person` },
+      mainEntity: { "@id": `${SITE_URL}/#person` },
+      primaryImageOfPage: `${SITE_URL}/og-image.jpg`,
+      inLanguage: "en",
+    },
+  ],
+};
+
 function Theme() {
   return (
     <style jsx global>{`
@@ -3654,10 +3719,45 @@ export default function Home() {
         </Script>
       </div>
       <Head>
-        <title>Moshe Malka | Senior Software Engineer</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>{SEO.title}</title>
+        <meta name="description" content={SEO.description} />
+        <link rel="canonical" href={`${SITE_URL}/`} />
+        <meta
+          name="robots"
+          content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        />
+        <meta name="author" content="Moshe Malka" />
+
         <link rel="icon" href="/favicon.ico" />
-        <meta name="description" content="Moshe Malka is a NYC born senior software engineer" />
-        <meta name="keywords" content="moshe malka, software engineer new york city" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+        {/* Open Graph */}
+        <meta property="og:type" content="profile" />
+        <meta property="og:site_name" content="Moshe Malka" />
+        <meta property="og:title" content={SEO.title} />
+        <meta property="og:description" content={SEO.description} />
+        <meta property="og:url" content={`${SITE_URL}/`} />
+        <meta property="og:image" content={SEO.ogImage} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="Moshe Malka — Senior Software Engineer" />
+        <meta property="og:locale" content="en_US" />
+        <meta property="profile:first_name" content="Moshe" />
+        <meta property="profile:last_name" content="Malka" />
+
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={SEO.title} />
+        <meta name="twitter:description" content={SEO.description} />
+        <meta name="twitter:image" content={SEO.ogImage} />
+        <meta name="twitter:image:alt" content="Moshe Malka — Senior Software Engineer" />
+
+        {/* Structured data — Person / WebSite / ProfilePage */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }}
+        />
       </Head>
 
       <main className="mx-auto max-w-5xl px-6 relative z-10">
