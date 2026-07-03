@@ -42,9 +42,9 @@ const mono = JetBrains_Mono({
 const SITE_URL = "https://moshemalka.com";
 
 const SEO = {
-  title: "Moshe Malka — Senior Software Engineer",
+  title: "Moshe Malka — Engineering Leader",
   description:
-    "Moshe Malka is a New York City–born senior software engineer building fast, reliable software — from trading systems to web platforms. See his work and get in touch.",
+    "Moshe Malka is a New York City engineering leader with two decades building software and mentoring teams — now working with AI to ship products that last.",
   ogImage: `${SITE_URL}/og-image.jpg`,
 };
 
@@ -60,24 +60,29 @@ const STRUCTURED_DATA = {
       name: "Moshe Malka",
       url: `${SITE_URL}/`,
       image: `${SITE_URL}/moshe.jpg`,
-      jobTitle: "Senior Software Engineer",
-      description: "New York City–born senior software engineer.",
+      jobTitle: "Engineering Leader",
+      description:
+        "New York City engineering leader with two decades building software and mentoring teams, now working with AI.",
       email: "hello@moshemalka.com",
       birthPlace: { "@type": "Place", name: "New York City, NY, USA" },
+      homeLocation: { "@type": "Place", name: "New York City, NY, USA" },
       nationality: { "@type": "Country", name: "United States" },
       knowsAbout: [
         "Software Engineering",
+        "Engineering Leadership",
+        "Artificial Intelligence",
+        "Team Leadership",
         "Web Development",
         "TypeScript",
         "React",
         "Next.js",
         "Distributed Systems",
-        "Trading Systems",
       ],
       sameAs: [
         "https://www.linkedin.com/in/moshenyc/",
         "https://github.com/moshejs",
         "https://stackoverflow.com/users/7381252/moshe",
+        "https://www.instagram.com/justmoshemalka/",
       ],
     },
     {
@@ -93,7 +98,7 @@ const STRUCTURED_DATA = {
       "@type": "ProfilePage",
       "@id": `${SITE_URL}/#webpage`,
       url: `${SITE_URL}/`,
-      name: "Moshe Malka — Senior Software Engineer",
+      name: "Moshe Malka — Engineering Leader",
       isPartOf: { "@id": `${SITE_URL}/#website` },
       about: { "@id": `${SITE_URL}/#person` },
       mainEntity: { "@id": `${SITE_URL}/#person` },
@@ -3741,7 +3746,7 @@ export default function Home() {
         <meta property="og:image" content={SEO.ogImage} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="Moshe Malka — Senior Software Engineer" />
+        <meta property="og:image:alt" content="Moshe Malka — Engineering Leader" />
         <meta property="og:locale" content="en_US" />
         <meta property="profile:first_name" content="Moshe" />
         <meta property="profile:last_name" content="Malka" />
@@ -3751,7 +3756,7 @@ export default function Home() {
         <meta name="twitter:title" content={SEO.title} />
         <meta name="twitter:description" content={SEO.description} />
         <meta name="twitter:image" content={SEO.ogImage} />
-        <meta name="twitter:image:alt" content="Moshe Malka — Senior Software Engineer" />
+        <meta name="twitter:image:alt" content="Moshe Malka — Engineering Leader" />
 
         {/* Structured data — Person / WebSite / ProfilePage */}
         <script
@@ -3778,7 +3783,7 @@ export default function Home() {
             </div>
             <div>
               <div className="mm-reveal">
-                <SectionMarker>Moshe Malka — Senior Software Engineer</SectionMarker>
+                <SectionMarker>Moshe Malka — Engineering Leader</SectionMarker>
               </div>
 
               <HeroHeading />
