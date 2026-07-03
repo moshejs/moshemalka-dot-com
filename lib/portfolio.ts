@@ -7,10 +7,12 @@
 /* ── Trading session ──────────────────────────────────────── */
 
 /**
- * Career start. Used as the epoch for the live session counter on the home
- * page. Anchored to the start of CS at Adelphi (2014-08-15) in Eastern time.
+ * Career start. Used as the epoch for the session counter and the
+ * "experience" spec on the home page. Anchored to first professional work
+ * in 2008 (Eastern time) — the position book below lists roles from 2016
+ * onward; earlier work predates it.
  */
-export const CAREER_EPOCH = new Date("2014-08-15T00:00:00-04:00").getTime();
+export const CAREER_EPOCH = new Date("2008-06-01T00:00:00-04:00").getTime();
 
 export type SessionParts = {
   years: number;
@@ -72,23 +74,6 @@ export const EXEC_LOG: ExecEntry[] = [
   { ts: "16-12-01", action: "OPEN",  sec: "INSTANT.CAR.QUOTE",                   status: "closed 17-09"              },
 ];
 
-/* ── Candlesticks (mini OHLC plot per card) ───────────────── */
-
-export type Candle = { bt: number; bb: number; wt: number; wb: number; up: boolean };
-
-export const CANDLES: Candle[] = [
-  { bt: 17, bb: 20, wt: 16, wb: 21, up: true  },
-  { bt: 17, bb: 19, wt: 16, wb: 20, up: false },
-  { bt: 15, bb: 19, wt: 14, wb: 20, up: true  },
-  { bt: 15, bb: 17, wt: 13, wb: 18, up: false },
-  { bt: 12, bb: 17, wt: 11, wb: 18, up: true  },
-  { bt: 12, bb: 14, wt: 10, wb: 15, up: false },
-  { bt: 11, bb: 14, wt:  9, wb: 16, up: true  },
-  { bt:  8, bb: 11, wt:  7, wb: 13, up: true  },
-  { bt:  8, bb: 10, wt:  6, wb: 12, up: false },
-  { bt:  6, bb: 10, wt:  5, wb: 11, up: true  },
-];
-
 /* ── Position book ────────────────────────────────────────── */
 
 export type Position = {
@@ -121,12 +106,11 @@ export const POSITIONS: Position[] = [
       "POSITIONS · jobs reframed as open + closed trading positions, with entry / exit / ΔP",
       "HOLDINGS · the tech stack rendered as a fund-allocation table — weight bars, tenor, LIVE/HELD marks",
       "Execution log · career events scrolling like a trade ticker (FILL · EXEC · OPEN · CLOSE · ROLL)",
-      "Tear sheets · every position click expands BASIS · STRIKES · INSTRUMENTS · SIZE · TENOR",
-      "Candlesticks · domain expertise as OHLC price action — accent up, Milgauss-red down",
-      "Sound · Web Audio sine tones for hover ticks + directional fills (BUY rises, SELL descends)",
-      "Double meanings · POSITIONS · HOLDINGS · TENOR · SIZE · MARK · STRIKES · BASIS · INSTRUMENTS · VENUES · CYCLE — each reads in two languages",
+      "Tear sheets · every position click expands BASIS · HIGHLIGHTS · INSTRUMENTS · SIZE · TENOR",
+      "Restraint · one tape, one pulse, zero orbs — the terminal is flat and dry on purpose",
+      "Double meanings · POSITIONS · HOLDINGS · TENOR · SIZE · MARK · BASIS · INSTRUMENTS — each reads in two languages",
     ],
-    instr: ["Next.js", "TypeScript", "styled-jsx", "Tailwind", "Web Audio", "SVG"],
+    instr: ["Next.js", "TypeScript", "CSS", "Tailwind", "SVG"],
   },
   {
     id: "gs",
