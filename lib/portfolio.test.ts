@@ -1,5 +1,4 @@
 import {
-  CANDLES,
   CAREER_EPOCH,
   EXEC_LOG,
   HOLDINGS,
@@ -69,8 +68,8 @@ describe("formatSession", () => {
     // synthetic "now" — a fixed point so the test stays deterministic
     const NOW = new Date("2026-05-04T12:00:00-04:00").getTime();
     const parts = formatSession(NOW - CAREER_EPOCH);
-    expect(parts.years).toBeGreaterThanOrEqual(11);
-    expect(parts.years).toBeLessThanOrEqual(12);
+    expect(parts.years).toBeGreaterThanOrEqual(17);
+    expect(parts.years).toBeLessThanOrEqual(18);
     expect(parts.remDays).toBeGreaterThanOrEqual(0);
     expect(parts.remDays).toBeLessThan(365);
     expect(parts.hh).toMatch(/^\d{2}$/);
@@ -78,11 +77,11 @@ describe("formatSession", () => {
 });
 
 describe("CAREER_EPOCH", () => {
-  it("is anchored to 2014-08-15 ET", () => {
+  it("is anchored to 2008-06-01 ET (first professional work)", () => {
     const d = new Date(CAREER_EPOCH);
-    expect(d.getUTCFullYear()).toBe(2014);
-    expect(d.getUTCMonth()).toBe(7); // August
-    expect(d.getUTCDate()).toBe(15);
+    expect(d.getUTCFullYear()).toBe(2008);
+    expect(d.getUTCMonth()).toBe(5); // June
+    expect(d.getUTCDate()).toBe(1);
   });
 
   it("is in the past", () => {
@@ -205,29 +204,5 @@ describe("EXEC_LOG", () => {
     for (const e of EXEC_LOG) {
       expect(e.status.length).toBeGreaterThan(0);
     }
-  });
-});
-
-describe("CANDLES", () => {
-  it("contains at least one up and one down candle", () => {
-    expect(CANDLES.some((c) => c.up)).toBe(true);
-    expect(CANDLES.some((c) => !c.up)).toBe(true);
-  });
-
-  it("body bottom sits below body top in y (price chart conventions)", () => {
-    for (const c of CANDLES) {
-      expect(c.bb).toBeGreaterThan(c.bt);
-    }
-  });
-
-  it("wick fully encloses the body", () => {
-    for (const c of CANDLES) {
-      expect(c.wt).toBeLessThanOrEqual(c.bt);
-      expect(c.wb).toBeGreaterThanOrEqual(c.bb);
-    }
-  });
-
-  it("renders enough candles to look like a chart", () => {
-    expect(CANDLES.length).toBeGreaterThanOrEqual(8);
   });
 });
