@@ -44,36 +44,6 @@ export function formatSession(ms: number): SessionParts {
   };
 }
 
-/* ── Execution log (career events scrolling as trade fills) ─ */
-
-export type ExecAction = "FILL" | "EXEC" | "OPEN" | "CLOSE" | "ROLL";
-
-export type ExecEntry = {
-  ts: string;
-  action: ExecAction;
-  sec: string;
-  status: string;
-  pos?: boolean;
-};
-
-export const EXEC_LOG: ExecEntry[] = [
-  { ts: "26-04-29", action: "FILL",  sec: "ctrl_bar.component @ gs/pwm",         status: "+12 teams",      pos: true },
-  { ts: "26-03-12", action: "FILL",  sec: "portfolio_v2.refresh",                status: "+80% cov",       pos: true },
-  { ts: "25-09-04", action: "EXEC",  sec: "ai.assist --branch=onboarding",       status: "merged",         pos: true },
-  { ts: "25-04-18", action: "EXEC",  sec: "lavita.ring_wizard --gpt-4 --stripe", status: "shipped",        pos: true },
-  { ts: "24-09-15", action: "OPEN",  sec: "GS.PWM",                              status: "▲ active",       pos: true },
-  { ts: "24-03-08", action: "EXEC",  sec: "odeliya.shopify (16 pages)",          status: "shipped",        pos: true },
-  { ts: "23-02-12", action: "OPEN",  sec: "QC.STUDIO",                           status: "▲ active",       pos: true },
-  { ts: "22-06-22", action: "ROLL",  sec: "peloton.web → next.gql",              status: "+core_vitals",   pos: true },
-  { ts: "21-11-04", action: "FILL",  sec: "guide.launch",                        status: "shipped",        pos: true },
-  { ts: "20-03-02", action: "OPEN",  sec: "PELOTON",                             status: "closed 23-02"              },
-  { ts: "19-04-10", action: "OPEN",  sec: "INDUSTRIOUS",                         status: "closed 19-12"              },
-  { ts: "18-10-22", action: "OPEN",  sec: "ICE.BONDS",                           status: "closed 19-01"              },
-  { ts: "18-06-15", action: "OPEN",  sec: "CYA.INSURE",                          status: "closed 18-10"              },
-  { ts: "17-10-15", action: "EXEC",  sec: "hitbit.arb 26ms · 40+ exch",          status: "▲ pnl",          pos: true },
-  { ts: "16-12-01", action: "OPEN",  sec: "INSTANT.CAR.QUOTE",                   status: "closed 17-09"              },
-];
-
 /* ── Position book ────────────────────────────────────────── */
 
 export type Position = {
@@ -88,6 +58,8 @@ export type Position = {
   basis: string;
   strikes: string[];
   instr: string[];
+  /** External venue for the position — rendered as a link in the tear sheet. */
+  url?: string;
 };
 
 export const POSITIONS: Position[] = [
@@ -101,13 +73,12 @@ export const POSITIONS: Position[] = [
     pnl: "read me",
     accent: "var(--lightning)",
     basis:
-      "This site borrows the dense-data ergonomics of a trading desk to describe a software engineering career. The palette is Rolex Milgauss — Z-blue dial, lightning-orange seconds hand, green sapphire crystal, brushed steel — and the visual grammar is Bloomberg: spec sheets, position books, fund holdings, execution logs, analyst tear sheets. Every finance term that appears here was chosen because it carries a second meaning that maps onto a career.",
+      "This site borrows the dense-data ergonomics of a trading desk to describe a software engineering career. The palette is Rolex Milgauss — Z-blue dial, lightning-orange seconds hand, green sapphire crystal, brushed steel — and the visual grammar is Bloomberg: spec sheets, position books, sector heatmaps, analyst tear sheets. Every finance term that appears here was chosen because it carries a second meaning that maps onto a career.",
     strikes: [
       "POSITIONS · jobs reframed as open + closed trading positions, with entry / exit / ΔP",
-      "HOLDINGS · the tech stack rendered as a fund-allocation table — weight bars, tenor, LIVE/HELD marks",
-      "Execution log · career events scrolling like a trade ticker (FILL · EXEC · OPEN · CLOSE · ROLL)",
+      "HOLDINGS · the tech stack as a sector heatmap — tile size = years on desk, heat = current allocation",
       "Tear sheets · every position click expands BASIS · HIGHLIGHTS · INSTRUMENTS · SIZE · TENOR",
-      "Restraint · one tape, one pulse, zero orbs — the terminal is flat and dry on purpose",
+      "Restraint · one pulse, zero tape, zero orbs — the terminal is flat and dry on purpose",
       "Double meanings · POSITIONS · HOLDINGS · TENOR · SIZE · MARK · BASIS · INSTRUMENTS — each reads in two languages",
     ],
     instr: ["Next.js", "TypeScript", "CSS", "Tailwind", "SVG"],
@@ -136,12 +107,13 @@ export const POSITIONS: Position[] = [
     range: "23-02 → ●",
     size: "fractional",
     side: "OPEN",
-    ticker: "QC.STUDIO",
-    desc: "Solo studio · AI prototypes · fractional CTO for early-stage teams",
+    ticker: "QNTN.SW",
+    desc: "Quentin Software · AI-first studio · fractional CTO for early-stage teams",
     pnl: "+9 ships",
     accent: "var(--lightning)",
+    url: "https://www.quentin.software/",
     basis:
-      "Solo studio. AI R&D + prototypes that ship. Fractional CTO for early-stage teams — planning, marketing strategy, integrations, the whole stack.",
+      "Quentin Software — my solo studio. AI-first product development, prototypes that ship, and fractional CTO work for early-stage teams — planning, marketing strategy, integrations, the whole stack.",
     strikes: [
       "uwu Labs — PFP image gallery (React + Firebase)",
       "Lavita Labs — diamond ring wizard (Next.js + GPT-4 + Stripe)",
@@ -261,7 +233,7 @@ export const POSITIONS: Position[] = [
   },
 ];
 
-/* ── Holdings (tech stack as fund allocation) ─────────────── */
+/* ── Holdings (tech stack as sector heatmap) ──────────────── */
 
 export type Holding = {
   tkr: string;
@@ -290,6 +262,127 @@ export const HOLDINGS: Holding[] = [
   { tkr: "docker",         wt:  1, tenor: "5y", mark: "LIVE" },
   { tkr: "github actions", wt:  1, tenor: "6y", mark: "LIVE" },
 ];
+
+/* ── Holdings heatmap layout (squarified treemap) ─────────── */
+/* The heatmap reads on two axes: tile AREA is tenor (years on the
+   desk) and tile HEAT is current allocation weight. Layout is the
+   classic squarified treemap (Bruls, Huizing, van Wijk) — rows are
+   laid along the shorter side of the remaining rectangle and a row
+   is closed as soon as adding the next item would worsen the worst
+   aspect ratio in it. Pure math, unit-tested in plain Node. */
+
+export type HeatTile = Holding & {
+  years: number; // parsed tenor — drives tile area
+  heat: number;  // wt / max wt, 0..1 — drives tile color intensity
+  /** Tile rect as percentages of the container (0–100). */
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+};
+
+/** Parse a "9y" tenor string into years. */
+export function tenorYears(tenor: string): number {
+  const m = tenor.match(/^(\d+)y$/);
+  if (!m) throw new Error(`Unparseable tenor: "${tenor}"`);
+  return Number(m[1]);
+}
+
+type Rect = { x: number; y: number; w: number; h: number };
+
+/** Worst aspect ratio in a row of areas laid along a side of length `side`. */
+function worstAspect(row: number[], side: number): number {
+  const sum = row.reduce((a, b) => a + b, 0);
+  const s2 = sum * sum;
+  const side2 = side * side;
+  let worst = 1;
+  for (const v of row) {
+    worst = Math.max(worst, (side2 * v) / s2, s2 / (side2 * v));
+  }
+  return worst;
+}
+
+/**
+ * Squarified treemap. `values` should be sorted descending for the
+ * canonical near-square result; rects are returned in input order and
+ * exactly tile the given rectangle.
+ */
+export function squarify(values: number[], bounds: Rect): Rect[] {
+  const total = values.reduce((a, b) => a + b, 0);
+  if (total <= 0) return values.map(() => ({ x: bounds.x, y: bounds.y, w: 0, h: 0 }));
+  const scale = (bounds.w * bounds.h) / total;
+  const areas = values.map((v) => v * scale);
+
+  const rects: Rect[] = [];
+  let { x, y, w, h } = bounds;
+  let i = 0;
+  while (i < areas.length) {
+    const side = Math.min(w, h);
+    // Grow the row while it keeps the worst aspect ratio from degrading.
+    const row = [areas[i]];
+    let j = i + 1;
+    while (
+      j < areas.length &&
+      worstAspect([...row, areas[j]], side) <= worstAspect(row, side)
+    ) {
+      row.push(areas[j]);
+      j++;
+    }
+    const rowSum = row.reduce((a, b) => a + b, 0);
+    const thickness = rowSum / side;
+    if (w >= h) {
+      // Vertical strip on the left edge, items stacked top → bottom.
+      let cy = y;
+      for (const a of row) {
+        const ih = a / thickness;
+        rects.push({ x, y: cy, w: thickness, h: ih });
+        cy += ih;
+      }
+      x += thickness;
+      w -= thickness;
+    } else {
+      // Horizontal strip on the top edge, items laid left → right.
+      let cx = x;
+      for (const a of row) {
+        const iw = a / thickness;
+        rects.push({ x: cx, y, w: iw, h: thickness });
+        cx += iw;
+      }
+      y += thickness;
+      h -= thickness;
+    }
+    i = j;
+  }
+  return rects;
+}
+
+/**
+ * Lay out the holdings as heatmap tiles. Computed in an `aspect`-wide,
+ * 1-tall space so tiles come out near-square when the container is
+ * rendered at the same aspect ratio, then normalized to percentages.
+ */
+export function computeHeatmap(
+  holdings: Holding[] = HOLDINGS,
+  aspect = 16 / 9
+): HeatTile[] {
+  const sorted = [...holdings].sort(
+    (a, b) => tenorYears(b.tenor) - tenorYears(a.tenor) || b.wt - a.wt
+  );
+  const maxWt = Math.max(...sorted.map((s) => s.wt));
+  const rects = squarify(
+    sorted.map((s) => tenorYears(s.tenor)),
+    { x: 0, y: 0, w: aspect, h: 1 }
+  );
+  return sorted.map((s, i) => ({
+    ...s,
+    years: tenorYears(s.tenor),
+    heat: s.wt / maxWt,
+    x: (rects[i].x / aspect) * 100,
+    y: rects[i].y * 100,
+    w: (rects[i].w / aspect) * 100,
+    h: rects[i].h * 100,
+  }));
+}
 
 /* ── Derived counts for the hero spec sheet ───────────────── */
 

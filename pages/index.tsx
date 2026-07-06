@@ -4,13 +4,11 @@ import Script from "next/script";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import {
   CAREER_EPOCH,
-  EXEC_LOG,
-  HOLDINGS,
   POSITIONS,
+  computeHeatmap,
   countCareerPositions,
   countOpenPositions,
   formatSession,
-  type ExecEntry,
   type Position,
 } from "@/lib/portfolio";
 
@@ -80,6 +78,16 @@ const STRUCTURED_DATA = {
         "https://stackoverflow.com/users/7381252/moshe",
         "https://www.instagram.com/justmoshemalka/",
       ],
+      affiliation: { "@id": "https://www.quentin.software/#organization" },
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://www.quentin.software/#organization",
+      name: "Quentin Software",
+      url: "https://www.quentin.software/",
+      description:
+        "AI-first software studio — product development, prototypes, and fractional CTO work led by Moshe Malka.",
+      founder: { "@id": `${SITE_URL}/#person` },
     },
     {
       "@type": "WebSite",
@@ -298,49 +306,6 @@ function GridPaper() {
   return <div className="mm-grid-paper" aria-hidden />;
 }
 
-/* ── Execution log (career events as trade fills/orders) ──── */
-function ExecRow({ items }: { items: ExecEntry[] }) {
-  return (
-    <>
-      {items.map((t, i) => (
-        <React.Fragment key={`${t.ts}-${i}`}>
-          <span className="mm-tick mm-mono">
-            <span className="mm-tick-ts">[{t.ts}]</span>
-            <span className={`mm-tick-act-${t.action.toLowerCase()}`}>
-              {t.action}
-            </span>
-            <span className="mm-tick-msg">{t.sec}</span>
-            <span
-              className={t.pos ? "mm-tick-status-pos" : "mm-tick-status-neu"}
-            >
-              {t.status}
-            </span>
-          </span>
-          <span className="mm-tick-sep mm-mono">·</span>
-        </React.Fragment>
-      ))}
-    </>
-  );
-}
-
-function ExecutionLog() {
-  return (
-    <div
-      className="mm-ticker mm-watch"
-      aria-label="Execution log — career events as trade fills"
-    >
-      <div className="mm-ticker-track">
-        <ExecRow items={EXEC_LOG} />
-        {/* Duplicate strip is the seam for the infinite loop — decorative
-            only, so screen readers must not announce the log twice. */}
-        <span aria-hidden="true" style={{ display: "contents" }}>
-          <ExecRow items={EXEC_LOG} />
-        </span>
-      </div>
-    </div>
-  );
-}
-
 /* ── Count-up animated number ─────────────────────────────── */
 /* rAF-driven, starts only once the number scrolls into view, and lands
    directly on the final value under prefers-reduced-motion. */
@@ -514,6 +479,25 @@ function PositionRow({
           <div className="mm-tear-val" style={{ fontFamily: "var(--font-sans)" }}>
             {r.size} · {r.range}
           </div>
+
+          {r.url && (
+            <>
+              <div className="mm-tear-key">venue</div>
+              <div className="mm-tear-val">
+                <a
+                  className="mm-tear-link mm-mono"
+                  href={r.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  tabIndex={expanded ? 0 : -1}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {r.url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}{" "}
+                  ↗
+                </a>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </>
@@ -566,59 +550,56 @@ function PositionBook() {
   );
 }
 
-function Holdings() {
-  // Largest position weight, used to scale the bars to fill the column
-  const max = Math.max(...HOLDINGS.map((h) => h.wt));
+/* Layout is deterministic (pure data → rects), so compute once at module
+   scope — identical on server and client, no hydration drift. */
+const HEAT_TILES = computeHeatmap();
 
+function Holdings() {
   return (
     <section id="holdings">
       <div className="mm-watch">
-        <SectionMarker>Holdings · stack as fund allocation</SectionMarker>
+        <SectionMarker>Holdings · stack as sector heatmap</SectionMarker>
       </div>
       <div className="mt-8 mm-watch">
-        <table className="mm-hold">
-          <thead>
-            <tr>
-              <th>Ticker</th>
-              <th className="mm-hold-bar-cell">Position Size</th>
-              <th className="mm-hold-num">Wt</th>
-              <th className="mm-hold-num">Tenor</th>
-              <th>Mark</th>
-            </tr>
-          </thead>
-          <tbody>
-            {HOLDINGS.map((h, i) => (
-              <tr
-                key={h.tkr}
-                className="mm-watch"
+        <div
+          className="mm-heat"
+          role="list"
+          aria-label="Tech stack heatmap — tile size is years of experience, color intensity is current allocation"
+        >
+          {HEAT_TILES.map((t, i) => {
+            // Tile area as % of the map — decides how much label fits.
+            const area = (t.w * t.h) / 100;
+            const size = area >= 6 ? "lg" : area >= 2 ? "md" : "sm";
+            return (
+              <div
+                key={t.tkr}
+                role="listitem"
+                className="mm-heat-tile"
+                data-mark={t.mark}
+                data-size={size}
+                title={`${t.tkr} — ${t.years}y on desk · ${t.wt}% of current allocation · ${t.mark}`}
                 style={{
-                  ["--mm-delay" as string]: `${i * 30}ms`,
-                  ["--mm-bar" as string]: `${(h.wt / max) * 100}%`,
+                  left: `${t.x}%`,
+                  top: `${t.y}%`,
+                  width: `${t.w}%`,
+                  height: `${t.h}%`,
+                  ["--heat" as string]: t.heat,
+                  ["--mm-delay" as string]: `${i * 35}ms`,
                 }}
               >
-                <td className="mm-hold-tkr">{h.tkr}</td>
-                <td className="mm-hold-bar-cell">
-                  <div className="mm-hold-bar">
-                    <div className="mm-hold-bar-fill" />
-                  </div>
-                </td>
-                <td className="mm-hold-num">{h.wt}%</td>
-                <td className="mm-hold-num">{h.tenor}</td>
-                <td>
-                  <span
-                    className={
-                      h.mark === "LIVE"
-                        ? "mm-hold-mark-live"
-                        : "mm-hold-mark-held"
-                    }
-                  >
-                    {h.mark}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                <span className="mm-heat-tkr">{t.tkr}</span>
+                <span className="mm-heat-meta">
+                  {t.years}Y · {t.wt}%
+                </span>
+              </div>
+            );
+          })}
+        </div>
+        <div className="mm-heat-legend mm-mono">
+          <span>size = years on desk</span>
+          <span>heat = current allocation</span>
+          <span className="mm-heat-legend-live">live</span>
+        </div>
       </div>
     </section>
   );
@@ -838,9 +819,20 @@ function CmdTerminal({
       },
       {
         tkr: "STACK",
-        desc: "Holdings — fund allocation of the tech stack",
-        match: ["stack", "holdings", "tech", "fund", "allocation", "languages"],
+        desc: "Holdings — tech stack heatmap, size = tenor",
+        match: ["stack", "holdings", "tech", "heatmap", "allocation", "languages"],
         exec: () => scrollToId("holdings"),
+      },
+      {
+        tkr: "QNTN",
+        desc: "Quentin Software → quentin.software",
+        match: ["quentin", "qntn", "studio", "software", "qc"],
+        exec: () =>
+          window.open(
+            "https://www.quentin.software/",
+            "_blank",
+            "noopener,noreferrer"
+          ),
       },
       {
         tkr: "ENERGY",
@@ -1061,6 +1053,16 @@ function FootNow({ onOpenTicket }: { onOpenTicket: () => void }) {
           <div className="flex items-center gap-5 text-sm">
             <a
               className="mm-hover-line"
+              href="https://www.quentin.software/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "var(--muted)" }}
+            >
+              <span className="mm-ordtype" data-type="PROP" aria-hidden>PROP</span>
+              Quentin Software
+            </a>
+            <a
+              className="mm-hover-line"
               href="https://www.linkedin.com/in/moshenyc/"
               target="_blank"
               rel="noopener noreferrer"
@@ -1153,7 +1155,7 @@ export default function Home() {
       className={`${sans.variable} ${mono.variable} mm-sans min-h-screen text-white relative overflow-hidden`}
     >
       {/* Static backdrop: chart paper + film grain. The terminal is flat
-          and dry — the one continuous motion on the page is the tape. */}
+          and dry — the StatusPill owns the page's one pulse. */}
       <div className="mm-grain" aria-hidden />
       <GridPaper />
 
@@ -1306,16 +1308,12 @@ export default function Home() {
 
         <Divider />
 
-        {/* Career events feed — sits as a header to the position book
-            since the events ARE what populates it. */}
-        <ExecutionLog />
-
         {/* POSITION BOOK */}
         <PositionBook />
 
         <Divider />
 
-        {/* HOLDINGS — stack as fund allocation */}
+        {/* HOLDINGS — stack as sector heatmap */}
         <Holdings />
 
         <Divider />
