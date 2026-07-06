@@ -1,18 +1,17 @@
 import {
   CAREER_EPOCH,
-  EXEC_LOG,
   HOLDINGS,
   POSITIONS,
+  computeHeatmap,
   countCareerPositions,
   countOpenPositions,
   formatSession,
-  type ExecAction,
+  squarify,
+  tenorYears,
   type Holding,
 } from "./portfolio";
 
-const VALID_ACTIONS: ExecAction[] = ["FILL", "EXEC", "OPEN", "CLOSE", "ROLL"];
 const VALID_MARKS: Holding["mark"][] = ["LIVE", "HELD"];
-const TS_RE = /^\d{2}-\d{2}-\d{2}$/;
 
 describe("formatSession", () => {
   it("returns all zeros for 0ms", () => {
@@ -180,29 +179,107 @@ describe("HOLDINGS", () => {
   });
 });
 
-describe("EXEC_LOG", () => {
-  it("uses YY-MM-DD timestamps", () => {
-    for (const e of EXEC_LOG) {
-      expect(e.ts).toMatch(TS_RE);
+describe("tenorYears", () => {
+  it("parses 'Ny' strings", () => {
+    expect(tenorYears("9y")).toBe(9);
+    expect(tenorYears("1y")).toBe(1);
+    expect(tenorYears("12y")).toBe(12);
+  });
+
+  it("throws on malformed tenors", () => {
+    expect(() => tenorYears("9")).toThrow();
+    expect(() => tenorYears("y9")).toThrow();
+    expect(() => tenorYears("")).toThrow();
+  });
+});
+
+describe("squarify", () => {
+  const BOUNDS = { x: 0, y: 0, w: 16, h: 9 };
+
+  it("returns one rect per value, in input order", () => {
+    const rects = squarify([5, 3, 2], BOUNDS);
+    expect(rects).toHaveLength(3);
+    // Areas map back to values (input order preserved)
+    const total = 5 + 3 + 2;
+    const scale = (BOUNDS.w * BOUNDS.h) / total;
+    expect(rects[0].w * rects[0].h).toBeCloseTo(5 * scale, 6);
+    expect(rects[1].w * rects[1].h).toBeCloseTo(3 * scale, 6);
+    expect(rects[2].w * rects[2].h).toBeCloseTo(2 * scale, 6);
+  });
+
+  it("tiles the bounds exactly (areas sum to bounds area)", () => {
+    const values = [9, 9, 9, 8, 7, 6, 5, 4, 3, 1];
+    const rects = squarify(values, BOUNDS);
+    const area = rects.reduce((acc, r) => acc + r.w * r.h, 0);
+    expect(area).toBeCloseTo(BOUNDS.w * BOUNDS.h, 6);
+  });
+
+  it("keeps every rect inside the bounds", () => {
+    const rects = squarify([9, 7, 5, 3, 1, 1, 1], BOUNDS);
+    for (const r of rects) {
+      expect(r.x).toBeGreaterThanOrEqual(-1e-9);
+      expect(r.y).toBeGreaterThanOrEqual(-1e-9);
+      expect(r.x + r.w).toBeLessThanOrEqual(BOUNDS.w + 1e-9);
+      expect(r.y + r.h).toBeLessThanOrEqual(BOUNDS.h + 1e-9);
     }
   });
 
-  it("uses only the five known action tags", () => {
-    for (const e of EXEC_LOG) {
-      expect(VALID_ACTIONS).toContain(e.action);
+  it("produces no overlapping rects", () => {
+    const rects = squarify([9, 9, 8, 7, 6, 5, 4, 3, 2, 1], BOUNDS);
+    const eps = 1e-9;
+    for (let i = 0; i < rects.length; i++) {
+      for (let j = i + 1; j < rects.length; j++) {
+        const a = rects[i];
+        const b = rects[j];
+        const overlaps =
+          a.x + a.w > b.x + eps &&
+          b.x + b.w > a.x + eps &&
+          a.y + a.h > b.y + eps &&
+          b.y + b.h > a.y + eps;
+        expect(overlaps).toBe(false);
+      }
+    }
+  });
+});
+
+describe("computeHeatmap", () => {
+  const tiles = computeHeatmap();
+
+  it("returns one tile per holding", () => {
+    expect(tiles).toHaveLength(HOLDINGS.length);
+    expect(new Set(tiles.map((t) => t.tkr)).size).toBe(HOLDINGS.length);
+  });
+
+  it("is sorted by years descending (size = experience)", () => {
+    for (let i = 1; i < tiles.length; i++) {
+      expect(tiles[i].years).toBeLessThanOrEqual(tiles[i - 1].years);
     }
   });
 
-  it("is sorted from most-recent to oldest", () => {
-    for (let i = 1; i < EXEC_LOG.length; i++) {
-      // ts is YY-MM-DD; lexicographic order matches chronological order
-      expect(EXEC_LOG[i].ts <= EXEC_LOG[i - 1].ts).toBe(true);
+  it("scales tile area proportionally to years on desk", () => {
+    const totalYears = tiles.reduce((acc, t) => acc + t.years, 0);
+    for (const t of tiles) {
+      // w and h are percentages, so tile area % of the map = w*h/100
+      expect((t.w * t.h) / 100).toBeCloseTo((t.years / totalYears) * 100, 6);
     }
   });
 
-  it("has a non-empty status on every entry", () => {
-    for (const e of EXEC_LOG) {
-      expect(e.status.length).toBeGreaterThan(0);
+  it("covers the full map with tiles inside 0–100%", () => {
+    const area = tiles.reduce((acc, t) => acc + (t.w * t.h) / 100, 0);
+    expect(area).toBeCloseTo(100, 6);
+    for (const t of tiles) {
+      expect(t.x).toBeGreaterThanOrEqual(-1e-9);
+      expect(t.y).toBeGreaterThanOrEqual(-1e-9);
+      expect(t.x + t.w).toBeLessThanOrEqual(100 + 1e-9);
+      expect(t.y + t.h).toBeLessThanOrEqual(100 + 1e-9);
     }
+  });
+
+  it("normalizes heat to 0..1 with the top allocation at 1", () => {
+    for (const t of tiles) {
+      expect(t.heat).toBeGreaterThan(0);
+      expect(t.heat).toBeLessThanOrEqual(1);
+    }
+    expect(Math.max(...tiles.map((t) => t.heat))).toBe(1);
   });
 });

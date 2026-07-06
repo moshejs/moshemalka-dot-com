@@ -103,66 +103,6 @@ body {
   background: linear-gradient(90deg, var(--soft), transparent);
 }
 
-/* ── Live ticker tape ─────────────────────────────────── */
-.mm-ticker {
-  position: relative;
-  overflow: hidden;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  padding: 0.85rem 0;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(46, 111, 187, 0.05),
-      rgba(0, 0, 0, 0.25)
-    );
-  backdrop-filter: blur(8px) saturate(140%);
-  -webkit-backdrop-filter: blur(8px) saturate(140%);
-  mask-image: linear-gradient(
-    90deg,
-    transparent 0,
-    #000 6%,
-    #000 94%,
-    transparent 100%
-  );
-  -webkit-mask-image: linear-gradient(
-    90deg,
-    transparent 0,
-    #000 6%,
-    #000 94%,
-    transparent 100%
-  );
-}
-.mm-ticker-track {
-  display: flex;
-  align-items: center;
-  white-space: nowrap;
-  width: max-content;
-  animation: tickerScroll 64s linear infinite;
-  will-change: transform;
-}
-@media (hover: hover) and (pointer: fine) {
-  .mm-ticker:hover .mm-ticker-track {
-    animation-play-state: paused;
-  }
-}
-@keyframes tickerScroll {
-  from { transform: translate3d(0, 0, 0); }
-  to   { transform: translate3d(-50%, 0, 0); }
-}
-.mm-tick {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  padding: 0 1.6rem;
-  font-size: 11px;
-  letter-spacing: 0.06em;
-}
-.mm-tick-sep {
-  color: rgba(255, 255, 255, 0.12);
-  padding: 0 0.4rem;
-}
-
 /* ── Hero spec sheet (Bloomberg quote layout) ─────────── */
 .mm-specs {
   display: grid;
@@ -205,97 +145,127 @@ body {
   align-self: stretch;
 }
 
-/* ── Holdings table (Stack reframed as fund holdings) ─ */
-.mm-hold {
-  width: 100%;
-  border-collapse: collapse;
-}
-.mm-hold thead th {
-  font-family: var(--font-mono), ui-monospace, monospace;
-  text-align: left;
-  font-size: 9.5px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--soft);
-  font-weight: 500;
-  padding: 0.6rem 0.5rem;
-  border-bottom: 1px solid var(--line);
-}
-.mm-hold thead th.mm-hold-num {
-  text-align: right;
-}
-.mm-hold tbody td {
-  padding: 0.55rem 0.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.025);
-  vertical-align: middle;
-}
-.mm-hold tbody tr {
-  transition: background-color 200ms var(--ease-out);
-}
-@media (hover: hover) and (pointer: fine) {
-  .mm-hold tbody tr:hover {
-    background: rgba(255, 255, 255, 0.018);
-  }
-}
-.mm-hold-tkr {
-  color: var(--ink);
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.82rem;
-  letter-spacing: 0.06em;
-}
-.mm-hold-bar-cell {
-  width: 50%;
-}
-.mm-hold-bar {
+/* ── Holdings heatmap (stack as sector map) ───────────── */
+/* Finviz-style treemap: tile AREA = years on the desk, tile HEAT =
+   current allocation weight (--heat, 0..1, set per tile from data).
+   Rect geometry comes precomputed as left/top/width/height %. */
+.mm-heat {
   position: relative;
-  height: 5px;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 3px;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.012);
   overflow: hidden;
 }
-.mm-hold-bar-fill {
+@media (min-width: 768px) {
+  /* Matches the aspect the layout was computed at, so tiles render
+     near-square. The mobile 4/3 stretch just makes them taller. */
+  .mm-heat { aspect-ratio: 16 / 9; }
+}
+.mm-heat-tile {
   position: absolute;
-  inset: 0 auto 0 0;
-  background: linear-gradient(90deg, var(--z-blue), var(--lightning));
-  border-radius: 3px;
-  width: 0%;
-  transition: width 1.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.1rem;
+  padding: 0.45rem 0.55rem;
+  /* Seams between tiles — border-free so geometry stays exact. */
+  box-shadow: inset 0 0 0 1px var(--bg);
+  background-color: rgba(46, 111, 187, calc(0.07 + var(--heat, 0) * 0.36));
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(0.94);
+  transition:
+    opacity 600ms var(--ease-out),
+    transform 600ms var(--ease-out);
+  transition-delay: var(--mm-delay, 0ms);
 }
-.mm-watch.is-visible .mm-hold-bar-fill {
-  width: var(--mm-bar, 0%);
+.mm-watch.is-visible .mm-heat-tile {
+  opacity: 1;
+  transform: none;
 }
-.mm-hold-num {
-  text-align: right;
+.mm-heat-tile[data-mark="HELD"] {
+  background-color: rgba(184, 197, 214, calc(0.035 + var(--heat, 0) * 0.09));
+}
+.mm-heat-tile::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.05);
+  opacity: 0;
+  transition: opacity 200ms var(--ease-out);
+  pointer-events: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .mm-heat-tile:hover::after { opacity: 1; }
+}
+.mm-heat-tkr {
   font-family: var(--font-mono), ui-monospace, monospace;
-  font-variant-numeric: tabular-nums;
-  font-size: 0.78rem;
-  letter-spacing: 0.04em;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mm-heat-tile[data-mark="HELD"] .mm-heat-tkr {
   color: var(--muted);
 }
-.mm-hold-mark-live {
-  color: var(--crystal);
+.mm-heat-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   font-family: var(--font-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--soft);
+  white-space: nowrap;
+}
+/* The LIVE dot rides on the meta line; HELD tiles stay dotless. */
+.mm-heat-tile[data-mark="LIVE"] .mm-heat-meta::before {
+  content: "";
+  flex: none;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--crystal);
+  box-shadow: 0 0 5px rgba(93, 187, 154, 0.6);
+}
+.mm-heat-tile[data-size="md"] .mm-heat-tkr { font-size: 0.62rem; }
+.mm-heat-tile[data-size="sm"] .mm-heat-tkr { font-size: 0.55rem; }
+.mm-heat-tile[data-size="sm"] .mm-heat-meta { display: none; }
+.mm-heat-tile[data-size="sm"] { padding: 0.3rem 0.35rem; }
+/* Narrow screens: tighten type so full tickers fit their tiles. */
+@media (max-width: 767px) {
+  .mm-heat-tile { padding: 0.35rem 0.4rem; }
+  .mm-heat-tkr { font-size: 0.6rem; letter-spacing: 0.03em; }
+  .mm-heat-tile[data-size="md"] .mm-heat-tkr { font-size: 0.52rem; }
+  .mm-heat-meta { font-size: 8px; letter-spacing: 0.08em; }
+}
+.mm-heat-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.6rem;
+  margin-top: 0.8rem;
   font-size: 9.5px;
   letter-spacing: 0.22em;
-  text-transform: uppercase;
+  color: var(--soft);
+}
+.mm-heat-legend-live {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
 }
-.mm-hold-mark-live::before {
+.mm-heat-legend-live::before {
   content: "";
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
   border-radius: 999px;
   background: var(--crystal);
-  box-shadow: 0 0 6px rgba(93, 187, 154, 0.6);
-}
-.mm-hold-mark-held {
-  color: var(--soft);
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 9.5px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
+  box-shadow: 0 0 5px rgba(93, 187, 154, 0.6);
 }
 
 /* ── Position-row interaction + tear sheet ─────────────── */
@@ -414,17 +384,17 @@ body {
   color: var(--muted);
   background: rgba(255, 255, 255, 0.014);
 }
-
-/* ── Execution log row tags (FILL / EXEC / OPEN / CLOSE) */
-.mm-tick-act-fill   { color: var(--crystal);   font-weight: 600; }
-.mm-tick-act-exec   { color: var(--lightning); font-weight: 600; }
-.mm-tick-act-open   { color: var(--z-blue);    font-weight: 600; }
-.mm-tick-act-close  { color: var(--steel);     font-weight: 600; }
-.mm-tick-act-roll   { color: var(--lightning); font-weight: 600; }
-.mm-tick-status-pos { color: var(--crystal); }
-.mm-tick-status-neu { color: var(--soft);    }
-.mm-tick-ts         { color: var(--soft);   }
-.mm-tick-msg        { color: var(--ink);    }
+.mm-tear-link {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  color: var(--accent, var(--crystal));
+  border-bottom: 1px solid
+    color-mix(in oklab, var(--accent, var(--crystal)) 35%, transparent);
+  transition: border-color 200ms var(--ease-out);
+}
+.mm-tear-link:hover {
+  border-color: var(--accent, var(--crystal));
+}
 
 /* ── Position-book row variants ───────────────────────── */
 .mm-pos-side {
@@ -977,6 +947,12 @@ body {
   border-color: rgba(184, 197, 214, 0.24);
   background: rgba(184, 197, 214, 0.05);
 }
+/* PROP — the own-book trade: Quentin Software, MILGAUSS red. */
+.mm-ordtype[data-type="PROP"] {
+  color: #e0564f;
+  border-color: rgba(217, 52, 47, 0.38);
+  background: rgba(217, 52, 47, 0.08);
+}
 
 /* ── Settlement microcopy (under email CTA) ────────────── */
 .mm-settle {
@@ -1356,8 +1332,7 @@ body {
   .mm-word,
   .mm-rotor-inner,
   .mm-status-dot,
-  .mm-ticker-track,
-  .mm-hold-bar-fill,
+  .mm-heat-tile,
   .mm-tear,
   .mm-ticket,
   .mm-term,
@@ -1374,11 +1349,9 @@ body {
   }
   .mm-reveal,
   .mm-watch,
-  .mm-word {
+  .mm-word,
+  .mm-heat-tile {
     opacity: 1 !important;
-  }
-  .mm-hold-bar-fill {
-    width: var(--mm-bar, 0%) !important;
   }
   .mm-tear {
     transition: none !important;
