@@ -392,7 +392,13 @@ export type OssPackage = {
   /** GitHub repo when it differs from the npm name (renamed at publish). */
   repo?: string;
   desc: string;
-  group: "Rates & Treasury" | "FX & Volatility" | "Market Structure" | "Off Desk";
+  group:
+    | "Rates & Treasury"
+    | "FX & Volatility"
+    | "Market Structure"
+    | "Startup Equity"
+    | "Crypto & Consumer Credit"
+    | "Off Desk";
 };
 
 /**
@@ -418,6 +424,12 @@ export const OSS_PACKAGES: OssPackage[] = [
   { name: "instrument-identifiers",    group: "Market Structure", desc: "CUSIP, ISIN, SEDOL, FIGI, LEI — check digits, parsing, conversion" },
   { name: "us-equity-market-calendar", group: "Market Structure", desc: "NYSE / NASDAQ trading calendar — holidays, early closes, sessions" },
   { name: "commitments-of-traders",    group: "Market Structure", desc: "Typed client for CFTC Commitments of Traders reports" },
+  { name: "safe-stack-conversion",     group: "Startup Equity",   desc: "YC SAFEs & convertible notes → pro-forma cap table at a priced round" },
+  { name: "exit-waterfall",            group: "Startup Equity",   desc: "Liquidation-preference waterfalls — seniority, participation, conversion" },
+  { name: "priced-round-math",         group: "Startup Equity",   desc: "Priced-round dilution — the option-pool shuffle, PPS, ownership" },
+  { name: "vesting-schedule-math",     group: "Startup Equity",   desc: "Equity vesting — cliffs, tranches, fractional shares, acceleration" },
+  { name: "perp-funding-math",         group: "Crypto & Consumer Credit", desc: "Perp funding — payments, APR/APY, cross-venue arb carry" },
+  { name: "reg-z-apr",                 group: "Crypto & Consumer Credit", desc: "Truth in Lending APR — the Reg Z Appendix J actuarial method" },
   { name: "rmd-uniform-lifetime",      group: "Off Desk",         desc: "IRS required-minimum-distribution math — Pub 590-B life tables" },
   { name: "mispar",                    group: "Off Desk",         desc: "Hebrew gematria — 13 classical methods, atbash & albam transforms" },
   { name: "dicta-nakdan",              group: "Off Desk",         desc: "Typed client for Dicta's Nakdan API — automatic Hebrew nikud" },
