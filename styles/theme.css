@@ -510,6 +510,54 @@ body {
   }
 }
 
+/* ── Open-source listings ─────────────────────────────── */
+.mm-oss {
+  display: flex;
+  flex-direction: column;
+}
+.mm-oss-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 1rem;
+  row-gap: 0.15rem;
+  align-items: baseline;
+  padding: 0.5rem 0.4rem;
+  border-bottom: 1px solid color-mix(in oklab, var(--line) 60%, transparent);
+  transition: background 160ms var(--ease-out);
+}
+.mm-oss-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+.mm-oss-name {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+}
+.mm-oss-desc {
+  grid-column: 1 / -1;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.mm-oss-arrow {
+  font-size: 0.72rem;
+  color: var(--soft);
+  opacity: 0;
+  transition: opacity 160ms var(--ease-out);
+}
+.mm-oss-row:hover .mm-oss-arrow {
+  opacity: 1;
+}
+@media (min-width: 768px) {
+  .mm-oss-row {
+    grid-template-columns: 230px 1fr auto;
+    row-gap: 0;
+  }
+  .mm-oss-desc {
+    grid-column: auto;
+  }
+}
+
 /* ── Pull quote ───────────────────────────────────────── */
 .mm-pull {
   position: relative;
