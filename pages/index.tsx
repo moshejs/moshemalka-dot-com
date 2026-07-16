@@ -4,11 +4,13 @@ import Script from "next/script";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import {
   CAREER_EPOCH,
+  OSS_PACKAGES,
   POSITIONS,
   computeHeatmap,
   countCareerPositions,
   countOpenPositions,
   formatSession,
+  type OssPackage,
   type Position,
 } from "@/lib/portfolio";
 
@@ -71,6 +73,9 @@ const STRUCTURED_DATA = {
         "React",
         "Next.js",
         "Distributed Systems",
+        "Fixed Income",
+        "Quantitative Finance",
+        "Open Source Software",
       ],
       sameAs: [
         "https://www.linkedin.com/in/moshenyc/",
@@ -109,6 +114,20 @@ const STRUCTURED_DATA = {
       primaryImageOfPage: `${SITE_URL}/og-image.jpg`,
       inLanguage: "en",
     },
+    // One node per npm package — the packages' own npm pages point their
+    // homepage/author back here, so claiming authorship on this side closes
+    // the loop and ties the library family to the same Person entity.
+    ...OSS_PACKAGES.map((p) => ({
+      "@type": "SoftwareSourceCode",
+      "@id": `https://www.npmjs.com/package/${p.name}`,
+      name: p.name,
+      description: p.desc,
+      url: `https://www.npmjs.com/package/${p.name}`,
+      codeRepository: `https://github.com/moshejs/${p.repo ?? p.name}`,
+      programmingLanguage: "TypeScript",
+      license: "https://opensource.org/license/mit/",
+      author: { "@id": `${SITE_URL}/#person` },
+    })),
   ],
 };
 
@@ -605,6 +624,67 @@ function Holdings() {
   );
 }
 
+/* ── Open source — the npm listings ───────────────────────── */
+
+function OpenSource() {
+  // Group in first-appearance order so the data file controls the layout.
+  const groups: { label: string; items: OssPackage[] }[] = [];
+  for (const p of OSS_PACKAGES) {
+    const g = groups.find((x) => x.label === p.group);
+    if (g) g.items.push(p);
+    else groups.push({ label: p.group, items: [p] });
+  }
+
+  return (
+    <section id="open-source">
+      <div className="mm-watch">
+        <SectionMarker>Open Source · listed on npm</SectionMarker>
+      </div>
+      <p
+        className="mm-watch mt-8 max-w-3xl text-lg leading-relaxed"
+        style={{ color: "var(--muted)" }}
+      >
+        {OSS_PACKAGES.length} zero-dependency TypeScript libraries — Treasury
+        and rates math, market-data clients, FX conventions, volatility
+        models, Hebrew NLP — each verified against primary sources and
+        maintained on{" "}
+        <a
+          className="mm-hover-line"
+          href="https://github.com/moshejs"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: "var(--ink)" }}
+        >
+          GitHub
+        </a>
+        .
+      </p>
+      <div className="mt-6 mm-watch mm-oss">
+        {groups.map((g) => (
+          <React.Fragment key={g.label}>
+            <div className="mm-pos-group-label mm-mono">{g.label}</div>
+            {g.items.map((p) => (
+              <a
+                key={p.name}
+                className="mm-oss-row"
+                href={`https://www.npmjs.com/package/${p.name}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span className="mm-oss-name mm-mono">{p.name}</span>
+                <span className="mm-oss-desc">{p.desc}</span>
+                <span className="mm-oss-arrow mm-mono" aria-hidden>
+                  ↗
+                </span>
+              </a>
+            ))}
+          </React.Fragment>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function MagneticCTA({
   href,
   children,
@@ -822,6 +902,12 @@ function CmdTerminal({
         desc: "Holdings — tech stack heatmap, size = tenor",
         match: ["stack", "holdings", "tech", "heatmap", "allocation", "languages"],
         exec: () => scrollToId("holdings"),
+      },
+      {
+        tkr: "OSS",
+        desc: "Open source — npm package listings",
+        match: ["oss", "open source", "npm", "packages", "libraries", "lib"],
+        exec: () => scrollToId("open-source"),
       },
       {
         tkr: "QNTN",
@@ -1315,6 +1401,11 @@ export default function Home() {
 
         {/* HOLDINGS — stack as sector heatmap */}
         <Holdings />
+
+        <Divider />
+
+        {/* OPEN SOURCE — npm listings */}
+        <OpenSource />
 
         <Divider />
 

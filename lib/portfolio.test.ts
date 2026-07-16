@@ -1,6 +1,7 @@
 import {
   CAREER_EPOCH,
   HOLDINGS,
+  OSS_PACKAGES,
   POSITIONS,
   computeHeatmap,
   countCareerPositions,
@@ -281,5 +282,42 @@ describe("computeHeatmap", () => {
       expect(t.heat).toBeLessThanOrEqual(1);
     }
     expect(Math.max(...tiles.map((t) => t.heat))).toBe(1);
+  });
+});
+
+describe("OSS_PACKAGES", () => {
+  it("lists the full 20-package npm family", () => {
+    expect(OSS_PACKAGES).toHaveLength(20);
+  });
+
+  it("uses unique, valid npm package names", () => {
+    const names = OSS_PACKAGES.map((p) => p.name);
+    expect(new Set(names).size).toBe(names.length);
+    for (const name of names) {
+      // Unscoped npm names: lowercase alphanumerics and hyphens.
+      expect(name).toMatch(/^[a-z0-9][a-z0-9-]*$/);
+    }
+  });
+
+  it("keeps every description one tight line", () => {
+    for (const p of OSS_PACKAGES) {
+      expect(p.desc.length).toBeGreaterThan(0);
+      expect(p.desc.length).toBeLessThanOrEqual(80);
+      expect(p.desc).not.toMatch(/\n/);
+    }
+  });
+
+  it("only sets repo when it differs from the npm name", () => {
+    for (const p of OSS_PACKAGES) {
+      if (p.repo !== undefined) expect(p.repo).not.toBe(p.name);
+    }
+  });
+
+  it("keeps groups contiguous so section labels render once each", () => {
+    const seen: string[] = [];
+    for (const p of OSS_PACKAGES) {
+      if (seen[seen.length - 1] !== p.group) seen.push(p.group);
+    }
+    expect(new Set(seen).size).toBe(seen.length);
   });
 });

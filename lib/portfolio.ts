@@ -384,6 +384,45 @@ export function computeHeatmap(
   }));
 }
 
+/* ── Open-source listings ─────────────────────────────────── */
+
+export type OssPackage = {
+  /** npm package name — the listing lives at npmjs.com/package/<name>. */
+  name: string;
+  /** GitHub repo when it differs from the npm name (renamed at publish). */
+  repo?: string;
+  desc: string;
+  group: "Rates & Treasury" | "FX & Volatility" | "Market Structure" | "Off Desk";
+};
+
+/**
+ * The npm package family. Every package is zero-dependency TypeScript with
+ * homepage + author pointing back at moshemalka.com; rows render in the
+ * Open Source section and feed the SoftwareSourceCode structured data.
+ */
+export const OSS_PACKAGES: OssPackage[] = [
+  { name: "32nds",                     group: "Rates & Treasury", desc: "US Treasury price math — 32nds quotes (105-16+), ticks, basis points" },
+  { name: "treasury-bill-yield",       group: "Rates & Treasury", repo: "tbill", desc: "T-bill math — discount rate ↔ price ↔ bond-equivalent yield" },
+  { name: "accrued-interest",          group: "Rates & Treasury", desc: "Bond accrued interest between coupon dates, across day-count bases" },
+  { name: "day-count-conventions",     group: "Rates & Treasury", repo: "day-count", desc: "ISDA day counts — 30/360, ACT/360, ACT/365F, ACT/ACT & friends" },
+  { name: "tips-index-ratio",          group: "Rates & Treasury", desc: "TIPS inflation math — reference-CPI interpolation & index ratios" },
+  { name: "compounded-sofr",           group: "Rates & Treasury", desc: "SOFR compounding in arrears — ARRC & ISDA conventions, SOFR Index" },
+  { name: "sifma-holidays",            group: "Rates & Treasury", desc: "US bond-market holidays, early closes, and settlement dates" },
+  { name: "treasurydirect",            group: "Rates & Treasury", desc: "Typed client for the US Treasury's auction & securities APIs" },
+  { name: "newyorkfed",                group: "Rates & Treasury", desc: "Typed client for the NY Fed Markets Data API — SOFR, EFFR, SOMA" },
+  { name: "treasury-fiscaldata",       group: "Rates & Treasury", desc: "Typed client for Treasury FiscalData — Debt to the Penny & more" },
+  { name: "fx-value-date",             group: "FX & Volatility",  desc: "FX settlement dates — spot, tom, forward tenors, dual calendars" },
+  { name: "fx-forward-math",           group: "FX & Volatility",  desc: "Forward points ↔ outrights, cross rates, triangular arbitrage" },
+  { name: "hagan-sabr",                group: "FX & Volatility",  desc: "SABR implied vol — Hagan 2002 expansions, Obłój fix, calibration" },
+  { name: "svi-vol-surface",           group: "FX & Volatility",  desc: "Gatheral SVI surfaces — parametrizations, arbitrage checks, fits" },
+  { name: "instrument-identifiers",    group: "Market Structure", desc: "CUSIP, ISIN, SEDOL, FIGI, LEI — check digits, parsing, conversion" },
+  { name: "us-equity-market-calendar", group: "Market Structure", desc: "NYSE / NASDAQ trading calendar — holidays, early closes, sessions" },
+  { name: "commitments-of-traders",    group: "Market Structure", desc: "Typed client for CFTC Commitments of Traders reports" },
+  { name: "rmd-uniform-lifetime",      group: "Off Desk",         desc: "IRS required-minimum-distribution math — Pub 590-B life tables" },
+  { name: "mispar",                    group: "Off Desk",         desc: "Hebrew gematria — 13 classical methods, atbash & albam transforms" },
+  { name: "dicta-nakdan",              group: "Off Desk",         desc: "Typed client for Dicta's Nakdan API — automatic Hebrew nikud" },
+];
+
 /* ── Derived counts for the hero spec sheet ───────────────── */
 
 export function countOpenPositions(positions: Position[] = POSITIONS): number {
