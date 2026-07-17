@@ -287,7 +287,7 @@ describe("computeHeatmap", () => {
 
 describe("OSS_PACKAGES", () => {
   it("lists the full 20-package npm family", () => {
-    expect(OSS_PACKAGES).toHaveLength(20);
+    expect(OSS_PACKAGES).toHaveLength(26);
   });
 
   it("uses unique, valid npm package names", () => {
