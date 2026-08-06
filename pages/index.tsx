@@ -10,7 +10,6 @@ import {
   countCareerPositions,
   countOpenPositions,
   formatSession,
-  type OssPackage,
   type Position,
 } from "@/lib/portfolio";
 
@@ -38,9 +37,9 @@ const mono = JetBrains_Mono({
 const SITE_URL = "https://moshemalka.com";
 
 const SEO = {
-  title: "Moshe Malka — Engineering Leader",
+  title: "Moshe Malka — Software Engineer & Engineering Leader",
   description:
-    "Moshe Malka is a New York City engineering leader — writing software since 2008, leading and mentoring teams, and shipping products with AI.",
+    "Moshe Malka is a software engineer and engineering leader in New York City — writing software since 2008, leading teams, and shipping products with AI.",
   ogImage: `${SITE_URL}/og-image.jpg`,
 };
 
@@ -56,9 +55,9 @@ const STRUCTURED_DATA = {
       name: "Moshe Malka",
       url: `${SITE_URL}/`,
       image: `${SITE_URL}/moshe.jpg`,
-      jobTitle: "Engineering Leader",
+      jobTitle: "Software Engineer & Engineering Leader",
       description:
-        "New York City engineering leader — writing software since 2008, leading and mentoring teams, and shipping products with AI.",
+        "Software engineer and engineering leader in New York City — writing software since 2008, leading teams, and shipping products with AI.",
       email: "hello@moshemalka.com",
       birthPlace: { "@type": "Place", name: "New York City, NY, USA" },
       homeLocation: { "@type": "Place", name: "New York City, NY, USA" },
@@ -107,7 +106,7 @@ const STRUCTURED_DATA = {
       "@type": "ProfilePage",
       "@id": `${SITE_URL}/#webpage`,
       url: `${SITE_URL}/`,
-      name: "Moshe Malka — Engineering Leader",
+      name: "Moshe Malka — Software Engineer & Engineering Leader",
       isPartOf: { "@id": `${SITE_URL}/#website` },
       about: { "@id": `${SITE_URL}/#person` },
       mainEntity: { "@id": `${SITE_URL}/#person` },
@@ -226,8 +225,10 @@ function HeroHeading() {
   const step = 70;
   const totalCount = lineOne.length + lineTwo.length + 1;
 
+  // Display text, not the document heading — the h1 is the name + job-title
+  // lockup above, which carries the terms searchers actually use.
   return (
-    <h1 className="mm-title mt-12 text-6xl md:text-8xl font-bold leading-[1.04]">
+    <p className="mm-title mt-12 text-6xl md:text-8xl font-bold leading-[1.04]">
       <span className="mm-line">
         {lineOne.map((w, i) => (
           <React.Fragment key={`a-${i}`}>
@@ -261,20 +262,23 @@ function HeroHeading() {
           <RotatingWord words={HERO_VERBS} />
         </span>
       </span>
-    </h1>
+    </p>
   );
 }
 
+/* Section markers double as the page's h2 outline — same 11px mono look
+   (preflight makes headings inherit size/weight), but real headings so
+   crawlers see a document structure, not a wall of divs. */
 function SectionMarker({ children }: { children: ReactNode }) {
   return (
     <div className="mm-marker">
       <span className="mm-marker-bar" aria-hidden />
-      <span
-        className="mm-mono text-[11px]"
+      <h2
+        className="mm-mono text-[11px] font-normal"
         style={{ color: "var(--soft)" }}
       >
         {children}
-      </span>
+      </h2>
     </div>
   );
 }
@@ -627,14 +631,9 @@ function Holdings() {
 /* ── Open source — the npm listings ───────────────────────── */
 
 function OpenSource() {
-  // Group in first-appearance order so the data file controls the layout.
-  const groups: { label: string; items: OssPackage[] }[] = [];
-  for (const p of OSS_PACKAGES) {
-    const g = groups.find((x) => x.label === p.group);
-    if (g) g.items.push(p);
-    else groups.push({ label: p.group, items: [p] });
-  }
-
+  // The homepage shows a curated sample; the full family (still in the
+  // structured data above) sits one click away on npm.
+  const featured = OSS_PACKAGES.filter((p) => p.featured);
   return (
     <section id="open-source">
       <div className="mm-watch">
@@ -657,29 +656,38 @@ function OpenSource() {
         >
           GitHub
         </a>
-        .
+        . A sample:
       </p>
       <div className="mt-6 mm-watch mm-oss">
-        {groups.map((g) => (
-          <React.Fragment key={g.label}>
-            <div className="mm-pos-group-label mm-mono">{g.label}</div>
-            {g.items.map((p) => (
-              <a
-                key={p.name}
-                className="mm-oss-row"
-                href={`https://www.npmjs.com/package/${p.name}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <span className="mm-oss-name mm-mono">{p.name}</span>
-                <span className="mm-oss-desc">{p.desc}</span>
-                <span className="mm-oss-arrow mm-mono" aria-hidden>
-                  ↗
-                </span>
-              </a>
-            ))}
-          </React.Fragment>
+        {featured.map((p) => (
+          <a
+            key={p.name}
+            className="mm-oss-row"
+            href={`https://www.npmjs.com/package/${p.name}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span className="mm-oss-name mm-mono">{p.name}</span>
+            <span className="mm-oss-desc">{p.desc}</span>
+            <span className="mm-oss-arrow mm-mono" aria-hidden>
+              ↗
+            </span>
+          </a>
         ))}
+        <a
+          className="mm-oss-row"
+          href="https://www.npmjs.com/~quentin_code"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span className="mm-oss-name mm-mono">
+            +{OSS_PACKAGES.length - featured.length} more
+          </span>
+          <span className="mm-oss-desc">the full package family on npm</span>
+          <span className="mm-oss-arrow mm-mono" aria-hidden>
+            ↗
+          </span>
+        </a>
       </div>
     </section>
   );
@@ -711,34 +719,6 @@ function MagneticCTA({
         →
       </span>
     </a>
-  );
-}
-
-type CardProps = {
-  chipColor: string;
-  label: string;
-  idx: number;
-  children: ReactNode;
-};
-
-function Card({ chipColor, label, idx, children }: CardProps) {
-  const number = String(idx + 1).padStart(2, "0");
-
-  return (
-    <div
-      className="mm-watch"
-      style={{ ["--mm-delay" as string]: `${idx * 90}ms` }}
-    >
-      <div className="mm-card" style={{ ["--accent" as string]: chipColor }}>
-        <div className="mm-card-number mm-mono">{number}</div>
-        <div className="mm-mono text-xs mm-chip" style={{ color: chipColor }}>
-          {label}
-        </div>
-        <p className="mt-6 leading-relaxed" style={{ color: "var(--muted)" }}>
-          {children}
-        </p>
-      </div>
-    </div>
   );
 }
 
@@ -1105,8 +1085,8 @@ function FootNow({ onOpenTicket }: { onOpenTicket: () => void }) {
             className="mt-4 text-lg leading-relaxed"
             style={{ color: "var(--muted)" }}
           >
-            Building. Open to engineering leadership roles that touch scale,
-            capital, or AI — ideally all three.
+            Building. Open to software engineering and engineering leadership
+            roles that touch scale, capital, or AI — ideally all three.
           </p>
           <div className="mt-6 mm-pull">
             Build it right. Then scale it.
@@ -1186,7 +1166,7 @@ function FootNow({ onOpenTicket }: { onOpenTicket: () => void }) {
         style={{ color: "var(--soft)", borderTop: "1px solid var(--line)" }}
       >
         <span>Moshe Malka · NYC ↔ MIA · 2026</span>
-        <span>Engineering leader · TypeScript · Next.js · AI</span>
+        <span>Software engineer · Engineering leader · TypeScript · Next.js · AI</span>
         <span>
           <kbd>⌘K</kbd> terminal
         </span>
@@ -1296,7 +1276,7 @@ export default function Home() {
         <meta property="og:image" content={SEO.ogImage} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="Moshe Malka — Engineering Leader" />
+        <meta property="og:image:alt" content="Moshe Malka — Software Engineer & Engineering Leader" />
         <meta property="og:locale" content="en_US" />
         <meta property="profile:first_name" content="Moshe" />
         <meta property="profile:last_name" content="Malka" />
@@ -1306,7 +1286,7 @@ export default function Home() {
         <meta name="twitter:title" content={SEO.title} />
         <meta name="twitter:description" content={SEO.description} />
         <meta name="twitter:image" content={SEO.ogImage} />
-        <meta name="twitter:image:alt" content="Moshe Malka — Engineering Leader" />
+        <meta name="twitter:image:alt" content="Moshe Malka — Software Engineer & Engineering Leader" />
 
         {/* Structured data — Person / WebSite / ProfilePage */}
         <script
@@ -1336,15 +1316,16 @@ export default function Home() {
             </div>
             <div>
               {/* Name + title lockup — the two facts every visitor came for,
-                  at legible weight (not an 11px marker). */}
-              <div className="mm-reveal">
-                <p className="mm-mono text-sm md:text-base tracking-[0.14em] uppercase" style={{ color: "var(--ink)" }}>
+                  at legible weight (not an 11px marker). This is the page's
+                  single h1: name + job title, the query it should rank for. */}
+              <h1 className="mm-reveal">
+                <span className="block mm-mono text-sm md:text-base font-normal tracking-[0.14em] uppercase" style={{ color: "var(--ink)" }}>
                   Moshe Malka
-                </p>
-                <p className="mm-mono text-[11px] tracking-[0.18em] uppercase mt-1" style={{ color: "var(--muted)" }}>
-                  Engineering Leader · New York City
-                </p>
-              </div>
+                </span>
+                <span className="block mm-mono text-[11px] font-normal tracking-[0.18em] uppercase mt-1" style={{ color: "var(--muted)" }}>
+                  Software Engineer &amp; Engineering Leader · New York City
+                </span>
+              </h1>
 
               <HeroHeading />
             </div>
@@ -1355,7 +1336,8 @@ export default function Home() {
             className="mm-reveal mm-delay-3 mt-10 max-w-3xl text-lg md:text-xl leading-relaxed"
             style={{ color: "var(--muted)" }}
           >
-            Engineering leader in New York City — writing software since 2008.
+            Software engineer and engineering leader in New York City —
+            writing software since 2008.
             Currently on Goldman Sachs&rsquo; Private Wealth platform;
             previously Peloton&rsquo;s e-commerce replatform, institutional
             bond trading at ICE, and HFT systems that filled arbitrage in
@@ -1364,32 +1346,6 @@ export default function Home() {
           </p>
 
           <HeroStats />
-        </section>
-
-        <Divider />
-
-        {/* GRID INTERSECTION */}
-        <section className="mm-grid grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-20 text-xl">
-          <Card chipColor="var(--lightning)" label="Trading" idx={0}>
-            Arbitrage systems under 26ms. Real-time volatility across 40+
-            exchanges. Infrastructure where milliseconds change outcomes.
-          </Card>
-
-          <Card chipColor="var(--z-blue)"    label="Institutional Finance" idx={1}>
-            Portfolio systems at Goldman. Interfaces that brokers and
-            high-net-worth clients rely on. Precision, governance,
-            responsibility.
-          </Card>
-
-          <Card chipColor="var(--crystal)"   label="Real Estate" idx={2}>
-            Operational platforms for coworking and physical space. Software
-            that touches real-world infrastructure.
-          </Card>
-
-          <Card chipColor="var(--steel)"     label="Modern Web & AI" idx={3}>
-            NextJS, React, LangChain, GPT-4. Tools that compress iteration
-            cycles. Product built fast, but built right.
-          </Card>
         </section>
 
         <Divider />

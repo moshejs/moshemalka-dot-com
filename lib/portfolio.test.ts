@@ -307,6 +307,13 @@ describe("OSS_PACKAGES", () => {
     }
   });
 
+  it("features a small homepage subset of the family", () => {
+    const featured = OSS_PACKAGES.filter((p) => p.featured);
+    expect(featured.length).toBeGreaterThanOrEqual(6);
+    expect(featured.length).toBeLessThanOrEqual(10);
+    expect(featured.length).toBeLessThan(OSS_PACKAGES.length);
+  });
+
   it("only sets repo when it differs from the npm name", () => {
     for (const p of OSS_PACKAGES) {
       if (p.repo !== undefined) expect(p.repo).not.toBe(p.name);
