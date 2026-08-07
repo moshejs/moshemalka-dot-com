@@ -391,6 +391,8 @@ export type OssPackage = {
   name: string;
   /** GitHub repo when it differs from the npm name (renamed at publish). */
   repo?: string;
+  /** Rendered on the homepage; the rest sit behind the "all packages" link. */
+  featured?: true;
   desc: string;
   group:
     | "Rates & Treasury"
@@ -407,31 +409,31 @@ export type OssPackage = {
  * Open Source section and feed the SoftwareSourceCode structured data.
  */
 export const OSS_PACKAGES: OssPackage[] = [
-  { name: "32nds",                     group: "Rates & Treasury", desc: "US Treasury price math — 32nds quotes (105-16+), ticks, basis points" },
+  { name: "32nds", featured: true,                     group: "Rates & Treasury", desc: "US Treasury price math — 32nds quotes (105-16+), ticks, basis points" },
   { name: "treasury-bill-yield",       group: "Rates & Treasury", repo: "tbill", desc: "T-bill math — discount rate ↔ price ↔ bond-equivalent yield" },
   { name: "accrued-interest",          group: "Rates & Treasury", desc: "Bond accrued interest between coupon dates, across day-count bases" },
   { name: "day-count-conventions",     group: "Rates & Treasury", repo: "day-count", desc: "ISDA day counts — 30/360, ACT/360, ACT/365F, ACT/ACT & friends" },
   { name: "tips-index-ratio",          group: "Rates & Treasury", desc: "TIPS inflation math — reference-CPI interpolation & index ratios" },
-  { name: "compounded-sofr",           group: "Rates & Treasury", desc: "SOFR compounding in arrears — ARRC & ISDA conventions, SOFR Index" },
+  { name: "compounded-sofr", featured: true,           group: "Rates & Treasury", desc: "SOFR compounding in arrears — ARRC & ISDA conventions, SOFR Index" },
   { name: "sifma-holidays",            group: "Rates & Treasury", desc: "US bond-market holidays, early closes, and settlement dates" },
-  { name: "treasurydirect",            group: "Rates & Treasury", desc: "Typed client for the US Treasury's auction & securities APIs" },
+  { name: "treasurydirect", featured: true,            group: "Rates & Treasury", desc: "Typed client for the US Treasury's auction & securities APIs" },
   { name: "newyorkfed",                group: "Rates & Treasury", desc: "Typed client for the NY Fed Markets Data API — SOFR, EFFR, SOMA" },
   { name: "treasury-fiscaldata",       group: "Rates & Treasury", desc: "Typed client for Treasury FiscalData — Debt to the Penny & more" },
   { name: "fx-value-date",             group: "FX & Volatility",  desc: "FX settlement dates — spot, tom, forward tenors, dual calendars" },
   { name: "fx-forward-math",           group: "FX & Volatility",  desc: "Forward points ↔ outrights, cross rates, triangular arbitrage" },
-  { name: "hagan-sabr",                group: "FX & Volatility",  desc: "SABR implied vol — Hagan 2002 expansions, Obłój fix, calibration" },
+  { name: "hagan-sabr", featured: true,                group: "FX & Volatility",  desc: "SABR implied vol — Hagan 2002 expansions, Obłój fix, calibration" },
   { name: "svi-vol-surface",           group: "FX & Volatility",  desc: "Gatheral SVI surfaces — parametrizations, arbitrage checks, fits" },
-  { name: "instrument-identifiers",    group: "Market Structure", desc: "CUSIP, ISIN, SEDOL, FIGI, LEI — check digits, parsing, conversion" },
+  { name: "instrument-identifiers", featured: true,    group: "Market Structure", desc: "CUSIP, ISIN, SEDOL, FIGI, LEI — check digits, parsing, conversion" },
   { name: "us-equity-market-calendar", group: "Market Structure", desc: "NYSE / NASDAQ trading calendar — holidays, early closes, sessions" },
   { name: "commitments-of-traders",    group: "Market Structure", desc: "Typed client for CFTC Commitments of Traders reports" },
-  { name: "safe-stack-conversion",     group: "Startup Equity",   desc: "YC SAFEs & convertible notes → pro-forma cap table at a priced round" },
+  { name: "safe-stack-conversion", featured: true,     group: "Startup Equity",   desc: "YC SAFEs & convertible notes → pro-forma cap table at a priced round" },
   { name: "exit-waterfall",            group: "Startup Equity",   desc: "Liquidation-preference waterfalls — seniority, participation, conversion" },
   { name: "priced-round-math",         group: "Startup Equity",   desc: "Priced-round dilution — the option-pool shuffle, PPS, ownership" },
   { name: "vesting-schedule-math",     group: "Startup Equity",   desc: "Equity vesting — cliffs, tranches, fractional shares, acceleration" },
   { name: "perp-funding-math",         group: "Crypto & Consumer Credit", desc: "Perp funding — payments, APR/APY, cross-venue arb carry" },
-  { name: "reg-z-apr",                 group: "Crypto & Consumer Credit", desc: "Truth in Lending APR — the Reg Z Appendix J actuarial method" },
+  { name: "reg-z-apr", featured: true,                 group: "Crypto & Consumer Credit", desc: "Truth in Lending APR — the Reg Z Appendix J actuarial method" },
   { name: "rmd-uniform-lifetime",      group: "Off Desk",         desc: "IRS required-minimum-distribution math — Pub 590-B life tables" },
-  { name: "mispar",                    group: "Off Desk",         desc: "Hebrew gematria — 13 classical methods, atbash & albam transforms" },
+  { name: "mispar", featured: true,                    group: "Off Desk",         desc: "Hebrew gematria — 13 classical methods, atbash & albam transforms" },
   { name: "dicta-nakdan",              group: "Off Desk",         desc: "Typed client for Dicta's Nakdan API — automatic Hebrew nikud" },
 ];
 
