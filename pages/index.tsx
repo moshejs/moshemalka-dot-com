@@ -693,6 +693,44 @@ function OpenSource() {
   );
 }
 
+/* ── Movement rows — what I help move ─────────────────────── */
+/* Restored from the pre-simplify hero (git history) and re-homed in
+   Energy: four rows, each stating what moves, with a dot drifting
+   along a track in the row's accent color. Dot delays are offset so
+   they never sync. Rows ride the standard .mm-watch scroll reveal. */
+const MOVEMENTS = [
+  { asset: "Capital",    venue: "across exchanges",  accent: "var(--lightning)", flowDelay: "0s"    },
+  { asset: "Data",       venue: "through pipelines", accent: "var(--z-blue)",    flowDelay: "-1.1s" },
+  { asset: "Interfaces", venue: "moving portfolios", accent: "var(--crystal)",   flowDelay: "-2.2s" },
+  { asset: "People",     venue: "across cities",     accent: "var(--steel)",     flowDelay: "-3.3s" },
+] as const;
+
+function MovementTable() {
+  return (
+    <div className="mm-movements" role="list" aria-label="What I help move">
+      {MOVEMENTS.map((m, i) => (
+        <div
+          key={m.asset}
+          role="listitem"
+          className="mm-watch mm-movement"
+          style={{
+            ["--mm-delay" as string]: `${i * 110}ms`,
+            ["--accent" as string]: m.accent,
+            ["--mm-flow-delay" as string]: m.flowDelay,
+          }}
+        >
+          <span className="mm-movement-asset">{m.asset}</span>
+          <span className="mm-movement-venue">{m.venue}</span>
+          <span className="mm-movement-flow" aria-hidden>
+            <span className="mm-movement-flow-track" />
+            <span className="mm-movement-flow-dot" />
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function MagneticCTA({
   href,
   children,
@@ -1369,8 +1407,10 @@ export default function Home() {
         <section id="energy" className="max-w-3xl pb-20 mm-watch">
           <SectionMarker>Energy</SectionMarker>
 
+          <MovementTable />
+
           <p
-            className="mt-8 text-2xl leading-relaxed"
+            className="mt-10 text-2xl leading-relaxed"
             style={{ color: "var(--muted)" }}
           >
             I&rsquo;m interested in leverage — the kind you get from{" "}
