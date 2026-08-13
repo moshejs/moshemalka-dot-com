@@ -78,7 +78,7 @@ export const POSITIONS: Position[] = [
       "POSITIONS · jobs reframed as open + closed trading positions, with entry / exit / ΔP",
       "HOLDINGS · the tech stack as a sector heatmap — tile size = years on desk, heat = current allocation",
       "Tear sheets · every position click expands BASIS · HIGHLIGHTS · INSTRUMENTS · SIZE · TENOR",
-      "Restraint · one pulse, zero tape, zero orbs — the terminal is flat and dry on purpose",
+      "Restraint · one pulse + four drifting dots, zero tape, zero orbs — the terminal is flat and dry on purpose",
       "Double meanings · POSITIONS · HOLDINGS · TENOR · SIZE · MARK · BASIS · INSTRUMENTS — each reads in two languages",
     ],
     instr: ["Next.js", "TypeScript", "CSS", "Tailwind", "SVG"],

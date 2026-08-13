@@ -1370,6 +1370,86 @@ body {
   color: var(--muted);
 }
 
+/* ── Movement rows (what I help move) ─────────────────── */
+/* Restored from the pre-simplify hero: four factsheet rows, each with
+   a dot drifting along a track in the row's accent color. Delays are
+   offset so the dots never sync — alive, not a slot machine. */
+.mm-movements {
+  max-width: 540px;
+  border-top: 1px solid var(--line);
+  margin-top: 2rem;
+}
+.mm-movement {
+  display: grid;
+  grid-template-columns: 110px 1fr 80px;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 0.6rem 0.1rem;
+  border-bottom: 1px solid var(--line);
+}
+.mm-movement-asset {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent, var(--soft));
+  white-space: nowrap;
+}
+.mm-movement-venue {
+  color: var(--ink);
+  font-size: 0.98rem;
+  letter-spacing: -0.005em;
+  opacity: 0.92;
+}
+.mm-movement-flow {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 8px;
+}
+.mm-movement-flow-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.10) 30%,
+    rgba(255, 255, 255, 0.10) 70%,
+    transparent
+  );
+  transform: translateY(-50%);
+}
+.mm-movement-flow-dot {
+  position: absolute;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--accent, var(--ink));
+  box-shadow: 0 0 10px var(--accent, var(--ink));
+  transform: translate(-50%, -50%);
+  animation: flowDrift 4.4s linear infinite;
+  animation-delay: var(--mm-flow-delay, 0ms);
+  will-change: left, opacity;
+}
+@keyframes flowDrift {
+  0%   { left: 0%;   opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+@media (hover: hover) and (pointer: fine) {
+  .mm-movement:hover {
+    background: rgba(255, 255, 255, 0.018);
+  }
+  .mm-movement:hover .mm-movement-flow-dot {
+    animation-duration: 1.6s;
+  }
+}
+
 /* ── Reduced motion ───────────────────────────────────── */
 /* Remove MOTION, not feedback: entrance/scroll animations resolve to
    their final state and transform-based movement stops, but color and
@@ -1403,6 +1483,12 @@ body {
   }
   .mm-tear {
     transition: none !important;
+  }
+  /* The flow dot stops drifting and parks mid-track as a static accent. */
+  .mm-movement-flow-dot {
+    animation: none !important;
+    left: 50% !important;
+    opacity: 1 !important;
   }
   .mm-grad-word {
     background: none !important;
