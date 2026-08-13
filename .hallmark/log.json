@@ -1,0 +1,9 @@
+[
+  {
+    "date": "2026-08-13",
+    "macrostructure": "terminal-ledger (site-native, preserved)",
+    "theme": "preserved (Milgauss — dark paper · lightning-orange accent · mono display labels)",
+    "enrichment": "none",
+    "brief": "In-place redesign pass on moshemalka.com portfolio: a11y contrast (--soft to AA), focus discipline + skip link, touch/discoverable access to the Cmd+K terminal (fixed chip + footer button), transform-only flow-dot motion, heatmap quote readout, console egg, theme-color."
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "scannedAt": "2026-08-13",
+  "fontStack": "Inter + JetBrains Mono (next/font, pages/index.tsx L4)",
+  "palette": "hex/rgba custom properties (styles/theme.css :root — Milgauss palette)",
+  "motion": "no motion library — hand-rolled CSS keyframes + IntersectionObserver reveals",
+  "spacing": "Tailwind default scale (tailwind.config.ts, no extend.spacing)",
+  "framework": "Next.js 13 (pages router)",
+  "designMd": false,
+  "preserve": ["font stack", "palette", "trading-terminal identity", "macrostructure", "copy"],
+  "notes": "Site is a heavily-iterated single-page portfolio with a deliberate trading-terminal metaphor. Redesigns should stay in-place; diversification rules do not apply to identity-preserving passes."
+}

@@ -1,3 +1,7 @@
+/* Hallmark · redesign (in-place) · macrostructure: terminal-ledger (site-native, preserved)
+ * tone: terminal-editorial · anchor hue: lightning-orange on Z-blue-black · theme: preserved (Milgauss)
+ * pass: a11y contrast + focus discipline + touch reach for ⌘K + transform-only motion */
+
 /* ── moshemalka.com theme ─────────────────────────────────────
    Extracted from the former styled-jsx <Theme /> global block so
    the CSS ships once as a static stylesheet instead of twice
@@ -9,7 +13,9 @@
   --bg: #060912;
   --ink: #ffffff;
   --muted: rgba(255, 255, 255, 0.66);
-  --soft: rgba(255, 255, 255, 0.36);
+  /* 0.46 clears WCAG AA (≈4.6:1 on --bg) for the 9.5–11px mono labels
+     this token paints all over the page; 0.36 sat at ≈3.2:1. */
+  --soft: rgba(255, 255, 255, 0.46);
   --line: rgba(255, 255, 255, 0.07);
 
   --z-blue:    #2e6fbb;
@@ -57,6 +63,34 @@ body {
 ::selection {
   background: rgba(46, 111, 187, 0.4);
   color: #fff;
+}
+
+/* ── Focus discipline ─────────────────────────────────── */
+/* One branded ring for every keyboard stop. Appears instantly (never
+   animated); components with their own ring (.mm-traj-row) win on
+   specificity. */
+:focus-visible {
+  outline: 2px solid var(--steel);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Skip link — first tab stop, invisible until focused. */
+.mm-skip {
+  position: fixed;
+  top: 1.4rem;
+  left: 50%;
+  transform: translate(-50%, calc(-100% - 2rem));
+  z-index: 100;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(10, 12, 16, 0.92);
+  color: var(--ink);
+  font-size: 10px;
+}
+.mm-skip:focus-visible {
+  transform: translate(-50%, 0);
 }
 
 /* ── Graph-paper grid (trading-floor backdrop) ────────── */
@@ -266,6 +300,16 @@ body {
   border-radius: 999px;
   background: var(--crystal);
   box-shadow: 0 0 5px rgba(93, 187, 154, 0.6);
+}
+/* Quote readout — hovering/tapping a tile turns the legend line into a
+   Bloomberg-style quote for that ticker. Same type as the legend so the
+   row never shifts. */
+.mm-heat-quote {
+  color: var(--muted);
+}
+.mm-heat-quote-tkr {
+  color: var(--ink);
+  letter-spacing: 0.14em;
 }
 
 /* ── Position-row interaction + tear sheet ─────────────── */
@@ -695,6 +739,62 @@ body {
 @keyframes pulseDot {
   0%, 100% { box-shadow: 0 0 0 0 rgba(255, 164, 46, 0.55); }
   50%      { box-shadow: 0 0 0 8px rgba(255, 164, 46, 0); }
+}
+
+/* ── Bottom-right terminal chip ───────────────────────── */
+/* The ⌘K palette is the site's best feature but was keyboard-only and
+   hinted nowhere before the footer. This chip mirrors the StatusPill
+   (fixed, pill, blur) on the opposite corner and opens the terminal on
+   click — which also makes it reachable on touch. */
+.mm-term-chip {
+  position: fixed;
+  bottom: 1.4rem;
+  right: 1.4rem;
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(10, 12, 16, 0.55);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  color: var(--soft);
+  font-size: 10px;
+  cursor: pointer;
+  transition:
+    color 220ms var(--ease-out),
+    border-color 220ms var(--ease-out),
+    background-color 220ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .mm-term-chip:hover {
+    color: var(--ink);
+    border-color: rgba(255, 255, 255, 0.16);
+    background: rgba(10, 12, 16, 0.7);
+    transform: translateY(-1px);
+  }
+}
+.mm-term-chip:active { transform: scale(0.97); }
+.mm-term-chip-prompt {
+  color: var(--lightning);
+  letter-spacing: 0.08em;
+}
+.mm-term-chip kbd {
+  display: inline-block;
+  padding: 0.06rem 0.34rem;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 9px;
+}
+/* No hardware ⌘K on touch — the chip itself is the affordance. */
+@media (pointer: coarse) {
+  .mm-term-chip kbd { display: none; }
 }
 
 /* ── Hero word reveal ─────────────────────────────────── */
@@ -1357,7 +1457,24 @@ body {
   font-size: 9px;
 }
 
-/* ── Footer ⌘K hint (the palette is a discovered delight now) ─ */
+/* ── Footer ⌘K hint — a real button now, so touch can open it too ─ */
+.mm-foot-term {
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--soft);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: color 200ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .mm-foot-term:hover { color: var(--ink); }
+}
 .mm-foot kbd {
   display: inline-block;
   padding: 0.06rem 0.34rem;
@@ -1406,6 +1523,9 @@ body {
   display: block;
   width: 100%;
   height: 8px;
+  /* Container so the dot can drift the full track width in cqw units —
+     lets the drift animate transform instead of `left` (no layout work). */
+  container-type: inline-size;
 }
 .mm-movement-flow-track {
   position: absolute;
@@ -1425,6 +1545,7 @@ body {
 .mm-movement-flow-dot {
   position: absolute;
   top: 50%;
+  left: 0;
   width: 5px;
   height: 5px;
   border-radius: 999px;
@@ -1433,13 +1554,13 @@ body {
   transform: translate(-50%, -50%);
   animation: flowDrift 4.4s linear infinite;
   animation-delay: var(--mm-flow-delay, 0ms);
-  will-change: left, opacity;
+  will-change: transform, opacity;
 }
 @keyframes flowDrift {
-  0%   { left: 0%;   opacity: 0; }
+  0%   { transform: translate(-50%, -50%) translateX(0); opacity: 0; }
   10%  { opacity: 1; }
   90%  { opacity: 1; }
-  100% { left: 100%; opacity: 0; }
+  100% { transform: translate(-50%, -50%) translateX(100cqw); opacity: 0; }
 }
 @media (hover: hover) and (pointer: fine) {
   .mm-movement:hover {
@@ -1460,6 +1581,7 @@ body {
   .mm-word,
   .mm-rotor-inner,
   .mm-status-dot,
+  .mm-term-chip,
   .mm-heat-tile,
   .mm-tear,
   .mm-ticket,
