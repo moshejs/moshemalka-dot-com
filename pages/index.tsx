@@ -329,6 +329,26 @@ function GridPaper() {
   return <div className="mm-grid-paper" aria-hidden />;
 }
 
+/* Bottom-right counterpart to the StatusPill: opens the ⌘K terminal on
+   click, which is the only way in on touch devices (and the only visible
+   hint before the footer on desktop). */
+function TerminalChip({ onOpen }: { onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      className="mm-term-chip mm-mono"
+      onClick={onOpen}
+      aria-label="Open command terminal"
+      aria-haspopup="dialog"
+    >
+      <span className="mm-term-chip-prompt" aria-hidden>
+        &gt;_
+      </span>
+      <kbd aria-hidden>⌘K</kbd>
+    </button>
+  );
+}
+
 /* ── Count-up animated number ─────────────────────────────── */
 /* rAF-driven, starts only once the number scrolls into view, and lands
    directly on the final value under prefers-reduced-motion. */
@@ -578,6 +598,9 @@ function PositionBook() {
 const HEAT_TILES = computeHeatmap();
 
 function Holdings() {
+  // The tile detail used to live only in `title` tooltips — invisible on
+  // touch. Hover (or tap) now streams it into the legend as a quote line.
+  const [quote, setQuote] = useState<(typeof HEAT_TILES)[number] | null>(null);
   return (
     <section id="holdings">
       <div className="mm-watch">
@@ -588,6 +611,7 @@ function Holdings() {
           className="mm-heat"
           role="list"
           aria-label="Tech stack heatmap — tile size is years of experience, color intensity is current allocation"
+          onMouseLeave={() => setQuote(null)}
         >
           {HEAT_TILES.map((t, i) => {
             // Tile area as % of the map — decides how much label fits.
@@ -601,6 +625,10 @@ function Holdings() {
                 data-mark={t.mark}
                 data-size={size}
                 title={`${t.tkr} — ${t.years}y on desk · ${t.wt}% of current allocation · ${t.mark}`}
+                onMouseEnter={() => setQuote(t)}
+                onClick={() =>
+                  setQuote((q) => (q?.tkr === t.tkr ? null : t))
+                }
                 style={{
                   left: `${t.x}%`,
                   top: `${t.y}%`,
@@ -618,10 +646,26 @@ function Holdings() {
             );
           })}
         </div>
-        <div className="mm-heat-legend mm-mono">
-          <span>size = years on desk</span>
-          <span>heat = current allocation</span>
-          <span className="mm-heat-legend-live">live</span>
+        <div className="mm-heat-legend mm-mono" aria-live="polite">
+          {quote ? (
+            <>
+              <span className="mm-heat-quote">
+                <span className="mm-heat-quote-tkr">{quote.tkr}</span>
+                {` · ${quote.years}Y on desk · ${quote.wt}% alloc`}
+              </span>
+              {quote.mark === "LIVE" ? (
+                <span className="mm-heat-legend-live">live</span>
+              ) : (
+                <span>held</span>
+              )}
+            </>
+          ) : (
+            <>
+              <span>size = years on desk</span>
+              <span>heat = current allocation</span>
+              <span className="mm-heat-legend-live">live</span>
+            </>
+          )}
         </div>
       </div>
     </section>
@@ -1113,9 +1157,15 @@ function CmdTerminal({
   );
 }
 
-function FootNow({ onOpenTicket }: { onOpenTicket: () => void }) {
+function FootNow({
+  onOpenTicket,
+  onOpenTerminal,
+}: {
+  onOpenTicket: () => void;
+  onOpenTerminal: () => void;
+}) {
   return (
-    <footer className="mm-foot mm-watch mt-16 pt-12 pb-16">
+    <footer className="mm-foot mm-watch mt-16 pt-12 pb-24 md:pb-16">
       <div className="flex flex-wrap items-end justify-between gap-10">
         <div className="max-w-md">
           <SectionMarker>Now</SectionMarker>
@@ -1205,9 +1255,14 @@ function FootNow({ onOpenTicket }: { onOpenTicket: () => void }) {
       >
         <span>Moshe Malka · NYC ↔ MIA · 2026</span>
         <span>Software engineer · Engineering leader · TypeScript · Next.js · AI</span>
-        <span>
-          <kbd>⌘K</kbd> terminal
-        </span>
+        <button
+          type="button"
+          className="mm-foot-term"
+          onClick={onOpenTerminal}
+          aria-haspopup="dialog"
+        >
+          <kbd aria-hidden>⌘K</kbd> terminal
+        </button>
       </div>
     </footer>
   );
@@ -1254,16 +1309,31 @@ export default function Home() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // A hello for the engineers who read source. Prints once.
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log(
+      "%c MM.NYC %c session open · ⌘K works on the page, not in here · hello@moshemalka.com",
+      "font-family:monospace;background:#ffa42e;color:#060912;font-weight:700;padding:2px 6px;border-radius:3px",
+      "font-family:monospace;color:#b8c5d6"
+    );
+  }, []);
+
   return (
     <div
       className={`${sans.variable} ${mono.variable} mm-sans min-h-screen text-white relative overflow-hidden`}
     >
+      <a className="mm-skip mm-mono" href="#main">
+        Skip to content
+      </a>
+
       {/* Static backdrop: chart paper + film grain. The terminal is flat
           and dry — the StatusPill owns the page's one pulse. */}
       <div className="mm-grain" aria-hidden />
       <GridPaper />
 
       <StatusPill />
+      <TerminalChip onOpen={() => setTerminalOpen(true)} />
 
       <TradeTicket
         open={ticketOpen}
@@ -1293,6 +1363,7 @@ export default function Home() {
       </Script>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#060912" />
         <title>{SEO.title}</title>
         <meta name="description" content={SEO.description} />
         <link rel="canonical" href={`${SITE_URL}/`} />
@@ -1333,7 +1404,7 @@ export default function Home() {
         />
       </Head>
 
-      <main className="mx-auto max-w-5xl px-6 relative z-10">
+      <main id="main" className="mx-auto max-w-5xl px-6 relative z-10">
 
         {/* HERO */}
         <section className="pt-28 md:pt-36 pb-8 md:pb-12">
@@ -1426,7 +1497,10 @@ export default function Home() {
           </p>
         </section>
 
-        <FootNow onOpenTicket={() => setTicketOpen(true)} />
+        <FootNow
+          onOpenTicket={() => setTicketOpen(true)}
+          onOpenTerminal={() => setTerminalOpen(true)}
+        />
 
       </main>
     </div>
