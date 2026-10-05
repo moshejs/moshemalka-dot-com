@@ -2,8 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Head from "next/head";
 import Script from "next/script";
 import {
-  PACKAGES,
-  PACKAGE_GROUPS,
+  OSS_PACKAGES,
   ROLES,
   TOOLS,
   careerYears,
@@ -28,9 +27,9 @@ import { Dial } from "@/components/Dial";
 const SITE_URL = "https://moshemalka.com";
 
 const SEO = {
-  title: "Moshe Malka — Engineering Leader",
+  title: "Moshe Malka — Software Engineer & Engineering Leader",
   description:
-    "Moshe Malka is a New York City engineering leader — writing software since 2008, leading and mentoring teams, and shipping products with AI.",
+    "Moshe Malka is a software engineer and engineering leader in New York City — writing software since 2008, leading teams, and shipping products with AI.",
   ogImage: `${SITE_URL}/og-image.jpg`,
 };
 
@@ -46,9 +45,9 @@ const STRUCTURED_DATA = {
       name: "Moshe Malka",
       url: `${SITE_URL}/`,
       image: `${SITE_URL}/moshe.jpg`,
-      jobTitle: "Engineering Leader",
+      jobTitle: "Software Engineer & Engineering Leader",
       description:
-        "New York City engineering leader — writing software since 2008, leading and mentoring teams, and shipping products with AI.",
+        "Software engineer and engineering leader in New York City — writing software since 2008, leading teams, and shipping products with AI.",
       email: "hello@moshemalka.com",
       birthPlace: { "@type": "Place", name: "New York City, NY, USA" },
       homeLocation: { "@type": "Place", name: "New York City, NY, USA" },
@@ -63,6 +62,9 @@ const STRUCTURED_DATA = {
         "React",
         "Next.js",
         "Distributed Systems",
+        "Fixed Income",
+        "Quantitative Finance",
+        "Open Source Software",
       ],
       sameAs: [
         "https://www.linkedin.com/in/moshenyc/",
@@ -70,6 +72,16 @@ const STRUCTURED_DATA = {
         "https://stackoverflow.com/users/7381252/moshe",
         "https://www.instagram.com/justmoshemalka/",
       ],
+      affiliation: { "@id": "https://www.quentin.software/#organization" },
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://www.quentin.software/#organization",
+      name: "Quentin Software",
+      url: "https://www.quentin.software/",
+      description:
+        "AI-first software studio — product development, prototypes, and fractional CTO work led by Moshe Malka.",
+      founder: { "@id": `${SITE_URL}/#person` },
     },
     {
       "@type": "WebSite",
@@ -84,20 +96,35 @@ const STRUCTURED_DATA = {
       "@type": "ProfilePage",
       "@id": `${SITE_URL}/#webpage`,
       url: `${SITE_URL}/`,
-      name: "Moshe Malka — Engineering Leader",
+      name: "Moshe Malka — Software Engineer & Engineering Leader",
       isPartOf: { "@id": `${SITE_URL}/#website` },
       about: { "@id": `${SITE_URL}/#person` },
       mainEntity: { "@id": `${SITE_URL}/#person` },
       primaryImageOfPage: `${SITE_URL}/og-image.jpg`,
       inLanguage: "en",
     },
+    // One node per npm package — the packages' own npm pages point their
+    // homepage/author back here, so claiming authorship on this side closes
+    // the loop and ties the library family to the same Person entity.
+    ...OSS_PACKAGES.map((p) => ({
+      "@type": "SoftwareSourceCode",
+      "@id": `https://www.npmjs.com/package/${p.name}`,
+      name: p.name,
+      description: p.desc,
+      url: `https://www.npmjs.com/package/${p.name}`,
+      codeRepository: `https://github.com/moshejs/${p.repo ?? p.name}`,
+      programmingLanguage: "TypeScript",
+      license: "https://opensource.org/license/mit/",
+      author: { "@id": `${SITE_URL}/#person` },
+    })),
   ],
 };
 
 const EMAIL = "hello@moshemalka.com";
 const LINKEDIN = "https://www.linkedin.com/in/moshenyc/";
 const GITHUB = "https://github.com/moshejs";
-const STUDIO = "https://quentin.software";
+const STUDIO = "https://www.quentin.software/";
+const NPM_PROFILE = "https://www.npmjs.com/~quentin_code";
 
 /* ── Icons: authored, one 1.5 stroke ───────────────────────────────── */
 
@@ -333,6 +360,8 @@ function FeaturedPackage() {
   );
 }
 
+const FEATURED = OSS_PACKAGES.filter((p) => p.featured && p.name !== "32nds");
+
 function OpenSource() {
   return (
     <section className="c-section" id="open-source" aria-labelledby="os-h">
@@ -340,38 +369,32 @@ function OpenSource() {
         <h2 id="os-h" className="c-h2">
           Open source
         </h2>
-        <p className="c-secmeta">{PACKAGES.length} packages on npm · zero dependencies</p>
+        <p className="c-secmeta">{OSS_PACKAGES.length} packages on npm · zero dependencies</p>
       </div>
       <p className="c-lede">
-        Typed TypeScript libraries for fixed-income math, public financial data and Hebrew text,
-        each tested against published reference values.
+        Typed TypeScript libraries for rates and Treasury math, FX and volatility, market
+        structure, startup equity, and a few things off the desk.
       </p>
       <FeaturedPackage />
-      <div className="c-pkggroups">
-        {PACKAGE_GROUPS.map((g) => (
-          <div className="c-pkggroup" key={g}>
-            <h3 className="c-h3">{g}</h3>
-            <ul className="c-pkgs">
-              {PACKAGES.filter((p) => p.group === g).map((p) => (
-                <li key={p.name} className="c-pkg">
-                  <a
-                    className="c-pkg__name"
-                    href={`https://www.npmjs.com/package/${p.name}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {p.name}
-                    {Icon.arrow}
-                  </a>
-                  <p className="c-pkg__summary">{p.summary}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
+      <ul className="c-pkgs c-pkgs--grid">
+        {FEATURED.map((p) => (
+          <li key={p.name} className="c-pkg">
+            <a
+              className="c-pkg__name"
+              href={`https://www.npmjs.com/package/${p.name}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {p.name}
+              {Icon.arrow}
+            </a>
+            <p className="c-pkg__group">{p.group}</p>
+            <p className="c-pkg__summary">{p.desc}</p>
+          </li>
         ))}
-      </div>
-      <a className="c-textlink" href={GITHUB} target="_blank" rel="noopener noreferrer">
-        All repositories on GitHub {Icon.arrow}
+      </ul>
+      <a className="c-textlink" href={NPM_PROFILE} target="_blank" rel="noopener noreferrer">
+        All {OSS_PACKAGES.length} packages on npm {Icon.arrow}
       </a>
     </section>
   );
@@ -386,11 +409,11 @@ function Studio() {
       <div className="c-panel c-studio">
         <div className="c-studio__copy">
           <h2 id="studio-h" className="c-h2">
-            Quentin Code
+            Quentin Software
           </h2>
           <p className="c-studio__text">
-            My studio. I build custom software for businesses: AI prototypes that ship, full web
-            builds, and fractional CTO work for early-stage teams.
+            My solo studio: AI-first product development, prototypes that ship, and fractional
+            CTO work for early-stage teams.
           </p>
           <a className="c-btn c-btn--secondary" href={STUDIO} target="_blank" rel="noopener noreferrer">
             Hire the studio {Icon.arrow}
@@ -413,6 +436,14 @@ function Studio() {
     </section>
   );
 }
+
+/* What I help move (restored on main in #20; plain rows here). */
+const MOVEMENTS = [
+  { asset: "Capital", venue: "across exchanges" },
+  { asset: "Data", venue: "through pipelines" },
+  { asset: "Interfaces", venue: "moving portfolios" },
+  { asset: "People", venue: "across cities" },
+] as const;
 
 /* ── Page ──────────────────────────────────────────────────────────── */
 
@@ -524,14 +555,14 @@ export default function Home({ asOf, revision }: Props) {
               Moshe Malka
             </h1>
             <p className="c-tagline">
-              Engineering leader in New York City, writing software since 2008.
+              Software engineer and engineering leader in New York City, writing software since 2008.
             </p>
             <p className="c-intro">
               Today I&rsquo;m on Goldman Sachs&rsquo; Private Wealth platform. Before that I led
               Peloton&rsquo;s e&#8209;commerce replatform, built institutional bond trading at ICE,
               and wrote high&#8209;frequency arbitrage that filled in 26&nbsp;milliseconds. I lead
-              teams, mentor engineers, ship with AI, and run Quentin Code, a studio that builds
-              custom software for businesses.
+              teams, mentor engineers, ship with AI, and run Quentin Software, a studio that builds
+              software for early-stage teams.
             </p>
             <div className="c-ctas">
               <a className="c-btn c-btn--primary" href={`mailto:${EMAIL}`}>
@@ -557,7 +588,7 @@ export default function Home({ asOf, revision }: Props) {
               </li>
               <li>
                 <a href={STUDIO} target="_blank" rel="noopener noreferrer">
-                  Quentin Code {Icon.arrow}
+                  Quentin Software {Icon.arrow}
                 </a>
               </li>
             </ul>
@@ -595,6 +626,13 @@ export default function Home({ asOf, revision }: Props) {
             <h2 id="about-h" className="c-h2">
               What I&rsquo;m after
             </h2>
+            <ul className="c-moves" aria-label="What I help move">
+              {MOVEMENTS.map((m) => (
+                <li key={m.asset}>
+                  <span className="c-moves__asset">{m.asset}</span> {m.venue}
+                </li>
+              ))}
+            </ul>
             <p>
               I&rsquo;m interested in leverage: the kind you get from code that moves capital,
               systems that scale without drama, and teams that outlast their founders.
@@ -622,7 +660,7 @@ export default function Home({ asOf, revision }: Props) {
               Get in touch
             </h2>
             <p className="c-close__text">
-              Write about your team, your project, or the software you need built.
+              Open to software engineering and engineering leadership roles that touch scale, capital, or AI, ideally all three. Or write about the software you need built.
             </p>
             <div className="c-ctas">
               <a className="c-btn c-btn--primary" href={`mailto:${EMAIL}`}>

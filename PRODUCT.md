@@ -11,7 +11,7 @@ web
 Three audiences, all confirmed as primary; a visit is a win for any of them:
 
 - **Hiring and leadership evaluators.** Recruiters, VPs, and CTOs sizing Moshe up for engineering-leader roles. Success: they reach out by LinkedIn or email.
-- **Prospective Quentin Code clients.** Non-technical business owners who might hire his studio for custom software. Success: they click through to quentin.software.
+- **Prospective Quentin Software clients.** Founders and business owners who might hire his studio. Success: they click through to quentin.software.
 - **Peers and search engines.** Engineers, people who use his npm packages, and Google. Here the site is the canonical "Moshe Malka" entity page that separates him from people with the same name.
 
 ## Product Purpose
@@ -20,7 +20,7 @@ moshemalka.com is Moshe Malka's personal site: one page that says who he is, wha
 
 ## Positioning
 
-**Engineering Leader**: leads and mentors teams, ships products with AI, writing software since 2008, based in New York City. He moved away from "Senior Software Engineer" on purpose. Site copy, meta tags, and structured data must all say the same thing and match his LinkedIn bio.
+**Software Engineer & Engineering Leader**: writes software since 2008, leads and mentors teams, ships products with AI, based in New York City. (Main retitled to this pairing in PR #19 to win "Moshe Malka" + "Software Engineer" searches; it replaces the earlier "Engineering Leader"-only framing.) Open to software engineering and engineering leadership roles that touch scale, capital, or AI. Site copy, meta tags, and structured data must all say the same thing and match his LinkedIn bio.
 
 What sets him apart: deep fintech and trading-systems experience combined with consumer-product and studio work. A namesake can't truthfully claim that track record.
 
@@ -38,11 +38,11 @@ What sets him apart: deep fintech and trading-systems experience combined with c
 - **Location is New York City only.** There is no Miami presence. The current "NYC ↔ MIA" / "dual desk" copy is wrong and must go (owner-confirmed 2026-10-05).
 - **Career dates:** career start is 2008 (`CAREER_EPOCH` = 2008-06-01). Experience figures everywhere must agree with "since 2008".
 - **Employer names are allowed on this site.** The owner confirmed on 2026-10-05 that naming past and present employers is fine here. The no-employer-names rule applies to side projects and other public content (npm packages, quentin.software, client sites), not to moshemalka.com.
-- **Open:** quentin.software is a primary audience goal, but the current page has no link to it. How the site sends visitors there is undecided.
 
 ## Brand Commitments
 
-- **Name and title:** "Moshe Malka — Engineering Leader", New York City.
+- **Name and title:** "Moshe Malka — Software Engineer & Engineering Leader", New York City.
+- **Studio name:** Quentin Software (www.quentin.software); npm profile ~quentin_code.
 - **Restraint:** after the July 2026 simplification, the owner's standing direction is one confident idea over gimmicks. Don't bring back ambient animation layers, audio or haptics, or decorative chrome.
 - **The trading-desk metaphor is not binding.** Positions, tape, tear sheets, the ⌘K terminal, and the Milgauss palette are the current execution only. A future redesign may replace them.
 
@@ -50,7 +50,7 @@ What sets him apart: deep fintech and trading-systems experience combined with c
 
 - Headshot: `public/moshe.jpg`. OG image: `public/og-image.jpg`. Favicon and apple-touch icon are in `public/`.
 - Career record with dated roles and shipped work: `EXEC_LOG` and `POSITIONS` in `lib/portfolio.ts`.
-- Public work: a family of npm packages published under github.com/moshejs, covering fixed-income math, Treasury and NY Fed data clients, and gematria. Also a Stack Overflow profile (about 2.7k reputation) and the Quentin Code studio with its client sites.
+- Public work: 26 zero-dependency TypeScript packages on npm (list in `OSS_PACKAGES`, lib/portfolio.ts), repos under github.com/moshejs. Also a Stack Overflow profile (about 2.7k reputation) and the Quentin Software studio with its client sites.
 - **Absent, so never fabricate:** testimonials, client quotes, press coverage, speaking credits, metrics not already in the career record.
 
 ## Product Principles

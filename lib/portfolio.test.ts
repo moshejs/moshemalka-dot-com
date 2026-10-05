@@ -7,8 +7,7 @@ import {
   formatYearMonth,
   formatTenure,
   tenureMonths,
-  PACKAGES,
-  PACKAGE_GROUPS,
+  OSS_PACKAGES,
 } from "./portfolio";
 
 const YM_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -77,8 +76,8 @@ describe("ROLES", () => {
   });
 
   it("links the studio to quentin.software", () => {
-    const studio = ROLES.find((r) => r.company === "Quentin Code");
-    expect(studio?.link?.href).toBe("https://quentin.software");
+    const studio = ROLES.find((r) => r.company === "Quentin Software");
+    expect(studio?.link?.href).toBe("https://www.quentin.software/");
   });
 
   it("never mentions Miami (NYC only)", () => {
@@ -111,14 +110,16 @@ describe("tenure", () => {
   });
 });
 
-describe("PACKAGES", () => {
+describe("OSS_PACKAGES", () => {
   it("lists unique npm names", () => {
-    expect(new Set(PACKAGES.map((p) => p.name)).size).toBe(PACKAGES.length);
+    expect(new Set(OSS_PACKAGES.map((p) => p.name)).size).toBe(OSS_PACKAGES.length);
   });
 
-  it.each(PACKAGES)("$name belongs to a known group and has a summary", (p) => {
-    expect(PACKAGE_GROUPS).toContain(p.group);
-    expect(p.summary.length).toBeGreaterThan(20);
-    expect(p.repo).toMatch(/^[a-z0-9-]+$/);
+  it("features 32nds (the homepage example)", () => {
+    expect(OSS_PACKAGES.find((p) => p.name === "32nds")?.featured).toBe(true);
+  });
+
+  it.each(OSS_PACKAGES)("$name has a description", (p) => {
+    expect(p.desc.length).toBeGreaterThan(10);
   });
 });
