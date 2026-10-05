@@ -1,80 +1,17 @@
 import {
   CAREER_EPOCH,
-  EXEC_LOG,
-  HOLDINGS,
-  POSITIONS,
-  countCareerPositions,
-  countOpenPositions,
-  formatSession,
-  type ExecAction,
-  type Holding,
+  ROLES,
+  TOOLS,
+  careerYears,
+  formatRange,
+  formatYearMonth,
+  formatTenure,
+  tenureMonths,
+  PACKAGES,
+  PACKAGE_GROUPS,
 } from "./portfolio";
 
-const VALID_ACTIONS: ExecAction[] = ["FILL", "EXEC", "OPEN", "CLOSE", "ROLL"];
-const VALID_MARKS: Holding["mark"][] = ["LIVE", "HELD"];
-const TS_RE = /^\d{2}-\d{2}-\d{2}$/;
-
-describe("formatSession", () => {
-  it("returns all zeros for 0ms", () => {
-    expect(formatSession(0)).toEqual({
-      years: 0,
-      remDays: 0,
-      hh: "00",
-      mm: "00",
-      ss: "00",
-    });
-  });
-
-  it("clamps negative durations to zero", () => {
-    expect(formatSession(-5_000)).toEqual({
-      years: 0,
-      remDays: 0,
-      hh: "00",
-      mm: "00",
-      ss: "00",
-    });
-  });
-
-  it("zero-pads hours, minutes, and seconds", () => {
-    // 1h 2m 3s
-    const ms = (1 * 3600 + 2 * 60 + 3) * 1000;
-    expect(formatSession(ms)).toMatchObject({ hh: "01", mm: "02", ss: "03" });
-  });
-
-  it("converts a single day cleanly", () => {
-    expect(formatSession(86_400 * 1000)).toMatchObject({
-      years: 0,
-      remDays: 1,
-      hh: "00",
-      mm: "00",
-      ss: "00",
-    });
-  });
-
-  it("rolls 365 days into 1 year", () => {
-    expect(formatSession(365 * 86_400 * 1000)).toMatchObject({
-      years: 1,
-      remDays: 0,
-    });
-  });
-
-  it("composes years + remaining days correctly", () => {
-    // 11 years + 200 days
-    const ms = (11 * 365 + 200) * 86_400 * 1000;
-    expect(formatSession(ms)).toMatchObject({ years: 11, remDays: 200 });
-  });
-
-  it("handles a real session-length value", () => {
-    // synthetic "now" — a fixed point so the test stays deterministic
-    const NOW = new Date("2026-05-04T12:00:00-04:00").getTime();
-    const parts = formatSession(NOW - CAREER_EPOCH);
-    expect(parts.years).toBeGreaterThanOrEqual(17);
-    expect(parts.years).toBeLessThanOrEqual(18);
-    expect(parts.remDays).toBeGreaterThanOrEqual(0);
-    expect(parts.remDays).toBeLessThan(365);
-    expect(parts.hh).toMatch(/^\d{2}$/);
-  });
-});
+const YM_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 describe("CAREER_EPOCH", () => {
   it("is anchored to 2008-06-01 ET (first professional work)", () => {
@@ -89,120 +26,99 @@ describe("CAREER_EPOCH", () => {
   });
 });
 
-describe("POSITIONS", () => {
-  it("contains a META row + at least one OPEN + at least one CLOSED", () => {
-    const sides = POSITIONS.map((p) => p.side);
-    expect(sides).toContain("META");
-    expect(sides).toContain("OPEN");
-    expect(sides).toContain("CLOSED");
+describe("careerYears", () => {
+  it("counts whole years since 2008", () => {
+    const NOW = new Date("2026-10-05T12:00:00-04:00").getTime();
+    expect(careerYears(NOW)).toBe(18);
   });
 
-  it("has exactly one META row (the design tear sheet)", () => {
-    expect(POSITIONS.filter((p) => p.side === "META")).toHaveLength(1);
-  });
-
-  it("uses unique ids across every row", () => {
-    const ids = POSITIONS.map((p) => p.id);
-    expect(new Set(ids).size).toBe(ids.length);
-  });
-
-  it("uses unique tickers across non-meta rows", () => {
-    const tkrs = POSITIONS.filter((p) => p.side !== "META").map((p) => p.ticker);
-    expect(new Set(tkrs).size).toBe(tkrs.length);
-  });
-
-  it.each(POSITIONS)("$id populates every required tear-sheet field", (p) => {
-    expect(p.basis.length).toBeGreaterThan(20);
-    expect(p.strikes.length).toBeGreaterThan(0);
-    expect(p.instr.length).toBeGreaterThan(0);
-    for (const s of p.strikes) {
-      expect(s.length).toBeGreaterThan(0);
-    }
-  });
-
-  it.each(POSITIONS)("$id uses a Milgauss CSS variable accent", (p) => {
-    expect(p.accent).toMatch(/^var\(--(z-blue|lightning|crystal|steel)\)$/);
-  });
-
-  it.each(POSITIONS.filter((p) => p.side === "OPEN"))(
-    "$id (open) range ends with a live dot",
-    (p) => {
-      expect(p.range).toContain("●");
-    }
-  );
-
-  it.each(POSITIONS.filter((p) => p.side === "CLOSED"))(
-    "$id (closed) range is YY-MM → YY-MM",
-    (p) => {
-      expect(p.range).toMatch(/^\d{2}-\d{2}\s+→\s+\d{2}-\d{2}$/);
-    }
-  );
-
-  it("countOpenPositions / countCareerPositions agree with the array", () => {
-    const open = POSITIONS.filter((p) => p.side === "OPEN").length;
-    const career = POSITIONS.filter((p) => p.side === "OPEN" || p.side === "CLOSED").length;
-    expect(countOpenPositions()).toBe(open);
-    expect(countCareerPositions()).toBe(career);
-    // META rows should never be counted toward the career total
-    expect(countCareerPositions()).toBeLessThan(POSITIONS.length);
+  it("never goes negative", () => {
+    expect(careerYears(CAREER_EPOCH - 1000)).toBe(0);
   });
 });
 
-describe("HOLDINGS", () => {
-  it("uses unique tickers", () => {
-    const tkrs = HOLDINGS.map((h) => h.tkr);
-    expect(new Set(tkrs).size).toBe(tkrs.length);
+describe("formatting", () => {
+  it("formats a year-month", () => {
+    expect(formatYearMonth("2024-09")).toBe("Sep 2024");
+    expect(formatYearMonth("2016-12")).toBe("Dec 2016");
   });
 
-  it.each(HOLDINGS)("$tkr has a positive integer weight", (h) => {
-    expect(h.wt).toBeGreaterThan(0);
-    expect(Number.isInteger(h.wt)).toBe(true);
-  });
-
-  it("weights sum to ~100% (allocation, not over-allocated)", () => {
-    const total = HOLDINGS.reduce((acc, h) => acc + h.wt, 0);
-    expect(total).toBeLessThanOrEqual(100);
-    expect(total).toBeGreaterThanOrEqual(80);
-  });
-
-  it("is ordered by weight descending", () => {
-    for (let i = 1; i < HOLDINGS.length; i++) {
-      expect(HOLDINGS[i].wt).toBeLessThanOrEqual(HOLDINGS[i - 1].wt);
-    }
-  });
-
-  it.each(HOLDINGS)("$tkr uses a 'Ny' tenor string", (h) => {
-    expect(h.tenor).toMatch(/^\d+y$/);
-  });
-
-  it.each(HOLDINGS)("$tkr is marked LIVE or HELD", (h) => {
-    expect(VALID_MARKS).toContain(h.mark);
+  it("formats open and closed ranges", () => {
+    expect(formatRange("2024-09", null)).toBe("Sep 2024 – now");
+    expect(formatRange("2020-03", "2023-02")).toBe("Mar 2020 – Feb 2023");
   });
 });
 
-describe("EXEC_LOG", () => {
-  it("uses YY-MM-DD timestamps", () => {
-    for (const e of EXEC_LOG) {
-      expect(e.ts).toMatch(TS_RE);
+describe("ROLES", () => {
+  it("uses unique ids and company names", () => {
+    expect(new Set(ROLES.map((r) => r.id)).size).toBe(ROLES.length);
+    expect(new Set(ROLES.map((r) => r.company)).size).toBe(ROLES.length);
+  });
+
+  it.each(ROLES)("$id has valid dates that end after they start", (r) => {
+    expect(r.start).toMatch(YM_RE);
+    if (r.end) {
+      expect(r.end).toMatch(YM_RE);
+      expect(r.end > r.start).toBe(true);
     }
   });
 
-  it("uses only the five known action tags", () => {
-    for (const e of EXEC_LOG) {
-      expect(VALID_ACTIONS).toContain(e.action);
+  it.each(ROLES)("$id populates every detail field", (r) => {
+    expect(r.role.length).toBeGreaterThan(5);
+    expect(r.summary.length).toBeGreaterThan(20);
+    expect(r.highlights.length).toBeGreaterThan(0);
+    expect(r.tools.length).toBeGreaterThan(0);
+  });
+
+  it("is ordered current first, then by start date descending", () => {
+    for (let i = 1; i < ROLES.length; i++) {
+      expect(ROLES[i].start <= ROLES[i - 1].start).toBe(true);
     }
   });
 
-  it("is sorted from most-recent to oldest", () => {
-    for (let i = 1; i < EXEC_LOG.length; i++) {
-      // ts is YY-MM-DD; lexicographic order matches chronological order
-      expect(EXEC_LOG[i].ts <= EXEC_LOG[i - 1].ts).toBe(true);
-    }
+  it("links the studio to quentin.software", () => {
+    const studio = ROLES.find((r) => r.company === "Quentin Code");
+    expect(studio?.link?.href).toBe("https://quentin.software");
   });
 
-  it("has a non-empty status on every entry", () => {
-    for (const e of EXEC_LOG) {
-      expect(e.status.length).toBeGreaterThan(0);
-    }
+  it("never mentions Miami (NYC only)", () => {
+    expect(JSON.stringify(ROLES)).not.toMatch(/miami|\bMIA\b/i);
+  });
+});
+
+describe("TOOLS", () => {
+  it("is a plain, unique list", () => {
+    expect(TOOLS.length).toBeGreaterThan(5);
+    expect(new Set(TOOLS).size).toBe(TOOLS.length);
+  });
+});
+
+describe("tenure", () => {
+  it("counts whole months between start and end", () => {
+    expect(tenureMonths("2020-03", "2023-02")).toBe(35);
+    expect(tenureMonths("2018-06", "2018-10")).toBe(4);
+  });
+
+  it("measures an open role up to now", () => {
+    const NOW = new Date("2026-10-05T12:00:00-04:00");
+    expect(tenureMonths("2024-09", null, NOW)).toBe(25);
+  });
+
+  it("formats tenure as years and months", () => {
+    expect(formatTenure(35)).toBe("2 yr 11 mo");
+    expect(formatTenure(4)).toBe("4 mo");
+    expect(formatTenure(24)).toBe("2 yr");
+  });
+});
+
+describe("PACKAGES", () => {
+  it("lists unique npm names", () => {
+    expect(new Set(PACKAGES.map((p) => p.name)).size).toBe(PACKAGES.length);
+  });
+
+  it.each(PACKAGES)("$name belongs to a known group and has a summary", (p) => {
+    expect(PACKAGE_GROUPS).toContain(p.group);
+    expect(p.summary.length).toBeGreaterThan(20);
+    expect(p.repo).toMatch(/^[a-z0-9-]+$/);
   });
 });

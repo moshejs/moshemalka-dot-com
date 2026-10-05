@@ -1,38 +1,28 @@
-import React, { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Head from "next/head";
 import Script from "next/script";
-import { Inter, JetBrains_Mono } from "next/font/google";
 import {
-  CAREER_EPOCH,
-  EXEC_LOG,
-  HOLDINGS,
-  POSITIONS,
-  countCareerPositions,
-  countOpenPositions,
-  formatSession,
-  type ExecEntry,
-  type Position,
+  PACKAGES,
+  PACKAGE_GROUPS,
+  ROLES,
+  TOOLS,
+  careerYears,
+  formatRange,
+  formatTenure,
+  tenureMonths,
+  type Role,
 } from "@/lib/portfolio";
+import { Dial } from "@/components/Dial";
 
 /**
- * Moshe Malka — Intersection
+ * Moshe Malka — product-grade.
  *
- * Not resume.
- * Not corporate.
- * Just signal + energy.
+ * A software person presented the way the best dev-tool products present
+ * themselves: crisp, quiet, high-finish UI where the work (shipped code, open
+ * source, a studio) is the product. Milgauss night palette; the live dial is
+ * the hero's product shot.
  */
 
-const sans = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-sans",
-});
-
-const mono = JetBrains_Mono({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-mono",
-});
 
 // ── SEO ───────────────────────────────────────────────────────────────────
 const SITE_URL = "https://moshemalka.com";
@@ -104,1074 +94,358 @@ const STRUCTURED_DATA = {
   ],
 };
 
-/* The one piece of fixed chrome: session + availability in a single pill.
-   Years are computed once on mount (no 1Hz timer — the uptime joke lands
-   identically without seconds precision). */
-function StatusPill() {
-  const [years, setYears] = React.useState<number | null>(null);
-  useEffect(() => {
-    setYears(formatSession(Date.now() - CAREER_EPOCH).years);
-  }, []);
-  return (
-    <a
-      href="https://www.linkedin.com/in/moshenyc/"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="mm-status mm-reveal"
-      aria-label="Session open — available for select work. Connect on LinkedIn."
-    >
-      <span className="mm-status-dot" aria-hidden />
-      <span className="mm-mono text-[10px]" style={{ color: "var(--muted)" }}>
-        SESSION OPEN{years !== null ? ` · ${years}Y` : ""} · Available
-      </span>
-    </a>
-  );
-}
+const EMAIL = "hello@moshemalka.com";
+const LINKEDIN = "https://www.linkedin.com/in/moshenyc/";
+const GITHUB = "https://github.com/moshejs";
+const STUDIO = "https://quentin.software";
 
-/* Words the hero verb cycles through — each carries a finance double
-   meaning (move/fill/scale/yield/ship). The rotor plays ONCE on load and
-   settles on the last word: an ending makes it a moment, a loop makes it
-   noise. Keep all 5–6 chars so the line doesn't reflow as the word swaps. */
-const HERO_VERBS = ["move.", "fill.", "scale.", "yield.", "ship."] as const;
+/* ── Icons: authored, one 1.5 stroke ───────────────────────────────── */
 
-function RotatingWord({
-  words,
-  interval = 1100,
-  startDelay = 1700,
+const Icon = {
+  copy: (
+    <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" focusable="false">
+      <rect x="6.5" y="6.5" width="10" height="10" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M13.5 3.5h-8a2 2 0 0 0-2 2v8" fill="none" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  ),
+  check: (
+    <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" focusable="false">
+      <path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  ),
+  arrow: (
+    <svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true" focusable="false" className="c-arrow">
+      <path d="M6 14L14 6M8 6h6v6" fill="none" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  ),
+  chevron: (
+    <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false" className="c-chevron">
+      <path d="M6 8l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  ),
+};
+
+/* ── Copy-to-clipboard with a confirmed state ──────────────────────── */
+
+function CopyButton({
+  text,
+  label,
+  srDone,
+  className,
 }: {
-  words: readonly string[];
-  interval?: number;
-  startDelay?: number;
+  text: string;
+  label: React.ReactNode;
+  srDone: string;
+  className: string;
 }) {
-  const [idx, setIdx] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const timer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(timer.current), []);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
-      // No motion: land directly on the settled word.
-      setIdx(words.length - 1);
-      return;
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "absolute";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
     }
-    // Wait for the entrance animation to settle, then cycle through the
-    // list exactly once and stop on the final word.
-    let intervalId: number | null = null;
-    const startCycling = () => {
-      intervalId = window.setInterval(() => {
-        setIdx((i) => {
-          const next = i + 1;
-          if (next >= words.length - 1 && intervalId !== null) {
-            window.clearInterval(intervalId);
-            intervalId = null;
-          }
-          return Math.min(next, words.length - 1);
-        });
-      }, interval);
-    };
-    const startTimeoutId = window.setTimeout(startCycling, startDelay);
-    return () => {
-      window.clearTimeout(startTimeoutId);
-      if (intervalId !== null) window.clearInterval(intervalId);
-    };
-  }, [words.length, interval, startDelay]);
+    setCopied(true);
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => setCopied(false), 2000);
+  }
 
   return (
-    <span className="mm-rotor">
-      <span
-        className="mm-rotor-inner"
-        style={{ ["--idx" as string]: idx }}
-        aria-hidden
-      >
-        {words.map((w, i) => (
-          <span key={i} className="mm-rotor-word mm-grad-word">
-            {w}
-          </span>
-        ))}
+    <button type="button" className={className} onClick={copy} data-copied={copied}>
+      {copied ? Icon.check : Icon.copy}
+      <span>{copied ? "Copied" : label}</span>
+      <span className="c-sr" aria-live="polite">
+        {copied ? srDone : ""}
       </span>
-      <span className="mm-rotor-sr">{words[idx]}</span>
-    </span>
+    </button>
   );
 }
 
-function HeroHeading() {
-  const lineOne = ["I", "like", "building"];
-  const lineTwo = ["things", "that"];
-  const base = 140;
-  const step = 70;
-  const totalCount = lineOne.length + lineTwo.length + 1;
+/* ── Work ──────────────────────────────────────────────────────────── */
 
-  return (
-    <h1 className="mm-title mt-12 text-6xl md:text-8xl font-bold leading-[1.04]">
-      <span className="mm-line">
-        {lineOne.map((w, i) => (
-          <React.Fragment key={`a-${i}`}>
-            <span
-              className="mm-word"
-              style={{ animationDelay: `${base + i * step}ms` }}
-            >
-              {w}
-            </span>
-            {i < lineOne.length - 1 ? " " : ""}
-          </React.Fragment>
-        ))}
-      </span>
-      <span className="mm-line">
-        {lineTwo.map((w, i) => (
-          <React.Fragment key={`b-${i}`}>
-            <span
-              className="mm-word"
-              style={{
-                animationDelay: `${base + (lineOne.length + i) * step + 60}ms`,
-              }}
-            >
-              {w}
-            </span>{" "}
-          </React.Fragment>
-        ))}
-        <span
-          className="mm-word"
-          style={{ animationDelay: `${base + (totalCount - 1) * step + 120}ms` }}
-        >
-          <RotatingWord words={HERO_VERBS} />
-        </span>
-      </span>
-    </h1>
-  );
-}
-
-function SectionMarker({ children }: { children: ReactNode }) {
-  return (
-    <div className="mm-marker">
-      <span className="mm-marker-bar" aria-hidden />
-      <span
-        className="mm-mono text-[11px]"
-        style={{ color: "var(--soft)" }}
-      >
-        {children}
-      </span>
-    </div>
-  );
-}
-
-/* Hero spec sheet — Bloomberg frame, recruiter-grade payload. Every value
-   is a real fact; counts come from the tested lib helpers. */
-const CAREER_YEARS = Math.floor(
-  (Date.now() - CAREER_EPOCH) / (365.25 * 24 * 3600 * 1000)
-);
-
-function HeroStats() {
-  const openCount = countOpenPositions();
-  const totalPositions = countCareerPositions();
-  return (
-    <div className="mm-specs mm-mono mt-14 mm-reveal mm-delay-4">
-      <div className="mm-spec">
-        <div className="mm-spec-key">experience</div>
-        <div className="mm-spec-val">
-          <CountUp to={CAREER_YEARS} suffix="Y" />
-        </div>
-        <div className="mm-spec-ctx">writing software since ’08</div>
-      </div>
-      <div className="mm-spec-rule" />
-      <div className="mm-spec">
-        <div className="mm-spec-key">current</div>
-        <div className="mm-spec-val">GS.PWM</div>
-        <div className="mm-spec-ctx">Goldman Sachs · Private Wealth</div>
-      </div>
-      <div className="mm-spec-rule" />
-      <div className="mm-spec">
-        <div className="mm-spec-key">desk</div>
-        <div className="mm-spec-val">NYC ↔ MIA</div>
-        <div className="mm-spec-ctx">dual desk</div>
-      </div>
-      <div className="mm-spec-rule" />
-      <div className="mm-spec">
-        <div className="mm-spec-key">positions</div>
-        <div className="mm-spec-val">
-          <CountUp to={totalPositions} />
-        </div>
-        <div className="mm-spec-ctx">{openCount} open · full book below</div>
-      </div>
-    </div>
-  );
-}
-
-function GridPaper() {
-  return <div className="mm-grid-paper" aria-hidden />;
-}
-
-/* ── Execution log (career events as trade fills/orders) ──── */
-function ExecRow({ items }: { items: ExecEntry[] }) {
-  return (
-    <>
-      {items.map((t, i) => (
-        <React.Fragment key={`${t.ts}-${i}`}>
-          <span className="mm-tick mm-mono">
-            <span className="mm-tick-ts">[{t.ts}]</span>
-            <span className={`mm-tick-act-${t.action.toLowerCase()}`}>
-              {t.action}
-            </span>
-            <span className="mm-tick-msg">{t.sec}</span>
-            <span
-              className={t.pos ? "mm-tick-status-pos" : "mm-tick-status-neu"}
-            >
-              {t.status}
-            </span>
-          </span>
-          <span className="mm-tick-sep mm-mono">·</span>
-        </React.Fragment>
-      ))}
-    </>
-  );
-}
-
-function ExecutionLog() {
-  return (
-    <div
-      className="mm-ticker mm-watch"
-      aria-label="Execution log — career events as trade fills"
-    >
-      <div className="mm-ticker-track">
-        <ExecRow items={EXEC_LOG} />
-        {/* Duplicate strip is the seam for the infinite loop — decorative
-            only, so screen readers must not announce the log twice. */}
-        <span aria-hidden="true" style={{ display: "contents" }}>
-          <ExecRow items={EXEC_LOG} />
-        </span>
-      </div>
-    </div>
-  );
-}
-
-/* ── Count-up animated number ─────────────────────────────── */
-/* rAF-driven, starts only once the number scrolls into view, and lands
-   directly on the final value under prefers-reduced-motion. */
-function CountUp({
-  to,
-  duration = 1300,
-  suffix = "",
-  prefix = "",
-  decimals = 0,
-}: {
-  to: number;
-  duration?: number;
-  suffix?: string;
-  prefix?: string;
-  decimals?: number;
-}) {
-  const [val, setVal] = React.useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    // For very small targets the ramp would just flicker — skip the animation.
-    const skip =
-      (to <= 1 && decimals === 0) ||
-      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ||
-      !("IntersectionObserver" in window);
-    if (skip) {
-      setVal(to);
-      return;
-    }
-
-    let raf = 0;
-    const run = () => {
-      const start = performance.now();
-      const frame = (now: number) => {
-        const t = Math.min((now - start) / duration, 1);
-        const eased = 1 - Math.pow(1 - t, 3);
-        setVal(eased * to);
-        if (t < 1) raf = requestAnimationFrame(frame);
-      };
-      raf = requestAnimationFrame(frame);
-    };
-
-    const el = ref.current;
-    if (!el) {
-      run();
-      return;
-    }
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          io.disconnect();
-          run();
-        }
-      },
-      { threshold: 0.4 }
-    );
-    io.observe(el);
-    return () => {
-      io.disconnect();
-      if (raf) cancelAnimationFrame(raf);
-    };
-  }, [to, duration, decimals]);
-
-  return (
-    <span ref={ref} className="mm-count">
-      {prefix}
-      {decimals > 0 ? val.toFixed(decimals) : Math.round(val)}
-      {suffix}
-    </span>
-  );
-}
-
-function PositionRow({
-  r,
-  i,
-  expanded,
+function RoleRow({
+  role,
+  open,
   onToggle,
+  months,
+  maxMonths,
 }: {
-  r: Position;
-  i: number;
-  expanded: boolean;
+  role: Role;
+  open: boolean;
   onToggle: () => void;
+  months: number;
+  maxMonths: number;
 }) {
+  const panelId = `role-${role.id}`;
   return (
-    <>
-      <div
-        className="mm-watch mm-traj-row"
-        style={{
-          ["--mm-delay" as string]: `${i * 50}ms`,
-          ["--accent" as string]: r.accent,
-        }}
-        role="button"
-        tabIndex={0}
-        aria-expanded={expanded}
-        onClick={onToggle}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onToggle();
-          }
-        }}
-      >
-        <div className="mm-mono mm-traj-year">{r.range}</div>
-        <div className="mm-traj-co">
-          <span className="mm-pos-side mm-mono" data-side={r.side}>
-            {r.side}
+    <li className="c-role" data-open={open}>
+      <h3 className="c-role__head">
+        <button
+          type="button"
+          className="c-role__toggle"
+          aria-expanded={open}
+          aria-controls={panelId}
+          onClick={onToggle}
+        >
+          <span className="c-role__main">
+            <span className="c-role__company">{role.company}</span>
+            <span className="c-role__line">{role.role}</span>
           </span>
-        </div>
-        <div className="mm-traj-note">
-          <span
-            className="mm-mono"
-            style={{
-              color: "var(--ink)",
-              fontSize: "0.78rem",
-              letterSpacing: "0.06em",
-            }}
-          >
-            {r.ticker}
+          <span className="c-role__when">
+            <span className="c-role__dates">{formatRange(role.start, role.end)}</span>
+            <span className="c-role__tenure">
+              <span className="c-role__track" aria-hidden="true">
+                <span
+                  className="c-role__bar"
+                  style={{ "--w": `${Math.max(6, Math.round((months / maxMonths) * 100))}%` } as React.CSSProperties}
+                />
+              </span>
+              <span>{formatTenure(months)}</span>
+            </span>
           </span>
-          <span style={{ color: "var(--muted)" }}>{` · ${r.desc}`}</span>
-          <span
-            className="mm-mono"
-            style={{
-              marginLeft: "0.6rem",
-              fontSize: "0.72rem",
-              letterSpacing: "0.14em",
-              color:
-                r.side === "META"
-                  ? "var(--lightning)"
-                  : r.side === "OPEN"
-                  ? "var(--crystal)"
-                  : "var(--soft)",
-            }}
-          >
-            ΔP {r.pnl}
-          </span>
-          <span className="mm-traj-chevron mm-mono" aria-hidden>
-            ▸
-          </span>
-        </div>
+          {Icon.chevron}
+          <span className="c-sr">{open ? "Hide details" : "Show details"}</span>
+        </button>
+      </h3>
+      <div className="c-role__panel" id={panelId} hidden={!open}>
+        <p className="c-role__summary">{role.summary}</p>
+        <ul className="c-role__highlights">
+          {role.highlights.map((h) => (
+            <li key={h}>{h}</li>
+          ))}
+        </ul>
+        <ul className="c-chips" aria-label="Tools">
+          {role.tools.map((t) => (
+            <li key={t}>{t}</li>
+          ))}
+        </ul>
+        {role.link && (
+          <a className="c-textlink" href={role.link.href} target="_blank" rel="noopener noreferrer">
+            {role.link.label} {Icon.arrow}
+          </a>
+        )}
       </div>
-      <div
-        className="mm-tear mm-mono"
-        data-open={expanded}
-        style={{ ["--accent" as string]: r.accent }}
-        aria-hidden={!expanded}
-      >
-        <div className="mm-tear-grid">
-          <div className="mm-tear-key">basis</div>
-          <div className="mm-tear-val" style={{ fontFamily: "var(--font-sans)" }}>
-            {r.basis}
-          </div>
+    </li>
+  );
+}
 
-          <div className="mm-tear-key">highlights</div>
-          <div className="mm-tear-val" style={{ fontFamily: "var(--font-sans)" }}>
-            <ul className="mm-tear-strikes">
-              {r.strikes.map((s, j) => (
-                <li key={j}>{s}</li>
+function Work({ asOf }: { asOf: number }) {
+  const tenure = (r: Role) => tenureMonths(r.start, r.end, new Date(asOf));
+  const maxMonths = Math.max(...ROLES.map(tenure));
+  const [openId, setOpenId] = useState<string | null>(ROLES[0].id);
+  return (
+    <section className="c-section" id="work" aria-labelledby="work-h">
+      <div className="c-sechead">
+        <h2 id="work-h" className="c-h2">
+          Work
+        </h2>
+        <p className="c-secmeta">
+          {ROLES.length} roles · {formatRange(ROLES[ROLES.length - 1].start, null)}
+        </p>
+      </div>
+      <ol className="c-panel c-roles">
+        {ROLES.map((role) => (
+          <RoleRow
+            key={role.id}
+            role={role}
+            open={openId === role.id}
+            onToggle={() => setOpenId((cur) => (cur === role.id ? null : role.id))}
+            months={tenure(role)}
+            maxMonths={maxMonths}
+          />
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+/* ── Open source ───────────────────────────────────────────────────── */
+
+// Verbatim from the 32nds README.
+function FeaturedPackage() {
+  return (
+    <figure className="c-panel c-feature">
+      <div className="c-feature__copy">
+        <p className="c-feature__name">32nds</p>
+        <p className="c-feature__text">
+          Treasuries don&rsquo;t trade in decimals. A 10-year note is quoted like{" "}
+          <code>105-16+</code>, and npm had nothing that could read a price the way the market
+          writes it. So I wrote it: exact, because Treasury fractions are powers of two.
+        </p>
+        <CopyButton
+          className="c-install"
+          text="npm install 32nds"
+          srDone="Install command copied"
+          label={
+            <>
+              <span className="c-install__prompt" aria-hidden="true">
+                $
+              </span>{" "}
+              npm install 32nds
+            </>
+          }
+        />
+      </div>
+      <pre className="c-code" aria-label="Example usage of 32nds">
+        <code>
+          <span className="tok-k">import</span> <span className="tok-p">{"{"}</span>
+          {"\n  "}parsePrice<span className="tok-p">,</span> formatPrice<span className="tok-p">,</span>{" "}
+          tickValue<span className="tok-p">,</span>
+          {"\n"}
+          <span className="tok-p">{"}"}</span> <span className="tok-k">from</span>{" "}
+          <span className="tok-s">&quot;32nds&quot;</span>
+          <span className="tok-p">;</span>
+          {"\n\n"}
+          <span className="tok-f">parsePrice</span>
+          <span className="tok-p">(</span>
+          <span className="tok-s">&quot;105-16+&quot;</span>
+          <span className="tok-p">);</span>
+          {"       "}
+          <span className="tok-c">{"// 105.515625"}</span>
+          {"\n"}
+          <span className="tok-f">formatPrice</span>
+          <span className="tok-p">(</span>
+          <span className="tok-n">99.109375</span>
+          <span className="tok-p">);</span>
+          {"     "}
+          <span className="tok-c">{'// "99-03+"'}</span>
+          {"\n"}
+          <span className="tok-f">tickValue</span>
+          <span className="tok-p">(</span>
+          <span className="tok-n">1_000_000</span>
+          <span className="tok-p">);</span>
+          {"     "}
+          <span className="tok-c">{"// 312.50"}</span>
+        </code>
+      </pre>
+    </figure>
+  );
+}
+
+function OpenSource() {
+  return (
+    <section className="c-section" id="open-source" aria-labelledby="os-h">
+      <div className="c-sechead">
+        <h2 id="os-h" className="c-h2">
+          Open source
+        </h2>
+        <p className="c-secmeta">{PACKAGES.length} packages on npm · zero dependencies</p>
+      </div>
+      <p className="c-lede">
+        Typed TypeScript libraries for fixed-income math, public financial data and Hebrew text,
+        each tested against published reference values.
+      </p>
+      <FeaturedPackage />
+      <div className="c-pkggroups">
+        {PACKAGE_GROUPS.map((g) => (
+          <div className="c-pkggroup" key={g}>
+            <h3 className="c-h3">{g}</h3>
+            <ul className="c-pkgs">
+              {PACKAGES.filter((p) => p.group === g).map((p) => (
+                <li key={p.name} className="c-pkg">
+                  <a
+                    className="c-pkg__name"
+                    href={`https://www.npmjs.com/package/${p.name}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {p.name}
+                    {Icon.arrow}
+                  </a>
+                  <p className="c-pkg__summary">{p.summary}</p>
+                </li>
               ))}
             </ul>
           </div>
-
-          <div className="mm-tear-key">instruments</div>
-          <div className="mm-tear-instr">
-            {r.instr.map((t) => (
-              <span key={t}>{t}</span>
-            ))}
-          </div>
-
-          <div className="mm-tear-key">size · tenor</div>
-          <div className="mm-tear-val" style={{ fontFamily: "var(--font-sans)" }}>
-            {r.size} · {r.range}
-          </div>
-        </div>
+        ))}
       </div>
-    </>
-  );
-}
-
-function PositionBook() {
-  // The flagship credential opens pre-expanded so the strongest proof is
-  // visible without a click.
-  const [expanded, setExpanded] = React.useState<string | null>("gs");
-  const meta = POSITIONS.filter((p) => p.side === "META");
-  const open = POSITIONS.filter((p) => p.side === "OPEN");
-  const closed = POSITIONS.filter((p) => p.side === "CLOSED");
-
-  const toggle = (id: string) => {
-    setExpanded((cur) => (cur === id ? null : id));
-  };
-
-  let idx = 0;
-  const renderRow = (r: Position) => (
-    <PositionRow
-      key={r.id}
-      r={r}
-      i={idx++}
-      expanded={expanded === r.id}
-      onToggle={() => toggle(r.id)}
-    />
-  );
-
-  return (
-    <section id="position-book" className="mt-16">
-      <div className="mm-watch">
-        <SectionMarker>Position Book · click to expand tear sheet</SectionMarker>
-      </div>
-      <div className="mt-8 mm-traj">
-        <div className="mm-pos-group-label mm-mono">Open Positions</div>
-        {open.map(renderRow)}
-        <div className="mm-pos-group-label mm-mono">Closed Positions</div>
-        {closed.map(renderRow)}
-        {meta.length > 0 && (
-          <>
-            <div className="mm-pos-group-label mm-mono">
-              Meta · the art behind this site
-            </div>
-            {meta.map(renderRow)}
-          </>
-        )}
-      </div>
+      <a className="c-textlink" href={GITHUB} target="_blank" rel="noopener noreferrer">
+        All repositories on GitHub {Icon.arrow}
+      </a>
     </section>
   );
 }
 
-function Holdings() {
-  // Largest position weight, used to scale the bars to fill the column
-  const max = Math.max(...HOLDINGS.map((h) => h.wt));
+/* ── Studio ────────────────────────────────────────────────────────── */
 
+function Studio() {
+  const studio = ROLES.find((r) => r.id === "quentin");
   return (
-    <section id="holdings">
-      <div className="mm-watch">
-        <SectionMarker>Holdings · stack as fund allocation</SectionMarker>
-      </div>
-      <div className="mt-8 mm-watch">
-        <table className="mm-hold">
-          <thead>
-            <tr>
-              <th>Ticker</th>
-              <th className="mm-hold-bar-cell">Position Size</th>
-              <th className="mm-hold-num">Wt</th>
-              <th className="mm-hold-num">Tenor</th>
-              <th>Mark</th>
-            </tr>
-          </thead>
-          <tbody>
-            {HOLDINGS.map((h, i) => (
-              <tr
-                key={h.tkr}
-                className="mm-watch"
-                style={{
-                  ["--mm-delay" as string]: `${i * 30}ms`,
-                  ["--mm-bar" as string]: `${(h.wt / max) * 100}%`,
-                }}
-              >
-                <td className="mm-hold-tkr">{h.tkr}</td>
-                <td className="mm-hold-bar-cell">
-                  <div className="mm-hold-bar">
-                    <div className="mm-hold-bar-fill" />
-                  </div>
-                </td>
-                <td className="mm-hold-num">{h.wt}%</td>
-                <td className="mm-hold-num">{h.tenor}</td>
-                <td>
-                  <span
-                    className={
-                      h.mark === "LIVE"
-                        ? "mm-hold-mark-live"
-                        : "mm-hold-mark-held"
-                    }
-                  >
-                    {h.mark}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  );
-}
-
-function MagneticCTA({
-  href,
-  children,
-  onClick,
-  external = true,
-}: {
-  href: string;
-  children: ReactNode;
-  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
-  external?: boolean;
-}) {
-  // Terminal buttons don't chase cursors — feedback is hover glow, arrow
-  // slide, and press scale, all in CSS.
-  return (
-    <a
-      href={href}
-      target={external ? "_blank" : undefined}
-      rel={external ? "noopener noreferrer" : undefined}
-      className="mm-cta"
-      onClick={onClick}
-    >
-      <span>{children}</span>
-      <span className="mm-cta-arrow" aria-hidden>
-        →
-      </span>
-    </a>
-  );
-}
-
-type CardProps = {
-  chipColor: string;
-  label: string;
-  idx: number;
-  children: ReactNode;
-};
-
-function Card({ chipColor, label, idx, children }: CardProps) {
-  const number = String(idx + 1).padStart(2, "0");
-
-  return (
-    <div
-      className="mm-watch"
-      style={{ ["--mm-delay" as string]: `${idx * 90}ms` }}
-    >
-      <div className="mm-card" style={{ ["--accent" as string]: chipColor }}>
-        <div className="mm-card-number mm-mono">{number}</div>
-        <div className="mm-mono text-xs mm-chip" style={{ color: chipColor }}>
-          {label}
-        </div>
-        <p className="mt-6 leading-relaxed" style={{ color: "var(--muted)" }}>
-          {children}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function Divider() {
-  return (
-    <div
-      className="mm-divider h-px w-full my-28"
-      style={{ background: "var(--line)" }}
-    />
-  );
-}
-
-/* ── Trade ticket modal — email CTA confirmation ──────────── */
-
-function TicketRow({
-  k,
-  v,
-  accent,
-}: {
-  k: string;
-  v: string;
-  accent?: "BUY" | "MKT" | "ACCENT";
-}) {
-  return (
-    <div className="mm-ticket-row">
-      <span className="mm-ticket-key">{k}</span>
-      <span className="mm-ticket-val" data-side={accent}>
-        {v}
-      </span>
-    </div>
-  );
-}
-
-function TradeTicket({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
-  const submitRef = useRef<HTMLAnchorElement>(null);
-  const lastFocused = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    lastFocused.current = (document.activeElement as HTMLElement) ?? null;
-    // Focus submit so Enter immediately fires the mailto.
-    window.setTimeout(() => submitRef.current?.focus(), 60);
-
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      lastFocused.current?.focus?.();
-    };
-  }, [open, onClose]);
-
-  const handleSubmit = () => {
-    // Close after the mailto fires so we don't lose focus mid-handoff.
-    window.setTimeout(onClose, 80);
-  };
-
-  return (
-    <div
-      className="mm-ticket-overlay"
-      data-open={open}
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="mm-ticket-title"
-      aria-hidden={!open}
-    >
-      <div className="mm-ticket" onClick={(e) => e.stopPropagation()}>
-        <div className="mm-ticket-head">
-          <span id="mm-ticket-title" className="mm-ticket-title">
-            Trade Ticket · MM.NYC
-          </span>
-          <button
-            className="mm-ticket-close"
-            type="button"
-            aria-label="Close trade ticket"
-            onClick={onClose}
-          >
-            ×
-          </button>
-        </div>
-        <div className="mm-ticket-body">
-          <TicketRow k="Side" v="BUY" accent="BUY" />
-          <TicketRow k="Ticker" v="MM.NYC.HELLO" />
-          <TicketRow k="Order Type" v="MARKET" accent="MKT" />
-          <TicketRow k="Quantity" v="1 INTRO" />
-          <TicketRow k="Limit Px" v="$0.00" />
-          <TicketRow k="TIF" v="GTC" />
-          <TicketRow k="Settlement" v="T+1 · NYC ↔ MIA" />
-          <TicketRow k="Venue" v="hello@moshemalka.com" />
-        </div>
-        <div className="mm-ticket-foot">
-          <span className="mm-ticket-hint">
-            <kbd>Esc</kbd>Cancel
-          </span>
-          <a
-            ref={submitRef}
-            className="mm-ticket-submit"
-            href="mailto:hello@moshemalka.com?subject=Hello%20%E2%80%94%20MM.NYC&body=%2F%2F%20fill%20at%20will%0A%0A"
-            onClick={handleSubmit}
-          >
-            Submit Fill →
+    <section className="c-section" id="studio" aria-labelledby="studio-h">
+      <div className="c-panel c-studio">
+        <div className="c-studio__copy">
+          <h2 id="studio-h" className="c-h2">
+            Quentin Code
+          </h2>
+          <p className="c-studio__text">
+            My studio. I build custom software for businesses: AI prototypes that ship, full web
+            builds, and fractional CTO work for early-stage teams.
+          </p>
+          <a className="c-btn c-btn--secondary" href={STUDIO} target="_blank" rel="noopener noreferrer">
+            Hire the studio {Icon.arrow}
           </a>
         </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── Cmd+K Bloomberg-style command terminal ────────────────── */
-
-type TermCmd = {
-  tkr: string;
-  desc: string;
-  match: string[];
-  exec: () => void;
-  closeAfter?: boolean;
-};
-
-function CmdTerminal({
-  open,
-  onClose,
-  onOpenTicket,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onOpenTicket: () => void;
-}) {
-  const [query, setQuery] = useState("");
-  const [activeIdx, setActiveIdx] = useState(0);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const cmds: TermCmd[] = useMemo(() => {
-    // exec() only ever runs client-side (user action), so window is safe here.
-    const scrollToId = (id: string) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      const smooth = !window.matchMedia?.("(prefers-reduced-motion: reduce)")
-        .matches;
-      el.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
-    };
-    return [
-      {
-        tkr: "BOOK",
-        desc: "Position book — open + closed positions",
-        match: ["book", "positions", "position", "trading", "trad", "jobs", "career"],
-        exec: () => scrollToId("position-book"),
-      },
-      {
-        tkr: "STACK",
-        desc: "Holdings — fund allocation of the tech stack",
-        match: ["stack", "holdings", "tech", "fund", "allocation", "languages"],
-        exec: () => scrollToId("holdings"),
-      },
-      {
-        tkr: "ENERGY",
-        desc: "Energy — what I'm interested in",
-        match: ["energy", "interest", "leverage", "about"],
-        exec: () => scrollToId("energy"),
-      },
-      {
-        tkr: "MM.NYC",
-        desc: "Hero — top of the page",
-        match: ["mm", "top", "home", "hero", "moshe"],
-        exec: () => window.scrollTo({ top: 0, behavior: "smooth" }),
-      },
-      {
-        tkr: "EMAIL",
-        desc: "Open trade ticket → hello@moshemalka.com",
-        match: ["email", "mail", "contact", "hello", "ticket", "buy", "hire"],
-        exec: () => onOpenTicket(),
-      },
-      {
-        tkr: "LI",
-        desc: "LinkedIn → linkedin.com/in/moshenyc",
-        match: ["li", "linkedin"],
-        exec: () =>
-          window.open(
-            "https://www.linkedin.com/in/moshenyc/",
-            "_blank",
-            "noopener,noreferrer"
-          ),
-      },
-      {
-        tkr: "GH",
-        desc: "GitHub → github.com/moshejs",
-        match: ["gh", "github", "code"],
-        exec: () =>
-          window.open(
-            "https://github.com/moshejs",
-            "_blank",
-            "noopener,noreferrer"
-          ),
-      },
-      {
-        tkr: "SO",
-        desc: "Stack Overflow → users/7381252/moshe",
-        match: ["so", "stack overflow", "stackoverflow", "answers"],
-        exec: () =>
-          window.open(
-            "https://stackoverflow.com/users/7381252/moshe",
-            "_blank",
-            "noopener,noreferrer"
-          ),
-      },
-    ];
-  }, [onOpenTicket]);
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return cmds;
-    return cmds.filter(
-      (c) =>
-        c.tkr.toLowerCase().includes(q) ||
-        c.match.some((m) => m.toLowerCase().includes(q))
-    );
-  }, [query, cmds]);
-
-  useEffect(() => {
-    if (!open) return;
-    setQuery("");
-    setActiveIdx(0);
-    window.setTimeout(() => inputRef.current?.focus(), 60);
-  }, [open]);
-
-  useEffect(() => {
-    setActiveIdx(0);
-  }, [query]);
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
-        return;
-      }
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        setActiveIdx((i) => Math.min(i + 1, Math.max(filtered.length - 1, 0)));
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        setActiveIdx((i) => Math.max(i - 1, 0));
-      } else if (e.key === "Enter") {
-        e.preventDefault();
-        const c = filtered[activeIdx];
-        if (!c) return;
-        onClose();
-        // Defer the action so the overlay tear-down doesn't steal focus
-        // from a popup window or the trade-ticket modal that follows.
-        window.setTimeout(() => c.exec(), 60);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, filtered, activeIdx, onClose]);
-
-  return (
-    <div
-      className="mm-term-overlay"
-      data-open={open}
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Command terminal"
-      aria-hidden={!open}
-    >
-      <div className="mm-term" onClick={(e) => e.stopPropagation()}>
-        <div className="mm-term-input-row">
-          <span className="mm-term-prompt" aria-hidden>
-            {"<MM.NYC>"}
-          </span>
-          <input
-            ref={inputRef}
-            className="mm-term-input"
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="ticker or keyword — book, stack, email, gh"
-            autoComplete="off"
-            spellCheck={false}
-            aria-label="Command query"
-          />
-          <span className="mm-term-go" aria-hidden>
-            <kbd>↵</kbd>GO
-          </span>
-        </div>
-        {filtered.length === 0 ? (
-          <div className="mm-term-empty">
-            No match · try BOOK · STACK · EMAIL · GH
-          </div>
-        ) : (
-          <ul className="mm-term-list" role="listbox">
-            {filtered.map((c, i) => (
-              <li
-                key={c.tkr}
-                className="mm-term-item"
-                data-active={i === activeIdx}
-                onMouseEnter={() => setActiveIdx(i)}
-                onClick={() => {
-                  onClose();
-                  window.setTimeout(() => c.exec(), 60);
-                }}
-                role="option"
-                aria-selected={i === activeIdx}
-              >
-                <span className="mm-term-tkr mm-mono">{c.tkr}</span>
-                <span className="mm-term-desc">{c.desc}</span>
-                <span className="mm-term-cmd mm-mono" aria-hidden>↵</span>
+        <ul className="c-studio__work" aria-label="Recent studio work">
+          {studio?.highlights.slice(0, 3).map((h) => {
+            const [client, ...rest] = h.split(": ");
+            return (
+              <li key={h}>
+                <span className="c-studio__client">{client}</span>
+                <span className="c-studio__what">
+                  {rest.join(": ").replace(/^./, (c) => c.toUpperCase())}
+                </span>
               </li>
-            ))}
-          </ul>
-        )}
-        <div className="mm-term-foot">
-          <span>
-            <kbd>↑↓</kbd>nav
-          </span>
-          <span>
-            <kbd>↵</kbd>execute
-          </span>
-          <span>
-            <kbd>esc</kbd>close
-          </span>
-        </div>
+            );
+          })}
+        </ul>
       </div>
-    </div>
+    </section>
   );
 }
 
-function FootNow({ onOpenTicket }: { onOpenTicket: () => void }) {
-  return (
-    <footer className="mm-foot mm-watch mt-16 pt-12 pb-16">
-      <div className="flex flex-wrap items-end justify-between gap-10">
-        <div className="max-w-md">
-          <SectionMarker>Now</SectionMarker>
-          <p
-            className="mt-4 text-lg leading-relaxed"
-            style={{ color: "var(--muted)" }}
-          >
-            Building. Open to engineering leadership roles that touch scale,
-            capital, or AI — ideally all three.
-          </p>
-          <div className="mt-6 mm-pull">
-            Build it right. Then scale it.
-          </div>
-        </div>
-        <div className="flex flex-col items-start md:items-end gap-4">
-          <div className="flex flex-col items-start md:items-end gap-2">
-            <MagneticCTA
-              href="mailto:hello@moshemalka.com"
-              external={false}
-              onClick={(e) => {
-                e.preventDefault();
-                onOpenTicket();
-              }}
-            >
-              <span className="mm-ordtype" data-type="MKT" aria-hidden>MKT</span>
-              hello@moshemalka.com
-            </MagneticCTA>
-            <div className="mm-settle">
-              T+1 · NYC Hours ·{" "}
-              <a
-                className="mm-hover-line"
-                href="mailto:hello@moshemalka.com"
-                style={{ color: "var(--muted)" }}
-              >
-                or plain email
-              </a>
-            </div>
-          </div>
-          <div className="flex items-center gap-5 text-sm">
-            <a
-              className="mm-hover-line"
-              href="https://www.linkedin.com/in/moshenyc/"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: "var(--muted)" }}
-            >
-              <span className="mm-ordtype" data-type="LMT" aria-hidden>LMT</span>
-              LinkedIn
-            </a>
-            <a
-              className="mm-hover-line"
-              href="https://github.com/moshejs"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: "var(--muted)" }}
-            >
-              <span className="mm-ordtype" data-type="GTC" aria-hidden>GTC</span>
-              GitHub
-            </a>
-            <a
-              className="mm-hover-line"
-              href="https://stackoverflow.com/users/7381252/moshe"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: "var(--muted)" }}
-            >
-              <span className="mm-ordtype" data-type="RFQ" aria-hidden>RFQ</span>
-              Stack Overflow
-            </a>
-          </div>
-        </div>
-      </div>
+/* ── Page ──────────────────────────────────────────────────────────── */
 
-      <div
-        className="mt-12 pt-8 flex flex-wrap items-center justify-between gap-4 text-[11px] mm-mono"
-        style={{ color: "var(--soft)", borderTop: "1px solid var(--line)" }}
-      >
-        <span>Moshe Malka · NYC ↔ MIA · 2026</span>
-        <span>Engineering leader · TypeScript · Next.js · AI</span>
-        <span>
-          <kbd>⌘K</kbd> terminal
-        </span>
-      </div>
-    </footer>
-  );
-}
+const NUMBER_WORDS = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten",
+  "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen",
+  "Nineteen", "Twenty", "Twenty-one", "Twenty-two", "Twenty-three", "Twenty-four", "Twenty-five"];
 
-export default function Home() {
-  const [ticketOpen, setTicketOpen] = useState(false);
-  const [terminalOpen, setTerminalOpen] = useState(false);
+type Props = { asOf: number; revision: string | null };
 
-  // Reveal-on-scroll for everything tagged .mm-watch
-  useEffect(() => {
-    const els = document.querySelectorAll<HTMLElement>(".mm-watch");
-    if (!("IntersectionObserver" in window)) {
-      els.forEach((el) => el.classList.add("is-visible"));
-      return;
+// Freeze "now" at build time so server and client render the same tenures,
+// and record the commit the page was built from.
+export async function getStaticProps() {
+  let revision: string | null = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? null;
+  if (!revision) {
+    try {
+      const { execSync } = await import("child_process");
+      revision = execSync("git rev-parse --short HEAD", { stdio: ["ignore", "pipe", "ignore"] })
+        .toString()
+        .trim();
+    } catch {
+      revision = null;
     }
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            io.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.18, rootMargin: "0px 0px -8% 0px" }
-    );
-    els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, []);
+  }
+  const props: Props = { asOf: Date.now(), revision };
+  return { props };
+}
 
-  // Cmd+K (or Ctrl+K) — Bloomberg-style terminal palette.
-  // We catch it globally and ignore when the user is in another input so
-  // typing in any future field doesn't hijack their text.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const isToggle =
-        (e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K");
-      if (!isToggle) return;
-      e.preventDefault();
-      setTerminalOpen((v) => !v);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
+export default function Home({ asOf, revision }: Props) {
+  const years = careerYears(asOf);
+  const yearsWord = NUMBER_WORDS[years] ?? String(years);
 
   return (
-    <div
-      className={`${sans.variable} ${mono.variable} mm-sans min-h-screen text-white relative overflow-hidden`}
-    >
-      {/* Static backdrop: chart paper + film grain. The terminal is flat
-          and dry — the one continuous motion on the page is the tape. */}
-      <div className="mm-grain" aria-hidden />
-      <GridPaper />
-
-      <StatusPill />
-
-      <TradeTicket
-        open={ticketOpen}
-        onClose={() => setTicketOpen(false)}
-      />
-      <CmdTerminal
-        open={terminalOpen}
-        onClose={() => setTerminalOpen(false)}
-        onOpenTicket={() => {
-          setTerminalOpen(false);
-          window.setTimeout(() => setTicketOpen(true), 80);
-        }}
-      />
-
+    <>
       <Script
         src="https://www.googletagmanager.com/gtag/js?id=G-L1ETKYXNV4"
         strategy="lazyOnload"
@@ -1181,12 +455,13 @@ export default function Home() {
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-
           gtag('config', 'G-L1ETKYXNV4');
         `}
       </Script>
+
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#070b14" />
         <title>{SEO.title}</title>
         <meta name="description" content={SEO.description} />
         <link rel="canonical" href={`${SITE_URL}/`} />
@@ -1195,7 +470,6 @@ export default function Home() {
           content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
         />
         <meta name="author" content="Moshe Malka" />
-
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
@@ -1227,12 +501,73 @@ export default function Home() {
         />
       </Head>
 
-      <main className="mx-auto max-w-5xl px-6 relative z-10">
+      <header className="c-nav">
+        <div className="c-nav__inner">
+          <a className="c-nav__mark" href="#top">
+            Moshe Malka
+          </a>
+          <nav className="c-nav__links" aria-label="Sections">
+            <a href="#work">Work</a>
+            <a href="#open-source">Open source</a>
+            <a href="#studio">Studio</a>
+          </nav>
+          <a className="c-btn c-btn--primary c-btn--sm" href={`mailto:${EMAIL}`}>
+            Email me
+          </a>
+        </div>
+      </header>
 
-        {/* HERO */}
-        <section className="pt-28 md:pt-36 pb-8 md:pb-12">
-          <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] lg:grid-cols-[300px_1fr] gap-x-10 gap-y-8 items-start">
-            <div className="mm-reveal mm-power-shot">
+      <main className="c-page" id="top">
+        <section className="c-hero" aria-labelledby="name">
+          <div className="c-hero__copy">
+            <h1 id="name" className="c-name">
+              Moshe Malka
+            </h1>
+            <p className="c-tagline">
+              Engineering leader in New York City, writing software since 2008.
+            </p>
+            <p className="c-intro">
+              Today I&rsquo;m on Goldman Sachs&rsquo; Private Wealth platform. Before that I led
+              Peloton&rsquo;s e&#8209;commerce replatform, built institutional bond trading at ICE,
+              and wrote high&#8209;frequency arbitrage that filled in 26&nbsp;milliseconds. I lead
+              teams, mentor engineers, ship with AI, and run Quentin Code, a studio that builds
+              custom software for businesses.
+            </p>
+            <div className="c-ctas">
+              <a className="c-btn c-btn--primary" href={`mailto:${EMAIL}`}>
+                Email me
+              </a>
+              <CopyButton
+                className="c-btn c-btn--ghost c-copy"
+                text={EMAIL}
+                srDone="Email address copied to clipboard"
+                label={EMAIL}
+              />
+            </div>
+            <ul className="c-links" aria-label="Elsewhere">
+              <li>
+                <a href={LINKEDIN} target="_blank" rel="noopener noreferrer">
+                  LinkedIn {Icon.arrow}
+                </a>
+              </li>
+              <li>
+                <a href={GITHUB} target="_blank" rel="noopener noreferrer">
+                  GitHub {Icon.arrow}
+                </a>
+              </li>
+              <li>
+                <a href={STUDIO} target="_blank" rel="noopener noreferrer">
+                  Quentin Code {Icon.arrow}
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <figure className="c-shot">
+            <div className="c-shot__stage">
+              <Dial />
+            </div>
+            <div className="c-shot__portrait">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/moshe.jpg"
@@ -1241,109 +576,91 @@ export default function Home() {
                 height="400"
                 loading="eager"
                 decoding="async"
-                // React 18 passes unknown lowercase attrs straight to the DOM;
-                // the camelCase prop only exists in React 19 types.
                 {...({ fetchpriority: "high" } as object)}
               />
             </div>
-            <div>
-              {/* Name + title lockup — the two facts every visitor came for,
-                  at legible weight (not an 11px marker). */}
-              <div className="mm-reveal">
-                <p className="mm-mono text-sm md:text-base tracking-[0.14em] uppercase" style={{ color: "var(--ink)" }}>
-                  Moshe Malka
-                </p>
-                <p className="mm-mono text-[11px] tracking-[0.18em] uppercase mt-1" style={{ color: "var(--muted)" }}>
-                  Engineering Leader · New York City
-                </p>
-              </div>
+            <figcaption className="c-shot__caption">
+              <span className="c-live" aria-hidden="true" />
+              Live New York time
+            </figcaption>
+          </figure>
+        </section>
 
-              <HeroHeading />
+        <Work asOf={asOf} />
+        <OpenSource />
+        <Studio />
+
+        <section className="c-section c-about" aria-labelledby="about-h">
+          <div className="c-about__text">
+            <h2 id="about-h" className="c-h2">
+              What I&rsquo;m after
+            </h2>
+            <p>
+              I&rsquo;m interested in leverage: the kind you get from code that moves capital,
+              systems that scale without drama, and teams that outlast their founders.
+            </p>
+            <p>
+              {yearsWord} years in, the pattern is consistent. I join where the stakes are
+              measured in milliseconds or millions, build the thing, raise the people, and leave
+              the platform stronger than the slide deck said it would be. Lately that means
+              putting AI to work inside real products, not demos.
+            </p>
+          </div>
+          <div className="c-about__stack">
+            <h3 className="c-h3">What I build with</h3>
+            <ul className="c-chips">
+              {TOOLS.map((t) => (
+                <li key={t}>{t}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        <footer className="c-section c-close" aria-labelledby="close-h">
+          <div className="c-panel c-close__cta">
+            <h2 id="close-h" className="c-h2 c-close__title">
+              Get in touch
+            </h2>
+            <p className="c-close__text">
+              Write about your team, your project, or the software you need built.
+            </p>
+            <div className="c-ctas">
+              <a className="c-btn c-btn--primary" href={`mailto:${EMAIL}`}>
+                Email me
+              </a>
+              <a className="c-btn c-btn--ghost" href={LINKEDIN} target="_blank" rel="noopener noreferrer">
+                LinkedIn {Icon.arrow}
+              </a>
+              <a className="c-btn c-btn--ghost" href={STUDIO} target="_blank" rel="noopener noreferrer">
+                Hire the studio {Icon.arrow}
+              </a>
             </div>
           </div>
-
-          {/* Plain-English intro — answers who/what/where in one read. */}
-          <p
-            className="mm-reveal mm-delay-3 mt-10 max-w-3xl text-lg md:text-xl leading-relaxed"
-            style={{ color: "var(--muted)" }}
-          >
-            Engineering leader in New York City — writing software since 2008.
-            Currently on Goldman Sachs&rsquo; Private Wealth platform;
-            previously Peloton&rsquo;s e-commerce replatform, institutional
-            bond trading at ICE, and HFT systems that filled arbitrage in
-            26&nbsp;milliseconds. I lead teams, mentor engineers, and ship
-            with AI.
-          </p>
-
-          <HeroStats />
-        </section>
-
-        <Divider />
-
-        {/* GRID INTERSECTION */}
-        <section className="mm-grid grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-20 text-xl">
-          <Card chipColor="var(--lightning)" label="Trading" idx={0}>
-            Arbitrage systems under 26ms. Real-time volatility across 40+
-            exchanges. Infrastructure where milliseconds change outcomes.
-          </Card>
-
-          <Card chipColor="var(--z-blue)"    label="Institutional Finance" idx={1}>
-            Portfolio systems at Goldman. Interfaces that brokers and
-            high-net-worth clients rely on. Precision, governance,
-            responsibility.
-          </Card>
-
-          <Card chipColor="var(--crystal)"   label="Real Estate" idx={2}>
-            Operational platforms for coworking and physical space. Software
-            that touches real-world infrastructure.
-          </Card>
-
-          <Card chipColor="var(--steel)"     label="Modern Web & AI" idx={3}>
-            NextJS, React, LangChain, GPT-4. Tools that compress iteration
-            cycles. Product built fast, but built right.
-          </Card>
-        </section>
-
-        <Divider />
-
-        {/* Career events feed — sits as a header to the position book
-            since the events ARE what populates it. */}
-        <ExecutionLog />
-
-        {/* POSITION BOOK */}
-        <PositionBook />
-
-        <Divider />
-
-        {/* HOLDINGS — stack as fund allocation */}
-        <Holdings />
-
-        <Divider />
-
-        {/* PERSONAL ENERGY */}
-        <section id="energy" className="max-w-3xl pb-20 mm-watch">
-          <SectionMarker>Energy</SectionMarker>
-
-          <p
-            className="mt-8 text-2xl leading-relaxed"
-            style={{ color: "var(--muted)" }}
-          >
-            I&rsquo;m interested in leverage — the kind you get from{" "}
-            <span className="mm-hover-line">code that moves capital</span>,{" "}
-            <span className="mm-hover-line">systems that scale without drama</span>,
-            and <span className="mm-hover-line">teams that outlast their founders</span>.
-            <br /><br />
-            Eighteen years in, the pattern is consistent: I join where the
-            stakes are measured in milliseconds or millions, build the thing,
-            raise the people, and leave the platform stronger than the
-            slide deck said it would be. Lately that means putting AI to work
-            inside real products — not demos.
-          </p>
-        </section>
-
-        <FootNow onOpenTicket={() => setTicketOpen(true)} />
-
+          <div className="c-foot">
+            <p>© {new Date(asOf).getFullYear()} Moshe Malka · New York City</p>
+            <ul className="c-links" aria-label="Profiles">
+              <li>
+                <a href={GITHUB} target="_blank" rel="noopener noreferrer">
+                  GitHub {Icon.arrow}
+                </a>
+              </li>
+              <li>
+                <a href="https://stackoverflow.com/users/7381252/moshe" target="_blank" rel="noopener noreferrer">
+                  Stack Overflow {Icon.arrow}
+                </a>
+              </li>
+              <li>
+                <a href={LINKEDIN} target="_blank" rel="noopener noreferrer">
+                  LinkedIn {Icon.arrow}
+                </a>
+              </li>
+            </ul>
+            <p className="c-foot__build">
+              Built with Next.js{revision ? ` · ${revision}` : ""}
+            </p>
+          </div>
+        </footer>
       </main>
-    </div>
+    </>
   );
 }
