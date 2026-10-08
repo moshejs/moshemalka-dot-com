@@ -356,9 +356,10 @@ a:hover > .c-arrow { transform: translate(2px, -2px); }
 .c-dial__bolt {
   fill: none;
   stroke: var(--lightning);
-  stroke-width: 2.6;
-  stroke-linecap: round;
+  stroke-width: 2.4;
+  stroke-linecap: butt;
   stroke-linejoin: miter;
+  stroke-miterlimit: 8;
 }
 .c-dial__boltcap  { fill: var(--lightning); }
 .c-dial__pin      { fill: var(--bg); }
