@@ -147,7 +147,9 @@ export function Dial() {
               } as React.CSSProperties)
         }
       >
-        <path className="c-dial__bolt" d="M0 34 L0 -70 L-8 -86 L8 -102 L-8 -118 L0 -132 L0 -176" />
+        {/* Milgauss seconds hand: straight shaft, one lightning "Z", arrowhead tip */}
+        <path className="c-dial__bolt" d="M0 34 L0 -94 L-9 -107 L7 -113 L0 -127 L0 -158" />
+        <path className="c-dial__boltcap" d="M0 -179 L5 -156 L-5 -156 Z" />
         <circle className="c-dial__boltcap" r="6" />
       </g>
       <circle className="c-dial__pin" r="2.5" />
