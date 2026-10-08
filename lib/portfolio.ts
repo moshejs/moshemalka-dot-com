@@ -2,389 +2,194 @@
  * Portfolio data + pure utilities. Imported by `pages/index.tsx` and the test
  * suite. Keep this file framework-free (no React, no next/* imports) so it can
  * be unit-tested in plain Node.
+ *
+ * Everything here is plain English on purpose: company names first, real
+ * dates, no invented figures.
  */
 
-/* ── Trading session ──────────────────────────────────────── */
+/* ── Career clock ─────────────────────────────────────────── */
 
 /**
- * Career start. Used as the epoch for the session counter and the
- * "experience" spec on the home page. Anchored to first professional work
- * in 2008 (Eastern time) — the position book below lists roles from 2016
- * onward; earlier work predates it.
+ * Career start. Anchored to first professional work in 2008 (Eastern time).
+ * The role list below starts in 2016; earlier work predates it.
  */
 export const CAREER_EPOCH = new Date("2008-06-01T00:00:00-04:00").getTime();
 
-export type SessionParts = {
-  years: number;
-  remDays: number;
-  hh: string;
-  mm: string;
-  ss: string;
-};
+const YEAR_MS = 365.25 * 86_400 * 1000;
 
-/**
- * Convert a duration in milliseconds to a Y/D/HH:MM:SS breakdown for the
- * session pill. Uses 365-day "years" — accurate enough for a header counter,
- * and matches `uptime(1)` style formatting.
- */
-export function formatSession(ms: number): SessionParts {
-  const totalSec = Math.max(0, Math.floor(ms / 1000));
-  const days = Math.floor(totalSec / 86400);
-  const years = Math.floor(days / 365);
-  const remDays = days - years * 365;
-  const hours = Math.floor((totalSec % 86400) / 3600);
-  const minutes = Math.floor((totalSec % 3600) / 60);
-  const seconds = totalSec % 60;
-  return {
-    years,
-    remDays,
-    hh: String(hours).padStart(2, "0"),
-    mm: String(minutes).padStart(2, "0"),
-    ss: String(seconds).padStart(2, "0"),
-  };
+/** Whole years of professional work as of `now`. */
+export function careerYears(now: number = Date.now()): number {
+  return Math.max(0, Math.floor((now - CAREER_EPOCH) / YEAR_MS));
 }
 
-/* ── Position book ────────────────────────────────────────── */
+/* ── Roles ────────────────────────────────────────────────── */
 
-export type Position = {
+/** Year-month, e.g. "2024-09". */
+export type YearMonth = `${number}-${number}`;
+
+export type Role = {
   id: string;
-  range: string;
-  size: string;
-  side: "OPEN" | "CLOSED" | "META";
-  ticker: string;
-  desc: string;
-  pnl: string;
-  accent: string;
-  basis: string;
-  strikes: string[];
-  instr: string[];
-  /** External venue for the position — rendered as a link in the tear sheet. */
-  url?: string;
+  company: string;
+  /** One plain line: what the job was. */
+  role: string;
+  start: YearMonth;
+  /** null = current. */
+  end: YearMonth | null;
+  /** What the work involved, in a sentence or two. */
+  summary: string;
+  highlights: string[];
+  tools: string[];
+  link?: { href: string; label: string };
 };
 
-export const POSITIONS: Position[] = [
+export const ROLES: Role[] = [
   {
-    id: "site",
-    range: "26 → ●",
-    size: "1 site",
-    side: "META",
-    ticker: "MM.NYC.SITE",
-    desc: "the art behind this position · click",
-    pnl: "read me",
-    accent: "var(--lightning)",
-    basis:
-      "This site borrows the dense-data ergonomics of a trading desk to describe a software engineering career. The palette is Rolex Milgauss — Z-blue dial, lightning-orange seconds hand, green sapphire crystal, brushed steel — and the visual grammar is Bloomberg: spec sheets, position books, sector heatmaps, analyst tear sheets. Every finance term that appears here was chosen because it carries a second meaning that maps onto a career.",
-    strikes: [
-      "POSITIONS · jobs reframed as open + closed trading positions, with entry / exit / ΔP",
-      "HOLDINGS · the tech stack as a sector heatmap — tile size = years on desk, heat = current allocation",
-      "Tear sheets · every position click expands BASIS · HIGHLIGHTS · INSTRUMENTS · SIZE · TENOR",
-      "Restraint · one pulse + four drifting dots, zero tape, zero orbs — the terminal is flat and dry on purpose",
-      "Double meanings · POSITIONS · HOLDINGS · TENOR · SIZE · MARK · BASIS · INSTRUMENTS — each reads in two languages",
+    id: "goldman",
+    company: "Goldman Sachs",
+    role: "Private Wealth Management · portfolio platform for brokers and clients",
+    start: "2024-09",
+    end: null,
+    summary:
+      "Frontend on the Private Wealth portfolio platform that brokers and high-net-worth clients rely on every day. I own core portfolio-management pages inside a large React, TypeScript and MobX application.",
+    highlights: [
+      "Built the reusable Control Bar and Currency Picker, now used by 12 teams across the app",
+      "Led the portfolio UX redesign and frontend refactor, aligned with the firm's design system",
+      "Raised unit-test coverage past 80% with Jest, making releases more reliable",
+      "Mentor and onboard analysts on architecture, testing and code quality",
     ],
-    instr: ["Next.js", "TypeScript", "CSS", "Tailwind", "SVG"],
+    tools: ["TypeScript", "React", "MobX", "Jest"],
   },
   {
-    id: "gs",
-    range: "24-09 → ●",
-    size: "100%",
-    side: "OPEN",
-    ticker: "GS.PWM",
-    desc: "Private Wealth · Frontend on portfolio platform for brokers + HNW clients",
-    pnl: "+12 teams",
-    accent: "var(--z-blue)",
-    basis:
-      "Frontend on the Goldman Sachs Private Wealth platform. Brokers and high-net-worth clients depend on it daily. I own 2–4 core portfolio management pages inside a large-scale React + TypeScript + MobX SPA.",
-    strikes: [
-      "Built reusable Control Bar + Currency Picker — adopted across the broader app",
-      "Led portfolio UX redesign + frontend refactor; aligned with internal design system",
-      "Lifted unit-test coverage to 80%+ with Jest, strengthening release reliability",
-      "Mentor + onboard analysts on architecture, testing, and code quality",
+    id: "quentin",
+    company: "Quentin Software",
+    role: "My studio · AI-first product development, fractional CTO",
+    start: "2023-02",
+    end: null,
+    summary:
+      "My solo studio: AI-first product development, prototypes that ship, and fractional CTO work for early-stage teams, covering planning, marketing strategy, integrations and the whole stack.",
+    highlights: [
+      "Lavita Labs: a diamond-ring design wizard with GPT-4 and Stripe checkout",
+      "Odeliya Probeauty: a full Shopify build, 16 pages with custom sign-in and subscriptions",
+      "uwu Labs: a profile-picture image gallery on React and Firebase",
+      "Cut CI time in half on partner codebases",
     ],
-    instr: ["TypeScript", "React", "MobX", "Jest"],
-  },
-  {
-    id: "qc",
-    range: "23-02 → ●",
-    size: "fractional",
-    side: "OPEN",
-    ticker: "QNTN.SW",
-    desc: "Quentin Software · AI-first studio · fractional CTO for early-stage teams",
-    pnl: "+9 ships",
-    accent: "var(--lightning)",
-    url: "https://www.quentin.software/",
-    basis:
-      "Quentin Software — my solo studio. AI-first product development, prototypes that ship, and fractional CTO work for early-stage teams — planning, marketing strategy, integrations, the whole stack.",
-    strikes: [
-      "uwu Labs — PFP image gallery (React + Firebase)",
-      "Lavita Labs — diamond ring wizard (Next.js + GPT-4 + Stripe)",
-      "Odeliya Probeauty — full Shopify build, 16 pages + custom auth + subscriptions",
-      "Cut CI time 50% on partner repos",
-    ],
-    instr: ["Next.js", "GPT-4", "Firebase", "Stripe", "Shopify"],
+    tools: ["Next.js", "GPT-4", "Firebase", "Stripe", "Shopify"],
+    link: { href: "https://www.quentin.software/", label: "quentin.software" },
   },
   {
     id: "peloton",
-    range: "20-03 → 23-02",
-    size: "100%",
-    side: "CLOSED",
-    ticker: "PELOTON",
-    desc: "E-commerce React → Next.js + GraphQL · Guide launch · design system",
-    pnl: "+core_vitals",
-    accent: "var(--crystal)",
-    basis:
-      "Owned chunks of the e-commerce web stack. Migrated React to Next.js + GraphQL. Hosted the Blockchain/Web3 working group. Drove cross-functional launches.",
-    strikes: [
-      "Migrated React e-commerce → Next.js + GraphQL — Core Web Vitals up across the funnel",
-      "Guided design-system team to ship a Storybook UI library from scratch",
-      "Led the Guide product launch — cross-fn with product, marketing, content, design, SRE, DevOps",
-      "Refreshed home / bike / bike+ / tread pages — sales funnel cut from 7 steps to 3",
+    company: "Peloton",
+    role: "E-commerce web · Next.js and GraphQL replatform",
+    start: "2020-03",
+    end: "2023-02",
+    summary:
+      "Owned large parts of the e-commerce web stack, moved it from React to Next.js and GraphQL, ran the Blockchain/Web3 working group, and drove cross-team launches.",
+    highlights: [
+      "Moved the store from React to Next.js and GraphQL; Core Web Vitals improved across the funnel",
+      "Guided the design-system team to ship a Storybook component library from scratch",
+      "Led the Guide product launch across product, marketing, content, design, SRE and DevOps",
+      "Rebuilt the home, Bike, Bike+ and Tread pages and cut checkout from 7 steps to 3",
     ],
-    instr: ["React", "Next.js", "GraphQL", "Storybook", "TypeScript"],
+    tools: ["React", "Next.js", "GraphQL", "Storybook", "TypeScript"],
   },
   {
     id: "industrious",
-    range: "19-04 → 19-12",
-    size: "100%",
-    side: "CLOSED",
-    ticker: "INDUSTRIOUS",
-    desc: "Coworking platform · UI library · React → Gatsby + GraphQL (formerly CBRE Hana)",
-    pnl: "+ui_lib v1",
-    accent: "var(--steel)",
-    basis:
-      "Marketing + operations tech for the coworking platform — formerly CBRE Hana Workplaces.",
-    strikes: [
-      "Built UI library for component reuse across marketing + ops surfaces",
-      "Set up CI/CD pipelines for streamlined deploys",
-      "Migrated React → GatsbyJS + GraphQL",
-      "Secured sign-in pages; extended marketing + coworking platforms",
+    company: "Industrious",
+    role: "Coworking platform · marketing and operations web (formerly CBRE Hana)",
+    start: "2019-04",
+    end: "2019-12",
+    summary:
+      "Marketing and operations software for the coworking platform formerly known as CBRE Hana Workplaces.",
+    highlights: [
+      "Built a shared component library for the marketing and operations sites",
+      "Set up CI/CD pipelines for faster, safer deploys",
+      "Migrated the sites from React to Gatsby and GraphQL",
+      "Secured the sign-in pages and extended the coworking platform",
     ],
-    instr: ["React", "Gatsby", "GraphQL"],
+    tools: ["React", "Gatsby", "GraphQL"],
   },
   {
-    id: "icebonds",
-    range: "18-10 → 19-01",
-    size: "100%",
-    side: "CLOSED",
-    ticker: "ICE.BONDS",
-    desc: "Lead frontend · Angular RFQ for institutional bond trading",
-    pnl: "+cusip.parser",
-    accent: "var(--z-blue)",
-    basis:
-      "Lead frontend on the Angular RFQ app for institutional bond trading. Formerly Bondpoint.",
-    strikes: [
-      "Built CUSIP parser — auto-extracts from clipboard, fills validation form",
-      "Streamlined the quote-request workflow",
+    id: "ice",
+    company: "ICE Bonds",
+    role: "Lead frontend · institutional bond trading (formerly BondPoint)",
+    start: "2018-10",
+    end: "2019-01",
+    summary:
+      "Lead frontend engineer on the Angular request-for-quote application institutions use to trade bonds.",
+    highlights: [
+      "Built a CUSIP parser that reads bond IDs straight from the clipboard and fills the order form",
+      "Simplified the quote-request workflow for traders",
     ],
-    instr: ["Angular", "TypeScript"],
+    tools: ["Angular", "TypeScript"],
   },
   {
-    id: "cya",
-    range: "18-06 → 18-10",
-    size: "100%",
-    side: "CLOSED",
-    ticker: "CYA.INSURE",
-    desc: "Tech lead · client-facing warranty platform",
-    pnl: "+200ms loads",
-    accent: "var(--crystal)",
-    basis:
-      "Tech lead on the customer-facing warranty + claims platform for CPS Central. Subsidiary build.",
-    strikes: [
-      "TypeScript / Angular / Ionic on AWS EC2",
-      "Server-side rendering + lazy loading + code splitting",
-      "Page loads under 200ms",
-      "Instituted weekly code discussions + agile workflow",
+    id: "cps",
+    company: "CPS Central",
+    role: "Tech lead · CYA warranty and claims platform",
+    start: "2018-06",
+    end: "2018-10",
+    summary:
+      "Tech lead on CYA, the customer-facing warranty and claims platform, built for a CPS Central subsidiary.",
+    highlights: [
+      "Server-side rendering, lazy loading and code splitting brought page loads under 200ms",
+      "Introduced weekly code discussions and an agile workflow to the team",
+      "Built with TypeScript, Angular and Ionic on AWS",
     ],
-    instr: ["TypeScript", "Angular", "Ionic", "AWS"],
+    tools: ["TypeScript", "Angular", "Ionic", "AWS"],
   },
   {
     id: "hitbit",
-    range: "17-10 → 18-05",
-    size: "100%",
-    side: "CLOSED",
-    ticker: "HITBIT",
-    desc: "Lead full-stack · HFT arbitrage · 26ms · 40+ exchanges · BigQuery",
-    pnl: "▲ pnl 26ms",
-    accent: "var(--lightning)",
-    basis:
-      "Lead full-stack on real-time HFT + quant trading algos. The room where 26ms mattered.",
-    strikes: [
-      "Arbitrage trades executing under 26ms",
-      "Real-time database + BigQuery for volatility analysis across 40+ exchanges",
-      "Trading strategies + profitability significantly enhanced",
+    company: "HitBit",
+    role: "Lead full-stack · high-frequency arbitrage trading",
+    start: "2017-10",
+    end: "2018-05",
+    summary:
+      "Lead full-stack engineer on real-time, high-frequency trading and quantitative strategies, where 26 milliseconds mattered.",
+    highlights: [
+      "Arbitrage trades executing in under 26 milliseconds",
+      "Real-time data and BigQuery analysis of volatility across more than 40 exchanges",
+      "Strategy work that made the trading measurably more profitable",
     ],
-    instr: ["TypeScript", "Node", "GCP", "Kafka", "BigQuery"],
+    tools: ["TypeScript", "Node", "GCP", "Kafka", "BigQuery"],
   },
   {
     id: "icq",
-    range: "16-12 → 17-09",
-    size: "100%",
-    side: "CLOSED",
-    ticker: "INSTANT.CAR.QUOTE",
-    desc: "Lead full-stack · leasing wizard · C# engine → REST API",
-    pnl: "+rest engine",
-    accent: "var(--steel)",
-    basis:
-      "Lead full-stack on a car configuration + leasing wizard.",
-    strikes: [
-      "Full-stack wizard — TypeScript / Angular / Node / AWS",
-      "Repurposed the legacy C# leasing engine into a REST API",
+    company: "Instant Car Quote",
+    role: "Lead full-stack · car configuration and leasing",
+    start: "2016-12",
+    end: "2017-09",
+    summary: "Lead full-stack engineer on a car configuration and leasing wizard.",
+    highlights: [
+      "Built the full wizard on TypeScript, Angular, Node and AWS",
+      "Turned the legacy C# leasing engine into a REST API",
     ],
-    instr: ["TypeScript", "Angular", "Node", "AWS", "C#"],
+    tools: ["TypeScript", "Angular", "Node", "AWS", "C#"],
   },
 ];
 
-/* ── Holdings (tech stack as sector heatmap) ──────────────── */
+/* ── Tools (plain list, no weights) ───────────────────────── */
 
-export type Holding = {
-  tkr: string;
-  wt: number;       // % allocation
-  tenor: string;    // years on the desk
-  mark: "LIVE" | "HELD";
-};
-
-export const HOLDINGS: Holding[] = [
-  // Weights are an allocation: must sum to 100. Adjust here, not in the JSX.
-  { tkr: "typescript",     wt: 17, tenor: "9y", mark: "LIVE" },
-  { tkr: "react",          wt: 15, tenor: "9y", mark: "LIVE" },
-  { tkr: "next.js",        wt: 13, tenor: "6y", mark: "LIVE" },
-  { tkr: "node",           wt: 12, tenor: "9y", mark: "LIVE" },
-  { tkr: "python",         wt:  8, tenor: "7y", mark: "LIVE" },
-  { tkr: "graphql",        wt:  7, tenor: "5y", mark: "LIVE" },
-  { tkr: "tailwind",       wt:  6, tenor: "4y", mark: "LIVE" },
-  { tkr: "bun",            wt:  4, tenor: "1y", mark: "LIVE" },
-  { tkr: "websockets",     wt:  3, tenor: "8y", mark: "LIVE" },
-  { tkr: "rest",           wt:  3, tenor: "9y", mark: "LIVE" },
-  { tkr: "mongodb",        wt:  3, tenor: "6y", mark: "HELD" },
-  { tkr: "firebase",       wt:  3, tenor: "5y", mark: "HELD" },
-  { tkr: "aws",            wt:  2, tenor: "9y", mark: "LIVE" },
-  { tkr: "gcp",            wt:  1, tenor: "7y", mark: "HELD" },
-  { tkr: "llms · gpt-4",   wt:  1, tenor: "3y", mark: "LIVE" },
-  { tkr: "docker",         wt:  1, tenor: "5y", mark: "LIVE" },
-  { tkr: "github actions", wt:  1, tenor: "6y", mark: "LIVE" },
+export const TOOLS: string[] = [
+  "TypeScript",
+  "React",
+  "Next.js",
+  "Node",
+  "Python",
+  "GraphQL",
+  "Tailwind",
+  "Bun",
+  "WebSockets",
+  "REST",
+  "MongoDB",
+  "Firebase",
+  "AWS",
+  "GCP",
+  "LLMs",
+  "Docker",
+  "GitHub Actions",
 ];
 
-/* ── Holdings heatmap layout (squarified treemap) ─────────── */
-/* The heatmap reads on two axes: tile AREA is tenor (years on the
-   desk) and tile HEAT is current allocation weight. Layout is the
-   classic squarified treemap (Bruls, Huizing, van Wijk) — rows are
-   laid along the shorter side of the remaining rectangle and a row
-   is closed as soon as adding the next item would worsen the worst
-   aspect ratio in it. Pure math, unit-tested in plain Node. */
-
-export type HeatTile = Holding & {
-  years: number; // parsed tenor — drives tile area
-  heat: number;  // wt / max wt, 0..1 — drives tile color intensity
-  /** Tile rect as percentages of the container (0–100). */
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-};
-
-/** Parse a "9y" tenor string into years. */
-export function tenorYears(tenor: string): number {
-  const m = tenor.match(/^(\d+)y$/);
-  if (!m) throw new Error(`Unparseable tenor: "${tenor}"`);
-  return Number(m[1]);
-}
-
-type Rect = { x: number; y: number; w: number; h: number };
-
-/** Worst aspect ratio in a row of areas laid along a side of length `side`. */
-function worstAspect(row: number[], side: number): number {
-  const sum = row.reduce((a, b) => a + b, 0);
-  const s2 = sum * sum;
-  const side2 = side * side;
-  let worst = 1;
-  for (const v of row) {
-    worst = Math.max(worst, (side2 * v) / s2, s2 / (side2 * v));
-  }
-  return worst;
-}
-
-/**
- * Squarified treemap. `values` should be sorted descending for the
- * canonical near-square result; rects are returned in input order and
- * exactly tile the given rectangle.
- */
-export function squarify(values: number[], bounds: Rect): Rect[] {
-  const total = values.reduce((a, b) => a + b, 0);
-  if (total <= 0) return values.map(() => ({ x: bounds.x, y: bounds.y, w: 0, h: 0 }));
-  const scale = (bounds.w * bounds.h) / total;
-  const areas = values.map((v) => v * scale);
-
-  const rects: Rect[] = [];
-  let { x, y, w, h } = bounds;
-  let i = 0;
-  while (i < areas.length) {
-    const side = Math.min(w, h);
-    // Grow the row while it keeps the worst aspect ratio from degrading.
-    const row = [areas[i]];
-    let j = i + 1;
-    while (
-      j < areas.length &&
-      worstAspect([...row, areas[j]], side) <= worstAspect(row, side)
-    ) {
-      row.push(areas[j]);
-      j++;
-    }
-    const rowSum = row.reduce((a, b) => a + b, 0);
-    const thickness = rowSum / side;
-    if (w >= h) {
-      // Vertical strip on the left edge, items stacked top → bottom.
-      let cy = y;
-      for (const a of row) {
-        const ih = a / thickness;
-        rects.push({ x, y: cy, w: thickness, h: ih });
-        cy += ih;
-      }
-      x += thickness;
-      w -= thickness;
-    } else {
-      // Horizontal strip on the top edge, items laid left → right.
-      let cx = x;
-      for (const a of row) {
-        const iw = a / thickness;
-        rects.push({ x: cx, y, w: iw, h: thickness });
-        cx += iw;
-      }
-      y += thickness;
-      h -= thickness;
-    }
-    i = j;
-  }
-  return rects;
-}
-
-/**
- * Lay out the holdings as heatmap tiles. Computed in an `aspect`-wide,
- * 1-tall space so tiles come out near-square when the container is
- * rendered at the same aspect ratio, then normalized to percentages.
- */
-export function computeHeatmap(
-  holdings: Holding[] = HOLDINGS,
-  aspect = 16 / 9
-): HeatTile[] {
-  const sorted = [...holdings].sort(
-    (a, b) => tenorYears(b.tenor) - tenorYears(a.tenor) || b.wt - a.wt
-  );
-  const maxWt = Math.max(...sorted.map((s) => s.wt));
-  const rects = squarify(
-    sorted.map((s) => tenorYears(s.tenor)),
-    { x: 0, y: 0, w: aspect, h: 1 }
-  );
-  return sorted.map((s, i) => ({
-    ...s,
-    years: tenorYears(s.tenor),
-    heat: s.wt / maxWt,
-    x: (rects[i].x / aspect) * 100,
-    y: rects[i].y * 100,
-    w: (rects[i].w / aspect) * 100,
-    h: rects[i].h * 100,
-  }));
-}
-
-/* ── Open-source listings ─────────────────────────────────── */
+/* ── Open source (npm package family) ─────────────────────── */
 
 export type OssPackage = {
   /** npm package name — the listing lives at npmjs.com/package/<name>. */
@@ -437,12 +242,40 @@ export const OSS_PACKAGES: OssPackage[] = [
   { name: "dicta-nakdan",              group: "Off Desk",         desc: "Typed client for Dicta's Nakdan API — automatic Hebrew nikud" },
 ];
 
-/* ── Derived counts for the hero spec sheet ───────────────── */
+/* ── Formatting ───────────────────────────────────────────── */
 
-export function countOpenPositions(positions: Position[] = POSITIONS): number {
-  return positions.filter((p) => p.side === "OPEN").length;
+const MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+/** "2024-09" → "Sep 2024". */
+export function formatYearMonth(ym: YearMonth): string {
+  const [y, m] = ym.split("-").map(Number);
+  return `${MONTHS[m - 1]} ${y}`;
 }
 
-export function countCareerPositions(positions: Position[] = POSITIONS): number {
-  return positions.filter((p) => p.side === "OPEN" || p.side === "CLOSED").length;
+/** "Sep 2024 – now" or "Mar 2020 – Feb 2023". */
+export function formatRange(start: YearMonth, end: YearMonth | null): string {
+  return `${formatYearMonth(start)} – ${end ? formatYearMonth(end) : "now"}`;
+}
+
+/** Whole months between two year-months; an open role runs to `now`. */
+export function tenureMonths(
+  start: YearMonth,
+  end: YearMonth | null,
+  now: Date = new Date()
+): number {
+  const [sy, sm] = start.split("-").map(Number);
+  const [ey, em] = end
+    ? end.split("-").map(Number)
+    : [now.getFullYear(), now.getMonth() + 1];
+  return Math.max(1, (ey - sy) * 12 + (em - sm));
+}
+
+/** 35 → "2 yr 11 mo". */
+export function formatTenure(months: number): string {
+  const y = Math.floor(months / 12);
+  const m = months % 12;
+  return [y ? `${y} yr` : "", m ? `${m} mo` : ""].filter(Boolean).join(" ");
 }
