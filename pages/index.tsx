@@ -25,6 +25,7 @@ import { Dial } from "@/components/Dial";
 
 // ── SEO ───────────────────────────────────────────────────────────────────
 const SITE_URL = "https://moshemalka.com";
+const SHEVIRAH = "https://moshejs.github.io/shevirah/";
 
 const SEO = {
   title: "Moshe Malka — Software Engineer & Engineering Leader",
@@ -102,6 +103,18 @@ const STRUCTURED_DATA = {
       mainEntity: { "@id": `${SITE_URL}/#person` },
       primaryImageOfPage: `${SITE_URL}/og-image.jpg`,
       inLanguage: "en",
+    },
+    {
+      "@type": "CreativeWork",
+      "@id": `${SHEVIRAH}#work`,
+      name: "Shevirah",
+      alternateName: "Shevirah — Sixteen Inquiries",
+      url: SHEVIRAH,
+      description:
+        "An interactive web series on Kabbalah: two works, Klippot and the Tree of Life, and fourteen classic texts read teaching by teaching, each with its own animated artwork.",
+      about: "Kabbalah",
+      inLanguage: "en",
+      author: { "@id": `${SITE_URL}/#person` },
     },
     // One node per npm package — the packages' own npm pages point their
     // homepage/author back here, so claiming authorship on this side closes
@@ -400,6 +413,143 @@ function OpenSource() {
   );
 }
 
+/* ── Shevirah ──────────────────────────────────────────────────────── */
+
+// Screenshots from the live site, artworks engaged (hover state).
+const SHEVIRAH_SHOTS = [
+  {
+    src: "klippot",
+    path: "klippot/",
+    title: "Klippot",
+    caption: "Fire, the first of four corruptions",
+    alt: "Shevirah's Klippot page: a hand-drawn flame beside the line \u201cPassion, turned.\u201d",
+  },
+  {
+    src: "tree-of-life",
+    path: "tree-of-life/",
+    title: "The Tree of Life",
+    caption: "Ten sefirot on the Ari\u2019s twenty-two paths",
+    alt: "The Tree of Life: ten glowing spheres joined by lit paths on a starfield, with Descent, Ascent, Journey and Name controls.",
+  },
+  {
+    src: "tanya-small-city",
+    path: "tanya/the-small-city/",
+    title: "Tanya",
+    caption: "The Small City",
+    alt: "A Tanya teaching, The Small City: a walled city with a crown on either side, next to the paraphrased text.",
+  },
+  {
+    src: "etz-chaim-tzimtzum",
+    path: "etz-chaim/tzimtzum/",
+    title: "Etz Chaim",
+    caption: "The Withdrawal (tzimtzum)",
+    alt: "An Etz Chaim teaching, The Withdrawal: a dark circle opening in a field of light.",
+  },
+  {
+    src: "zohar-receive-to-bestow",
+    path: "hakdamat-hazohar/receive-to-bestow/",
+    title: "Introduction to the Zohar",
+    caption: "Receiving in Order to Give",
+    alt: "A teaching from Baal HaSulam\u2019s Introduction to the Zohar: a vessel below a point of light, joined by a dashed circle.",
+  },
+] as const;
+
+function Shot({ src, alt, w = 1600, h = 1000 }: { src: string; alt: string; w?: number; h?: number }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={`/shevirah/${src}.webp`}
+      srcSet={`/shevirah/${src}-800.webp 800w, /shevirah/${src}.webp ${w}w`}
+      sizes="(max-width: 960px) 100vw, 640px"
+      alt={alt}
+      width={w}
+      height={h}
+      loading="lazy"
+      decoding="async"
+    />
+  );
+}
+
+function Shevirah() {
+  return (
+    <section className="c-section" id="shevirah" aria-labelledby="shevirah-h">
+      <div className="c-sechead">
+        <h2 id="shevirah-h" className="c-h2">
+          Shevirah
+        </h2>
+        <p className="c-secmeta">16 pieces · 258 teachings, each with its own artwork</p>
+      </div>
+      <p className="c-lede">
+        An interactive web series on Kabbalah, named for the breaking of the vessels. Two works,
+        Klippot and the Tree of Life, and fourteen texts from Sefer Yetzirah to Baal HaSulam, read
+        teaching by teaching.
+      </p>
+      <figure className="c-panel c-feature c-showcase">
+        <div className="c-feature__copy">
+          <p className="c-feature__name">How it&rsquo;s built</p>
+          <ul className="c-studio__work c-showcase__notes">
+            <li>
+              <span className="c-studio__client">Next.js, exported static</span>
+              <span className="c-studio__what">
+                Served from GitHub Pages. No CSS framework and no UI library: hand-written CSS
+                and inline SVG.
+              </span>
+            </li>
+            <li>
+              <span className="c-studio__client">Hand-drawn, animated SVG</span>
+              <span className="c-studio__what">
+                Every artwork has a second state you reach by looking closer: hover, focus or
+                tap. Reduced motion gets a still frame that still reads.
+              </span>
+            </li>
+            <li>
+              <span className="c-studio__client">Paraphrased from Sefaria</span>
+              <span className="c-studio__what">
+                Each text credits the edition and license it was read from. Every Hebrew term
+                links to its page on Gamatria.
+              </span>
+            </li>
+            <li>
+              <span className="c-studio__client">The Ari&rsquo;s tree</span>
+              <span className="c-studio__what">
+                The Tree of Life places the letters on the Ari&rsquo;s paths, with
+                correspondences from the Gra&rsquo;s Sefer Yetzirah, and holds to WCAG 2.2 AA
+                contrast.
+              </span>
+            </li>
+          </ul>
+          <a className="c-btn c-btn--secondary" href={SHEVIRAH} target="_blank" rel="noopener noreferrer">
+            Visit Shevirah {Icon.arrow}
+          </a>
+        </div>
+        <a className="c-showcase__hero" href={SHEVIRAH} target="_blank" rel="noopener noreferrer">
+          <Shot
+            src="hub"
+            w={1400}
+            h={1305}
+            alt="The Shevirah hub: \u201cWhat breaks, what holds, what returns.\u201d above tiles for Klippot and the Tree of Life."
+          />
+        </a>
+      </figure>
+      <ul className="c-gallery" aria-label="Pages from Shevirah">
+        {SHEVIRAH_SHOTS.map((s) => (
+          <li key={s.src}>
+            <a className="c-gallery__item" href={`${SHEVIRAH}${s.path}`} target="_blank" rel="noopener noreferrer">
+              <span className="c-gallery__frame">
+                <Shot src={s.src} alt={s.alt} />
+              </span>
+              <span className="c-gallery__title">
+                {s.title} {Icon.arrow}
+              </span>
+              <span className="c-gallery__caption">{s.caption}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 /* ── Studio ────────────────────────────────────────────────────────── */
 
 function Studio() {
@@ -540,6 +690,7 @@ export default function Home({ asOf, revision }: Props) {
           <nav className="c-nav__links" aria-label="Sections">
             <a href="#work">Work</a>
             <a href="#open-source">Open source</a>
+            <a href="#shevirah">Shevirah</a>
             <a href="#studio">Studio</a>
           </nav>
           <a className="c-btn c-btn--primary c-btn--sm" href={`mailto:${EMAIL}`}>
@@ -619,6 +770,7 @@ export default function Home({ asOf, revision }: Props) {
 
         <Work asOf={asOf} />
         <OpenSource />
+        <Shevirah />
         <Studio />
 
         <section className="c-section c-about" aria-labelledby="about-h">
