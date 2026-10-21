@@ -2,6 +2,7 @@ import '@/styles/globals.css'
 import '@/styles/theme.css'
 import type { AppProps } from 'next/app'
 import { Hanken_Grotesk, JetBrains_Mono } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/react'
 
 // Hanken Grotesk for display and UI; JetBrains Mono only for package names,
 // commands and code.
@@ -21,6 +22,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <div className={`${sans.variable} ${mono.variable} c-root`}>
       <Component {...pageProps} />
+      <Analytics />
     </div>
   )
 }
