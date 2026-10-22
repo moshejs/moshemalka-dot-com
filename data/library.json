@@ -1,0 +1,2929 @@
+{
+  "shelves": [
+    {
+      "id": "code",
+      "label": "Code & Systems"
+    },
+    {
+      "id": "psychology",
+      "label": "Psychology"
+    },
+    {
+      "id": "persuasion",
+      "label": "Persuasion & Hypnosis"
+    },
+    {
+      "id": "business",
+      "label": "Business & Money"
+    },
+    {
+      "id": "power",
+      "label": "Power & Strategy"
+    },
+    {
+      "id": "letters",
+      "label": "Arts & Letters"
+    },
+    {
+      "id": "judaica",
+      "label": "Kabbalah & Judaica"
+    },
+    {
+      "id": "spirit",
+      "label": "Self & Spirit"
+    },
+    {
+      "id": "coursework",
+      "label": "Coursework"
+    }
+  ],
+  "books": [
+    {
+      "id": "0674627512",
+      "asin": "0674627512",
+      "isbn10": "0674627512",
+      "title": "Notes on the synthesis of form",
+      "authors": [
+        "Christopher Alexander"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/6256928-L.jpg",
+      "publisher": "Harvard University Press",
+      "publishedYear": 1971,
+      "pageCount": 216,
+      "description": "Originally published 1964.",
+      "subjects": [
+        "City planning",
+        "Design",
+        "Form (Aesthetics)",
+        "Philosophy"
+      ],
+      "status": "finished",
+      "spineColor": "#010101",
+      "shelf": "code"
+    },
+    {
+      "id": "0198065434",
+      "asin": "0198065434",
+      "isbn10": "0198065434",
+      "isbn13": "9780198065432",
+      "title": "Discrete mathematics",
+      "authors": [
+        "S. K. Chakraborty"
+      ],
+      "publisher": "Oxford University Press",
+      "publishedYear": 2011,
+      "pageCount": 567,
+      "description": "Includes bibliographical references (p. [562]) and index.",
+      "subjects": [
+        "Mathematics",
+        "Computer science",
+        "Computer science, mathematics"
+      ],
+      "status": "finished",
+      "shelf": "code"
+    },
+    {
+      "id": "1593275854",
+      "asin": "1593275854",
+      "isbn10": "1593275854",
+      "isbn13": "9781593275853",
+      "title": "If Hemingway Wrote JavaScript",
+      "authors": [
+        "Angus Croll"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/10620683-L.jpg",
+      "publisher": "Penguin Random House LLC (No Starch)",
+      "publishedYear": 2015,
+      "pageCount": 191,
+      "description": "Includes bibliographical references.",
+      "subjects": [
+        "Philology",
+        "JavaScript (Computer program language)"
+      ],
+      "status": "finished",
+      "spineColor": "#fdfcfa",
+      "shelf": "code"
+    },
+    {
+      "id": "0465065708",
+      "asin": "0465065708",
+      "isbn10": "0465065708",
+      "isbn13": "9780465065707",
+      "title": "The master algorithm",
+      "subtitle": "how the quest for the ultimate learning machine will remake our world",
+      "authors": [
+        "Pedro Domingos"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/9760657-L.jpg",
+      "publisher": "Basic Books",
+      "publishedYear": 2015,
+      "pageCount": 329,
+      "description": "Includes bibliographical references and index.",
+      "subjects": [
+        "Information Theory",
+        "Cognitive Science",
+        "Algorithms",
+        "Mathematics",
+        "Philosophy",
+        "Artificial intelligence",
+        "Machine Learning",
+        "Knowledge representation (information theory)"
+      ],
+      "status": "finished",
+      "spineColor": "#c9c49b",
+      "shelf": "code"
+    },
+    {
+      "id": "1118907442",
+      "asin": "1118907442",
+      "isbn10": "1118907442",
+      "isbn13": "9781118907443",
+      "title": "Web Design with HTML, CSS, JavaScript and jQuery Set",
+      "authors": [
+        "Jon Duckett"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/7531589-L.jpg",
+      "publisher": "John Wiley & Sons Inc",
+      "publishedYear": 2014,
+      "pageCount": 1152,
+      "subjects": [
+        "Web sites, design",
+        "Html (document markup language)",
+        "Javascript (computer program language)",
+        "Cascading style sheets"
+      ],
+      "status": "finished",
+      "spineColor": "#fcfcfc",
+      "shelf": "code"
+    },
+    {
+      "id": "1119911478",
+      "asin": "1119911478",
+      "isbn10": "1119911478",
+      "isbn13": "9781119911470",
+      "title": "How I Rob Banks",
+      "authors": [
+        "FC"
+      ],
+      "publisher": "Wiley & Sons, Incorporated, John",
+      "publishedYear": 2023,
+      "subjects": [],
+      "status": "finished",
+      "shelf": "code"
+    },
+    {
+      "id": "1118608577",
+      "asin": "1118608577",
+      "isbn10": "1118608577",
+      "isbn13": "9781118608579",
+      "title": "Unmasking The Social Engineer The Human Element Of Security",
+      "authors": [
+        "Christopher Hadnagy",
+        "Paul F. Kelly",
+        "Paul Ekman"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/7710788-L.jpg",
+      "publisher": "John Wiley & Sons Inc",
+      "publishedYear": 2014,
+      "subjects": [
+        "Hackers",
+        "Computer security",
+        "Social control",
+        "Social engineering",
+        "Body language",
+        "Manipulative behavior",
+        "Kinesics",
+        "Psychological Handling"
+      ],
+      "status": "finished",
+      "spineColor": "#090906",
+      "shelf": "code"
+    },
+    {
+      "id": "1468108867",
+      "asin": "1468108867",
+      "isbn10": "1468108867",
+      "isbn13": "9781468108866",
+      "title": "Data Structures and Algorithms Made Easy",
+      "authors": [
+        "Narasimha Karumanchi"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/7824088-L.jpg",
+      "publisher": "Createspace Independent Publishing Platform",
+      "publishedYear": 2011,
+      "pageCount": 432,
+      "subjects": [
+        "Data structures (computer science)",
+        "Computer algorithms",
+        "Employment interviewing"
+      ],
+      "status": "finished",
+      "spineColor": "#fbec26",
+      "shelf": "code"
+    },
+    {
+      "id": "0321751043",
+      "asin": "0321751043",
+      "isbn10": "0321751043",
+      "isbn13": "9780321751041",
+      "title": "The Art of Computer Programming, Volumes 1-4A Boxed Set",
+      "authors": [
+        "Donald Knuth"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/9332657-L.jpg",
+      "publisher": "Addison-Wesley Professional",
+      "publishedYear": 2011,
+      "pageCount": 9998,
+      "subjects": [
+        "Computer programming"
+      ],
+      "status": "finished",
+      "spineColor": "#fdfdfc",
+      "shelf": "code"
+    },
+    {
+      "id": "0321902920",
+      "asin": "0321902920",
+      "isbn10": "0321902920",
+      "isbn13": "9780321902924",
+      "title": "WebGL Programming Guide",
+      "subtitle": "Interactive 3D Graphics Programming with WebGL",
+      "authors": [
+        "Kouichi Matsuda",
+        "Rodger Lea"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/7440554-L.jpg",
+      "publisher": "Addison-Wesley",
+      "publishedYear": 2013,
+      "pageCount": 542,
+      "subjects": [
+        "Three-dimensional display systems",
+        "Computer graphics",
+        "Web sites",
+        "WebGL (Computer program language)",
+        "Computer drawing",
+        "JavaScript (Computer program language)"
+      ],
+      "status": "finished",
+      "spineColor": "#285a68",
+      "shelf": "code"
+    },
+    {
+      "id": "0984782850",
+      "asin": "0984782850",
+      "isbn10": "0984782850",
+      "isbn13": "9780984782857",
+      "title": "Cracking the Coding Interview: 189 Programming Questions and Solutions",
+      "authors": [
+        "Gayle Laakmann McDowell"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/8091016-L.jpg",
+      "publisher": "CAREERCUP",
+      "publishedYear": 2015,
+      "pageCount": 697,
+      "subjects": [
+        "Problems, exercises",
+        "Computer programming",
+        "Vocational guidance",
+        "Employment interviewing",
+        "Computer programmers",
+        "Computer programming, vocational guidance"
+      ],
+      "status": "finished",
+      "spineColor": "#b7e403",
+      "shelf": "code"
+    },
+    {
+      "id": "1603580557",
+      "asin": "1603580557",
+      "isbn10": "1603580557",
+      "isbn13": "9781603580557",
+      "title": "Thinking in systems : a primer",
+      "authors": [
+        "Donella H. Meadows",
+        "Diana Wright"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/8166043-L.jpg",
+      "publisher": "Chelsea",
+      "publishedYear": 2008,
+      "pageCount": 240,
+      "subjects": [
+        "critical thinking",
+        "systems thinking",
+        "systems dynamics",
+        "complex systems",
+        "policy",
+        "Sustainable development",
+        "Environmental education",
+        "Economic development"
+      ],
+      "status": "finished",
+      "spineColor": "#fdfdfd",
+      "shelf": "code"
+    },
+    {
+      "id": "0071821589",
+      "asin": "0071821589",
+      "isbn10": "0071821589",
+      "isbn13": "9780071821582",
+      "title": "Raspberry Pi Projects For The Evil Genius",
+      "authors": [
+        "Donald Norris"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/7844260-L.jpg",
+      "publisher": "McGraw-Hill Education - Europe",
+      "publishedYear": 2013,
+      "subjects": [
+        "Artificial intelligence",
+        "Raspberry Pi (Computer)",
+        "Python (Computer program language)",
+        "Microcomputers",
+        "Handbooks, manuals"
+      ],
+      "status": "finished",
+      "spineColor": "#fbfbfc",
+      "shelf": "code"
+    },
+    {
+      "id": "908338182X",
+      "asin": "908338182X",
+      "isbn10": "908338182X",
+      "isbn13": "9789083381824",
+      "title": "The Software Engineer's Guidebook: Navigating senior, tech lead, and staff engineer positions at tech companies and startups",
+      "authors": [
+        "Gergely Orosz"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/14541654-L.jpg",
+      "publisher": "Shroff/Pragmatic Engineer",
+      "publishedYear": 2023,
+      "subjects": [],
+      "status": "finished",
+      "spineColor": "#060124",
+      "shelf": "code"
+    },
+    {
+      "id": "0393866661",
+      "asin": "0393866661",
+      "isbn10": "0393866661",
+      "isbn13": "9780393866667",
+      "title": "A Hacker's Mind",
+      "subtitle": "How the Powerful Bend Society's Rules, and How to Bend Them Back",
+      "authors": [
+        "Bruce Schneier"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/13007647-L.jpg",
+      "publisher": "Norton & Company Limited, W. W.",
+      "publishedYear": 2023,
+      "subjects": [],
+      "status": "finished",
+      "spineColor": "#65d8fc",
+      "shelf": "code"
+    },
+    {
+      "id": "1983847542",
+      "asin": "1983847542",
+      "isbn10": "1983847542",
+      "isbn13": "9781983847547",
+      "title": "The Art Of Thinking In Systems",
+      "subtitle": "Improve Your Logic, Think More Critically, And Use Proven Systems To Solve Your Problems - Strategic Planning For Everyday Life",
+      "authors": [
+        "Steven Schuster"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/11326296-L.jpg",
+      "publisher": "Createspace Independent Publishing Platform",
+      "publishedYear": 2018,
+      "pageCount": 180,
+      "description": "Source title: The Art Of Thinking In Systems: Improve Your Logic, Think More Critically, And Use Proven Systems To Solve Your Problems - Strategic Planning For Everyday Life",
+      "subjects": [],
+      "status": "finished",
+      "spineColor": "#fafafc",
+      "shelf": "code"
+    },
+    {
+      "id": "1118921666",
+      "asin": "1118921666",
+      "isbn10": "1118921666",
+      "isbn13": "9781118921661",
+      "title": "Raspberry Pi User Guide",
+      "authors": [
+        "Eben Upton"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/10425302-L.jpg",
+      "publisher": "Wiley",
+      "publishedYear": 2014,
+      "pageCount": 312,
+      "subjects": [
+        "Raspberry Pi (Computer)",
+        "Programming",
+        "Computer programming",
+        "Python (Computer program language)",
+        "Programming languages (Electronic computers)",
+        "Computer games",
+        "COMPUTERS",
+        "Programming Languages"
+      ],
+      "status": "finished",
+      "spineColor": "#fbfafa",
+      "shelf": "code"
+    },
+    {
+      "id": "0063050943",
+      "asin": "0063050943",
+      "isbn10": "0063050943",
+      "isbn13": "9780063050945",
+      "title": "Plays Well with Others",
+      "subtitle": "The Surprising Science Behind Why Everything You Know about Relationships Is  Wrong",
+      "authors": [
+        "Eric Barker"
+      ],
+      "publisher": "HarperCollins Publishers",
+      "publishedYear": 2022,
+      "subjects": [],
+      "status": "finished",
+      "shelf": "psychology"
+    },
+    {
+      "id": "1476789991",
+      "asin": "1476789991",
+      "isbn10": "1476789991",
+      "isbn13": "9781476789996",
+      "title": "F*ck feelings",
+      "subtitle": "one shrink's practical advice for managing all life's impossible problems",
+      "authors": [
+        "Michael Bennett"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/15091281-L.jpg",
+      "publishedYear": 2015,
+      "pageCount": 370,
+      "description": "In the title, the [u] in \"fuck\" is represented by an asterisk.\n\nIncludes bibliographical references (pages 349-351) and index.",
+      "subjects": [
+        "Problem solving",
+        "Problem-solving therapy",
+        "Interpersonal relations",
+        "Self-actualization (Psychology)",
+        "Self-help techniques",
+        "Self-actualization (psychology)",
+        "Problem solving therapy",
+        "SELF-HELP / Personal Growth / General"
+      ],
+      "status": "finished",
+      "spineColor": "#a88b03",
+      "shelf": "psychology"
+    },
+    {
+      "id": "0552176222",
+      "asin": "0552176222",
+      "isbn10": "0552176222",
+      "isbn13": "9780552176224",
+      "title": "What Do You Say After You Say Hello",
+      "authors": [
+        "Eric Berne"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/8811977-L.jpg",
+      "publisher": "Corgi",
+      "publishedYear": 2018,
+      "pageCount": 512,
+      "subjects": [
+        "Conduct of life",
+        "Psychology",
+        "Transactional analysis"
+      ],
+      "status": "finished",
+      "spineColor": "#fafbf8",
+      "shelf": "psychology"
+    },
+    {
+      "id": "1593370253",
+      "asin": "1593370253",
+      "isbn10": "1593370253",
+      "isbn13": "9781593370251",
+      "title": "It's Ok to Be Neurotic",
+      "subtitle": "Using Your Neuroses to Your Advantage",
+      "authors": [
+        "Frank Bruno"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/1985585-L.jpg",
+      "publisher": "Adams Media Corporation",
+      "publishedYear": 2004,
+      "pageCount": 326,
+      "subjects": [
+        "Neuroses",
+        "Popular works"
+      ],
+      "status": "finished",
+      "spineColor": "#fbfaf9",
+      "shelf": "psychology"
+    },
+    {
+      "id": "0345472322",
+      "asin": "0345472322",
+      "isbn10": "0345472322",
+      "isbn13": "9780345472328",
+      "title": "Mindset",
+      "subtitle": "the new psychology of success",
+      "authors": [
+        "Carol S. Dweck"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/15143681-L.jpg",
+      "publisher": "Ballantine Books",
+      "publishedYear": 2008,
+      "pageCount": 277,
+      "description": "Includes bibliographical references and index.",
+      "subjects": [
+        "Belief and doubt",
+        "Nonfiction",
+        "Psychological aspects",
+        "Psychological aspects of Success",
+        "Psychology",
+        "Success",
+        "Selbstbild",
+        "Erfolg"
+      ],
+      "status": "finished",
+      "spineColor": "#fefeff",
+      "shelf": "psychology"
+    },
+    {
+      "id": "1250179939",
+      "asin": "1250179939",
+      "isbn10": "1250179939",
+      "isbn13": "9781250179937",
+      "title": "Surrounded by Idiots",
+      "subtitle": "The Four Types of Human Behavior and How to Effectively Communicate with Each in Business",
+      "authors": [
+        "Thomas Erikson"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/10142008-L.jpg",
+      "publisher": "St. Martin's Essentials",
+      "publishedYear": 2020,
+      "pageCount": 304,
+      "description": "Source title: Surrounded by Idiots: The Four Types of Human Behavior and How to Effectively Communicate with Each in Business (and in Life)",
+      "subjects": [
+        "Sociology",
+        "Communication, social aspects",
+        "Communication, psychological aspects",
+        "Communicative competence",
+        "Communication in organizations"
+      ],
+      "status": "finished",
+      "spineColor": "#fbf7ea",
+      "shelf": "psychology"
+    },
+    {
+      "id": "1785043323",
+      "asin": "1785043323",
+      "isbn10": "1785043323",
+      "isbn13": "9781785043321",
+      "title": "Surrounded by Psychopaths",
+      "subtitle": "How to Stop Being Exploited by Others",
+      "authors": [
+        "Thomas Erikson"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/15089923-L.jpg",
+      "publisher": "Ebury Publishing",
+      "publishedYear": 2020,
+      "pageCount": 256,
+      "subjects": [
+        "Sociology",
+        "Psychology"
+      ],
+      "status": "finished",
+      "spineColor": "#151924",
+      "shelf": "psychology"
+    },
+    {
+      "id": "1451663889",
+      "asin": "1451663889",
+      "isbn10": "1451663889",
+      "isbn13": "9781451663884",
+      "title": "How to talk so kids will listen & listen so kids will talk",
+      "authors": [
+        "Adele Faber",
+        "Elaine Mazlish"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/8430207-L.jpg",
+      "publisher": "Scribner",
+      "publishedYear": 2012,
+      "pageCount": 368,
+      "subjects": [
+        "Comunicación interpersonal",
+        "Deberes y derechos",
+        "Interpersonal communication",
+        "Padres de familia",
+        "Parenting",
+        "Parent and child",
+        "Human relations",
+        "Communication in families"
+      ],
+      "status": "finished",
+      "spineColor": "#fce503",
+      "shelf": "psychology"
+    },
+    {
+      "id": "0393314030",
+      "asin": "0393314030",
+      "isbn10": "0393314030",
+      "isbn13": "9780393314038",
+      "title": "The Freud Reader",
+      "authors": [
+        "Sigmund Freud"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/249058-L.jpg",
+      "publisher": "W. W. Norton & Company",
+      "publishedYear": 1995,
+      "pageCount": 832,
+      "subjects": [
+        "Psychoanalysis",
+        "Psychoanalyse",
+        "Psychoanalytic Theory",
+        "Literary collections"
+      ],
+      "status": "finished",
+      "spineColor": "#050606",
+      "shelf": "psychology"
+    },
+    {
+      "id": "055338371X",
+      "asin": "055338371X",
+      "isbn10": "055338371X",
+      "isbn13": "9780553383713",
+      "title": "Emotional Intelligence",
+      "subtitle": "Why It Can Matter More Than IQ",
+      "authors": [
+        "Daniel Goleman"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/370147-L.jpg",
+      "publisher": "Bantam Books",
+      "publishedYear": 2005,
+      "pageCount": 384,
+      "subjects": [
+        "Emotions and cognition",
+        "Intellect",
+        "Success, psychological aspects",
+        "Self-actualization (psychology)",
+        "Emotions",
+        "Social aspects",
+        "Emociones",
+        "Emociones y cognición"
+      ],
+      "status": "finished",
+      "spineColor": "#040458",
+      "shelf": "psychology"
+    },
+    {
+      "id": "055338449X",
+      "asin": "055338449X",
+      "isbn10": "055338449X",
+      "isbn13": "9780553384499",
+      "title": "Social Intelligence",
+      "subtitle": "The New Science of Human Relationships",
+      "authors": [
+        "Daniel Goleman"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/4673315-L.jpg",
+      "publisher": "Bantam",
+      "publishedYear": 2007,
+      "pageCount": 416,
+      "subjects": [
+        "Social aspects of Intellect",
+        "Psychology",
+        "Social aspects",
+        "Intelligence",
+        "Emotions",
+        "Social aspects of Intelligence",
+        "Interpersonal relations",
+        "Nonfiction"
+      ],
+      "status": "finished",
+      "spineColor": "#fdf8fb",
+      "shelf": "psychology"
+    },
+    {
+      "id": "0716741202",
+      "asin": "0716741202",
+      "isbn10": "0716741202",
+      "isbn13": "9780716741206",
+      "title": "The Barmaid's Brain",
+      "subtitle": "And Other Strange Tales from Science",
+      "authors": [
+        "Jay Ingram"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/455843-L.jpg",
+      "publisher": "W. H. Freeman",
+      "publishedYear": 2000,
+      "pageCount": 271,
+      "subjects": [
+        "Science",
+        "Miscellanea",
+        "Science, miscellanea"
+      ],
+      "status": "finished",
+      "spineColor": "#dcd956",
+      "shelf": "psychology"
+    },
+    {
+      "id": "0374533555",
+      "asin": "0374533555",
+      "isbn10": "0374533555",
+      "isbn13": "9780374533557",
+      "title": "Thinking, fast and slow",
+      "authors": [
+        "Daniel Kahneman"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/7889800-L.jpg",
+      "publisher": "Farrar, Straus and Giroux",
+      "publishedYear": 2013,
+      "pageCount": 499,
+      "subjects": [
+        "Intuition",
+        "Thought and thinking",
+        "Reasoning",
+        "Decision making",
+        "New York Times bestseller",
+        "Long Now Manual for Civilization",
+        "Thinking",
+        "Kognition"
+      ],
+      "status": "finished",
+      "spineColor": "#fdfbf8",
+      "shelf": "psychology"
+    },
+    {
+      "id": "0060753641",
+      "asin": "0060753641",
+      "isbn10": "0060753641",
+      "isbn13": "9780060753641",
+      "title": "Mating in Captivity",
+      "subtitle": "Unlocking Erotic Intelligence",
+      "authors": [
+        "Esther Perel"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/14558793-L.jpg",
+      "publisher": "Harper Paperbacks",
+      "publishedYear": 2007,
+      "pageCount": 272,
+      "subjects": [
+        "Man-woman relationships",
+        "Sexual desire disorders",
+        "Couples",
+        "Audiobooks",
+        "Psychological aspects",
+        "Sex in marriage",
+        "Sexual excitement",
+        "Sexual behavior"
+      ],
+      "status": "finished",
+      "spineColor": "#282828",
+      "shelf": "psychology"
+    },
+    {
+      "id": "162157959X",
+      "asin": "162157959X",
+      "isbn10": "162157959X",
+      "isbn13": "9781621579595",
+      "title": "The Parasitic Mind",
+      "subtitle": "How Infectious Ideas Are Killing Common Sense",
+      "authors": [
+        "Gad Saad"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/10223915-L.jpg",
+      "publisher": "Regnery Publishing",
+      "publishedYear": 2020,
+      "pageCount": 235,
+      "description": "Source title: The Parasitic Mind: How Infectious Ideas Are Killing Common Sense",
+      "subjects": [
+        "Sociology",
+        "Political correctness",
+        "Freedom of expression",
+        "Intellectual freedom",
+        "Academic freedom",
+        "Social justice",
+        "Liberalism",
+        "Conservatism"
+      ],
+      "status": "finished",
+      "spineColor": "#e4ee44",
+      "shelf": "psychology"
+    },
+    {
+      "id": "0008354634",
+      "asin": "0008354634",
+      "isbn10": "0008354634",
+      "isbn13": "9780008354633",
+      "title": "Status Game",
+      "subtitle": "On Social Position and How We Use It",
+      "authors": [
+        "Will Storr"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/12383541-L.jpg",
+      "publisher": "HarperCollins Publishers Limited",
+      "publishedYear": 2021,
+      "subjects": [],
+      "status": "finished",
+      "spineColor": "#faf9f9",
+      "shelf": "psychology"
+    },
+    {
+      "id": "0767915828",
+      "asin": "0767915828",
+      "isbn10": "0767915828",
+      "isbn13": "9780767915823",
+      "title": "The Sociopath Next Door",
+      "authors": [
+        "Martha Stout"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/528334-L.jpg",
+      "publisher": "Broadway",
+      "publishedYear": 2006,
+      "pageCount": 256,
+      "subjects": [
+        "Sociopathie",
+        "Psychopaths",
+        "Antisocial personality disorders",
+        "Antisocial Personality Disorder",
+        "Troubles de la Personnalite",
+        "Personnalité, Troubles de la"
+      ],
+      "status": "finished",
+      "spineColor": "#a86828",
+      "shelf": "psychology"
+    },
+    {
+      "id": "1939311233",
+      "asin": "1939311233",
+      "isbn10": "1939311233",
+      "isbn13": "9781939311238",
+      "title": "Map and Territory",
+      "authors": [
+        "Eliezer Yudkowsky"
+      ],
+      "publisher": "Machine Intelligence Research Institute",
+      "publishedYear": 2018,
+      "pageCount": 231,
+      "description": "Source title: Map and Territory (Rationality: From AI to Zombies)",
+      "subjects": [
+        "Decision making",
+        "Philosophy",
+        "Psychological aspects",
+        "Rationalism"
+      ],
+      "status": "finished",
+      "shelf": "psychology"
+    },
+    {
+      "id": "1890001155",
+      "asin": "1890001155",
+      "isbn10": "1890001155",
+      "isbn13": "9781890001155",
+      "title": "Mind-lines",
+      "subtitle": "Lines For Changing Minds",
+      "authors": [],
+      "coverUrl": "https://covers.openlibrary.org/b/id/938036-L.jpg",
+      "publisher": "Neuro-Semantic Publications",
+      "publishedYear": 2002,
+      "pageCount": 342,
+      "subjects": [
+        "Significado (Psicologi a)",
+        "Programacio n neurolingu i stica"
+      ],
+      "status": "finished",
+      "spineColor": "#8657a7",
+      "shelf": "persuasion"
+    },
+    {
+      "id": "0911226184",
+      "asin": "0911226184",
+      "isbn10": "0911226184",
+      "title": "Frogs into princes",
+      "subtitle": "neuro linguistic programming",
+      "authors": [
+        "Richard Bandler"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/8074542-L.jpg",
+      "publisher": "Real People Press",
+      "publishedYear": 1979,
+      "pageCount": 194,
+      "description": "Bibliography: p. 194.\n\"Edited entirely from audiotapes of introductory NLP training workshops conducted by Richard Bandler and John Grinder.\"",
+      "subjects": [
+        "Neurolinguistic programming",
+        "Psychotherapy",
+        "Body language",
+        "Psycholinguistics",
+        "Imagery (Psychology)"
+      ],
+      "status": "finished",
+      "spineColor": "#989698",
+      "shelf": "persuasion"
+    },
+    {
+      "id": "0831400447",
+      "asin": "0831400447",
+      "isbn10": "0831400447",
+      "title": "The structure of magic",
+      "subtitle": "a book about language and therapy",
+      "authors": [
+        "Richard Bandler"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/8723943-L.jpg",
+      "publisher": "Science and Behavior Books",
+      "publishedYear": 2005,
+      "description": "Authors' names in reverse order on t.p. of v. 2.\n\nIncludes bibliographies.\n\nLibrary has: vol. 1 only.",
+      "subjects": [
+        "Psychotherapy",
+        "Psycholinguistics",
+        "Methods",
+        "Language",
+        "Communication",
+        "Psychothérapie",
+        "Psycholinguistique",
+        "Language and languages"
+      ],
+      "status": "finished",
+      "spineColor": "#fafafa",
+      "shelf": "persuasion"
+    },
+    {
+      "id": "1947629026",
+      "asin": "1947629026",
+      "isbn10": "1947629026",
+      "isbn13": "9781947629028",
+      "title": "Sleight of mouth",
+      "subtitle": "the magic of conversational belief change",
+      "authors": [
+        "Robert Dilts"
+      ],
+      "publisher": "Dilts Strategy Group",
+      "publishedYear": 1999,
+      "pageCount": 330,
+      "subjects": [
+        "Communication",
+        "Communication criticism",
+        "Social skills",
+        "Soft skills",
+        "Interpersonal communication",
+        "Self-help techniques",
+        "Psychology"
+      ],
+      "status": "finished",
+      "shelf": "persuasion"
+    },
+    {
+      "id": "1947629484",
+      "asin": "1947629484",
+      "isbn10": "1947629484",
+      "isbn13": "9781947629486",
+      "title": "Sleight of Mouth Volume II",
+      "subtitle": "How Words Change Worlds",
+      "authors": [
+        "Robert Brian Dilts",
+        "Antonio Meza"
+      ],
+      "publisher": "Dilts Strategy Group",
+      "publishedYear": 2023,
+      "subjects": [],
+      "status": "finished",
+      "shelf": "persuasion"
+    },
+    {
+      "id": "0805083391",
+      "asin": "0805083391",
+      "isbn10": "0805083391",
+      "isbn13": "9780805083392",
+      "title": "Emotions revealed",
+      "subtitle": "recognizing faces and feelings to improve communication and emotional life",
+      "authors": [
+        "Paul Ekman"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/13051690-L.jpg",
+      "publisher": "Henry Holt",
+      "publishedYear": 2007,
+      "pageCount": 290,
+      "description": "\"An Owl book.\"\n\nIncludes bibliographical references (p. 263-278) and index",
+      "subjects": [
+        "Interpersonal communication",
+        "Expression",
+        "Emotions",
+        "Interpersonal relations",
+        "Psychology &amp; psychiatry",
+        "Facial expression",
+        "Personality and emotions"
+      ],
+      "status": "finished",
+      "spineColor": "#aaa9a6",
+      "shelf": "persuasion"
+    },
+    {
+      "id": "0930298047",
+      "asin": "0930298047",
+      "isbn10": "0930298047",
+      "isbn13": "9780930298043",
+      "title": "Hypnotherapy",
+      "authors": [
+        "Dave Elman"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/7001076-L.jpg",
+      "publisher": "Westwood Pub.",
+      "publishedYear": 1964,
+      "pageCount": 338,
+      "description": "Includes index.\n\nOriginally published in 1964 as Findings in hypnosis.",
+      "subjects": [
+        "Therapeutic use",
+        "Hypnotism"
+      ],
+      "status": "finished",
+      "spineColor": "#010703",
+      "shelf": "persuasion"
+    },
+    {
+      "id": "0393301354",
+      "asin": "0393301354",
+      "isbn10": "0393301354",
+      "title": "My voice will go with you",
+      "subtitle": "the teaching tales of Milton H. Erickson",
+      "authors": [
+        "Milton H. Erickson"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/15023128-L.jpg",
+      "publisher": "W.W.Norton",
+      "publishedYear": 1991,
+      "pageCount": 256,
+      "subjects": [
+        "Care studies",
+        "Psychotherapy",
+        "Hypnose",
+        "Psychotherapie",
+        "Unconscious Mind",
+        "Subconscious Mind",
+        "Trance",
+        "United states, biography"
+      ],
+      "status": "finished",
+      "spineColor": "#587839",
+      "shelf": "persuasion"
+    },
+    {
+      "id": "0831400498",
+      "asin": "0831400498",
+      "isbn10": "0831400498",
+      "isbn13": "9780831400491",
+      "title": "The structure of magic II",
+      "authors": [
+        "John Grinder",
+        "Richard Bandler"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/8034080-L.jpg",
+      "publisher": "Science and Behavior Books",
+      "publishedYear": 1976,
+      "pageCount": 198,
+      "description": "Vol.1 has authors' names in reverse order.\r\n\r\nBibliography: p.[197]-198.",
+      "subjects": [],
+      "status": "finished",
+      "spineColor": "#020608",
+      "shelf": "persuasion"
+    },
+    {
+      "id": "0385347758",
+      "asin": "0385347758",
+      "isbn10": "0385347758",
+      "isbn13": "9780385347754",
+      "title": "Thank you for arguing",
+      "subtitle": "what Aristotle, Lincoln, and Homer Simpson can teach us about the art of persuasion",
+      "authors": [
+        "Jay Heinrichs"
+      ],
+      "publisher": "Broadway Books",
+      "publishedYear": 2013,
+      "pageCount": 408,
+      "description": "Includes bibliographical references (pages 395-396) and index.",
+      "subjects": [
+        "Persuasion (Rhetoric)",
+        "Debates and debating",
+        "Language and languages",
+        "Persuasion (rhetoric)",
+        "nyt:education=2015-08-09",
+        "New York Times bestseller"
+      ],
+      "status": "finished",
+      "shelf": "persuasion"
+    },
+    {
+      "id": "0385523890",
+      "asin": "0385523890",
+      "isbn10": "0385523890",
+      "isbn13": "9780385523899",
+      "title": "Buy ology",
+      "subtitle": "truth and lies about why we buy",
+      "authors": [
+        "Martin Lindström"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/11396183-L.jpg",
+      "publisher": "Crown Business",
+      "publishedYear": 2010,
+      "pageCount": 254,
+      "description": "\"With a new chapter on buying in today's economy\"--Cover.\n\nIncludes bibliographical references and index.",
+      "subjects": [
+        "Consumer behavior",
+        "Shopping",
+        "Neuromarketing",
+        "Consumers",
+        "Psychological aspects",
+        "Marketing",
+        "Psychology",
+        "nyt:hardcover-nonfiction=2008-11-16"
+      ],
+      "status": "finished",
+      "spineColor": "#b98604",
+      "shelf": "persuasion"
+    },
+    {
+      "id": "0809235668",
+      "asin": "0809235668",
+      "isbn10": "0809235668",
+      "isbn13": "9780809235667",
+      "title": "Handwriting analysis",
+      "subtitle": "putting it to work for you",
+      "authors": [
+        "Andrea McNichol"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/6866138-L.jpg",
+      "publisher": "Contemporary Books",
+      "publishedYear": 1994,
+      "pageCount": 351,
+      "description": "\"New and expanded\"--Cover.\n\nIncludes bibliographical references (p. 340-341) and index.",
+      "subjects": [
+        "Identification",
+        "Graphology",
+        "Writing"
+      ],
+      "status": "finished",
+      "spineColor": "#cbc658",
+      "shelf": "persuasion"
+    },
+    {
+      "id": "1463511035",
+      "asin": "1463511035",
+      "isbn10": "1463511035",
+      "isbn13": "9781463511036",
+      "title": "The User's Guide to Sleight of Mouth",
+      "subtitle": "How to Unleash the Magic of Language to Persuade Anyone, Anytime, Anywhere",
+      "authors": [
+        "Doug O'Brien"
+      ],
+      "publisher": "CreateSpace Independent Publishing Platform",
+      "publishedYear": 2011,
+      "pageCount": 142,
+      "description": "Source title: The User's Guide to Sleight of Mouth: How to Unleash the Magic of Language to Persuade Anyone, Anytime, Anywhere",
+      "subjects": [
+        "Neurolinguistic programming"
+      ],
+      "status": "finished",
+      "shelf": "persuasion"
+    },
+    {
+      "id": "0916990443",
+      "asin": "0916990443",
+      "isbn10": "0916990443",
+      "title": "The magic of rapport",
+      "subtitle": "how you can gain personal power in any situation.",
+      "authors": [
+        "Jerry Richardson"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/12770158-L.jpg",
+      "publisher": "Meta Publications",
+      "publishedYear": 2000,
+      "description": "Previous ed: 1987.\n\nIncludes index and bibliography.",
+      "subjects": [
+        "Success",
+        "Persuasion (Psychology)",
+        "Interpersonal communication",
+        "Interpersonal relations",
+        "Resistance (Psychoanalysis)",
+        "Negotiation"
+      ],
+      "status": "finished",
+      "spineColor": "#eae5db",
+      "shelf": "persuasion"
+    },
+    {
+      "id": "1980607400",
+      "asin": "1980607400",
+      "isbn10": "1980607400",
+      "isbn13": "9781980607403",
+      "title": "Hypnotic Patterns Handbook",
+      "subtitle": "75 Hypnotic Patterns and Techniques That Will Make You More Persuasive",
+      "authors": [
+        "Nathan Roth"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/13837302-L.jpg",
+      "publisher": "Independently Published",
+      "publishedYear": 2018,
+      "pageCount": 57,
+      "subjects": [],
+      "status": "finished",
+      "spineColor": "#397736",
+      "shelf": "persuasion"
+    },
+    {
+      "id": "014313700X",
+      "asin": "014313700X",
+      "isbn10": "014313700X",
+      "isbn13": "9780143137009",
+      "title": "Nudge",
+      "subtitle": "The Final Edition",
+      "authors": [
+        "Richard H. Thaler",
+        "Cass R. Sunstein"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/11515487-L.jpg",
+      "publisher": "Penguin Books",
+      "publishedYear": 2021,
+      "pageCount": 384,
+      "description": "Source title: Nudge: The Final Edition",
+      "subjects": [
+        "Business",
+        "Choice (Psychology)",
+        "Consumer behavior",
+        "Decision making",
+        "Economic aspects",
+        "Economic aspects of Choice (Psychology)",
+        "Economics",
+        "Nonfiction"
+      ],
+      "status": "finished",
+      "spineColor": "#fcfcfb",
+      "shelf": "persuasion"
+    },
+    {
+      "id": "1119473861",
+      "asin": "1119473861",
+      "isbn10": "1119473861",
+      "isbn13": "9781119473862",
+      "title": "The bitcoin standard",
+      "subtitle": "the decentralized alternative to central banking",
+      "authors": [
+        "Saifedean Ammous"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/15226011-L.jpg",
+      "publisher": "John Wiley & Sons, Inc.",
+      "publishedYear": 2018,
+      "pageCount": 286,
+      "description": "Includes bibliographical references and index.",
+      "subjects": [
+        "Electronic commerce",
+        "Government policy",
+        "Bitcoin"
+      ],
+      "status": "finished",
+      "spineColor": "#fcfcfb",
+      "shelf": "business"
+    },
+    {
+      "id": "0688014291",
+      "asin": "0688014291",
+      "isbn10": "0688014291",
+      "title": "The one minute manager / Kenneth Blanchard, Spencer Johnson",
+      "authors": [
+        "Kenneth H. Blanchard",
+        "Spencer Johnson",
+        "Kenneth Blanchard"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/8702076-L.jpg",
+      "publisher": "Morrow",
+      "publishedYear": 1982,
+      "pageCount": 111,
+      "description": "27",
+      "subjects": [
+        "Management",
+        "Administración",
+        "Direction",
+        "Gestion",
+        "Personnel",
+        "Gestion d'entreprise",
+        "Administracao",
+        "Employe s."
+      ],
+      "status": "finished",
+      "spineColor": "#fefefe",
+      "shelf": "business"
+    },
+    {
+      "id": "1260026671",
+      "asin": "1260026671",
+      "isbn10": "1260026671",
+      "isbn13": "9781260026672",
+      "title": "Cryptoassets",
+      "subtitle": "the innovative investor's guide to bitcoin and beyond",
+      "authors": [
+        "Chris Burniske"
+      ],
+      "publisher": "McGraw-Hill Education",
+      "publishedYear": 2018,
+      "pageCount": 325,
+      "description": "Includes bibliographical references (pages 285-307) and index.",
+      "subjects": [
+        "Blockchains (Databases)",
+        "Electronic funds transfers",
+        "Bitcoin",
+        "Investments"
+      ],
+      "status": "finished",
+      "shelf": "business"
+    },
+    {
+      "id": "164421248X",
+      "asin": "164421248X",
+      "isbn10": "164421248X",
+      "isbn13": "9781644212486",
+      "title": "Proof of Stake",
+      "subtitle": "Essays on the Making of Ethereum and the Future of the Internet",
+      "authors": [
+        "Vitalik Buterin",
+        "Nathan Schneider"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/13247560-L.jpg",
+      "publisher": "Seven Stories Press",
+      "publishedYear": 2022,
+      "subjects": [
+        "Economics"
+      ],
+      "status": "finished",
+      "spineColor": "#37a8c8",
+      "shelf": "business"
+    },
+    {
+      "id": "0451205367",
+      "asin": "0451205367",
+      "isbn10": "0451205367",
+      "isbn13": "9780451205360",
+      "title": "The Richest Man in Babylon",
+      "authors": [
+        "George S. Clason"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/292916-L.jpg",
+      "publisher": "Signet",
+      "publishedYear": 2004,
+      "pageCount": 144,
+      "subjects": [
+        "Business ethics",
+        "Personal Finance",
+        "Moral and ethical aspects",
+        "Wealth",
+        "Finance, Personal",
+        "Wealth, moral and ethical aspects",
+        "Financial Management",
+        "Morale des affaires"
+      ],
+      "status": "finished",
+      "spineColor": "#fdfa97",
+      "shelf": "business"
+    },
+    {
+      "id": "1451639619",
+      "asin": "1451639619",
+      "isbn10": "1451639619",
+      "isbn13": "9781476740058",
+      "title": "The 7 Habits of Highly Effective People",
+      "subtitle": "Powerful Lessons in Personal Change",
+      "authors": [
+        "Stephen R. Covey"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/15255539-L.jpg",
+      "publisher": "Simon & Schuster",
+      "publishedYear": 2013,
+      "pageCount": 391,
+      "subjects": [
+        "Success- Psychological aspects",
+        "Character",
+        "Success",
+        "Psychological aspects",
+        "Aspectos psicológicos",
+        "Carácter",
+        "Exito",
+        "Psychological aspects of Success"
+      ],
+      "status": "finished",
+      "spineColor": "#fbfdfc",
+      "shelf": "business"
+    },
+    {
+      "id": "0316017930",
+      "asin": "0316017930",
+      "isbn10": "0316017930",
+      "isbn13": "9780316017930",
+      "title": "Outliers: The Story of Success",
+      "authors": [
+        "Malcolm Gladwell"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/7342494-L.jpg",
+      "publisher": "Little, Brown",
+      "publishedYear": 2011,
+      "pageCount": 336,
+      "subjects": [
+        "Psychology",
+        "Business",
+        "Successful people",
+        "Success",
+        "Nonfiction",
+        "nyt:paperback_business_books=2012-02-25",
+        "New York Times bestseller",
+        "Interpersonal relations"
+      ],
+      "status": "finished",
+      "spineColor": "#dbdce4",
+      "shelf": "business"
+    },
+    {
+      "id": "0399144463",
+      "asin": "0399144463",
+      "isbn10": "0399144463",
+      "isbn13": "9780399144462",
+      "title": "Who Moved My Cheese?: An Amazing Way to Deal with Change in Your Work and in Your Life",
+      "authors": [
+        "Spencer Johnson"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/7302934-L.jpg",
+      "publisher": "G. P. Putnam's Sons",
+      "publishedYear": 1998,
+      "pageCount": 96,
+      "subjects": [
+        "Change (psychology)",
+        "Large type books",
+        "Life change events",
+        "Conduct of life",
+        "Adaptability (Psychology)",
+        "Teenagers",
+        "Fiction",
+        "Maze puzzles"
+      ],
+      "status": "finished",
+      "spineColor": "#f8f6f8",
+      "shelf": "business"
+    },
+    {
+      "id": "055327757X",
+      "asin": "055327757X",
+      "isbn10": "055327757X",
+      "title": "The great sales man of the world",
+      "authors": [
+        "Og Mandino"
+      ],
+      "publisher": "Bantam Books",
+      "publishedYear": 1968,
+      "pageCount": 111,
+      "subjects": [
+        "Fiction, religious"
+      ],
+      "status": "finished",
+      "spineColor": "#d6cab9",
+      "shelf": "business"
+    },
+    {
+      "id": "0553276999",
+      "asin": "0553276999",
+      "isbn10": "0553276999",
+      "title": "The greatest salesman in the world.",
+      "subtitle": "featuring the ten vows of success",
+      "authors": [
+        "Og Mandino"
+      ],
+      "publisher": "Bantam Books",
+      "publishedYear": 1989,
+      "pageCount": 134,
+      "description": "Previously published in hardcover: 1988.  \n\nSequel to: The greatest salesman in the world.",
+      "subjects": [
+        "Success",
+        "Fiction",
+        "Success in fiction",
+        "Jesus Christ in fiction",
+        "Nativity",
+        "Selling",
+        "Venta",
+        "Psychological aspects of Success"
+      ],
+      "status": "finished",
+      "spineColor": "#d64637",
+      "shelf": "business"
+    },
+    {
+      "id": "059342297X",
+      "asin": "059342297X",
+      "isbn10": "059342297X",
+      "isbn13": "9780593422977",
+      "title": "Buy Back Your Time",
+      "subtitle": "Get Unstuck, Reclaim Your Freedom, and Build Your Empire",
+      "authors": [
+        "Dan Martell"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/13239151-L.jpg",
+      "publisher": "Penguin Publishing Group",
+      "publishedYear": 2023,
+      "subjects": [],
+      "status": "finished",
+      "spineColor": "#05abd8",
+      "shelf": "business"
+    },
+    {
+      "id": "1502472392",
+      "asin": "1502472392",
+      "isbn10": "1502472392",
+      "isbn13": "9781502472397",
+      "title": "The 7 Day Startup",
+      "subtitle": "You Don't Learn Until You Launch",
+      "authors": [
+        "Dan Norris",
+        "Rob Walling"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/10109013-L.jpg",
+      "publisher": "CreateSpace Independent Publishing Platform",
+      "publishedYear": 2014,
+      "pageCount": 204,
+      "description": "Source title: The 7 Day Startup: You Don't Learn Until You Launch",
+      "subjects": [
+        "New business enterprises",
+        "Entrepreneurship",
+        "Strategic planning",
+        "Success in business",
+        "Nouvelles entreprises",
+        "Entrepreneuriat",
+        "Planification stratégique",
+        "Succès dans les affaires"
+      ],
+      "status": "finished",
+      "spineColor": "#fcfcfb",
+      "shelf": "business"
+    },
+    {
+      "id": "0307887898",
+      "asin": "0307887898",
+      "isbn10": "0307887898",
+      "isbn13": "9780307887894",
+      "title": "The Lean Startup",
+      "subtitle": "How Today's Entrepreneurs Use Continuous Innovation to Create Radically Successful Businesses",
+      "authors": [
+        "Eric Ries"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/7104760-L.jpg",
+      "publisher": "Crown Business",
+      "publishedYear": 2011,
+      "pageCount": 336,
+      "subjects": [
+        "New York Times bestseller",
+        "New business enterprises",
+        "Organizational effectiveness",
+        "Consumers' preferences",
+        "nyt:hardcover_business_books=2012-02-25",
+        "Consumer behavior",
+        "Entrepreneurship",
+        "Long Now Manual for Civilization"
+      ],
+      "status": "finished",
+      "spineColor": "#1874b8",
+      "shelf": "business"
+    },
+    {
+      "id": "1250258405",
+      "asin": "1250258405",
+      "isbn10": "1250258405",
+      "isbn13": "9781250258403",
+      "title": "Radical Candor",
+      "subtitle": "Revised Edition",
+      "authors": [
+        "Kim Scott"
+      ],
+      "publisher": "St. Martin's Press",
+      "publishedYear": 2019,
+      "description": "Source title: Radical Candor: Revised Edition",
+      "subjects": [],
+      "status": "finished",
+      "shelf": "business"
+    },
+    {
+      "id": "073521350X",
+      "asin": "073521350X",
+      "isbn10": "073521350X",
+      "isbn13": "9780735213500",
+      "title": "The Infinite Game",
+      "authors": [
+        "Simon Sinek"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/15266279-L.jpg",
+      "publisher": "Portfolio",
+      "publishedYear": 2019,
+      "pageCount": 272,
+      "subjects": [
+        "Leadership",
+        "Communication in management",
+        "nyt:advice-how-to-and-miscellaneous=2019-11-03",
+        "New York Times bestseller"
+      ],
+      "status": "finished",
+      "spineColor": "#fdfdfd",
+      "shelf": "business"
+    },
+    {
+      "id": "0804139296",
+      "asin": "0804139296",
+      "isbn10": "9780804139298",
+      "title": "Zero to One: Notes on Startups, or How to Build the Future",
+      "authors": [
+        "Peter A. Thiel",
+        "Blake Masters"
+      ],
+      "publisher": "The Crown Publishing Group",
+      "publishedYear": 2014,
+      "pageCount": 224,
+      "subjects": [
+        "Diffusion of innovations",
+        "New business enterprises",
+        "New products",
+        "Entrepreneurship",
+        "BUSINESS & ECONOMICS / Entrepreneurship",
+        "BUSINESS & ECONOMICS / Small Business",
+        "POLITICAL SCIENCE / Public Policy / Economic Policy",
+        "BUSINESS & ECONOMICS"
+      ],
+      "status": "finished",
+      "spineColor": "#7594b8",
+      "shelf": "business"
+    },
+    {
+      "id": "1781393796",
+      "asin": "1781393796",
+      "isbn10": "1781393796",
+      "isbn13": "9781781393796",
+      "title": "The Complete Memoirs of Casanova the Story of My Life",
+      "authors": [
+        "Giacomo Casanova"
+      ],
+      "publisher": "Benediction Classics",
+      "publishedYear": 2013,
+      "pageCount": 1166,
+      "description": "Source title: The Complete Memoirs of Casanova the Story of My Life (All Volumes in a Single Book, Illustrated, Complete and Unabridged)",
+      "subjects": [
+        "Biography",
+        "Adventure and adventurers",
+        "Casanova, giacomo, 1725-1798",
+        "History",
+        "Bible",
+        "Courts and courtiers",
+        "Social life and customs",
+        "Sex customs"
+      ],
+      "status": "finished",
+      "shelf": "power"
+    },
+    {
+      "id": "0143112783",
+      "asin": "0143112783",
+      "isbn10": "0143112783",
+      "isbn13": "9780143112785",
+      "title": "The 33 Strategies of War",
+      "authors": [
+        "Robert Greene",
+        "Don Leslie"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/14844022-L.jpg",
+      "publisher": "Penguin (Non-Classics)",
+      "publishedYear": 2008,
+      "pageCount": 496,
+      "subjects": [
+        "Business",
+        "Nonfiction",
+        "Psychology",
+        "Control (Psychology)",
+        "Interpersonal conflict",
+        "Military art and science",
+        "Conduct of life",
+        "Strategy"
+      ],
+      "status": "finished",
+      "spineColor": "#2c2b23",
+      "shelf": "power"
+    },
+    {
+      "id": "0140280197",
+      "asin": "0140280197",
+      "isbn10": "0140280197",
+      "title": "The 48 laws of power",
+      "authors": [
+        "Robert Greene"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/-1-L.jpg",
+      "publisher": "Penguin",
+      "publishedYear": 1998,
+      "pageCount": 452,
+      "subjects": [
+        "Business",
+        "Control (Psychology)",
+        "Contrôle (Psychologie)",
+        "Pouvoir (Morale)",
+        "Nonfiction",
+        "Power (Philosophy)",
+        "Self-Improvement",
+        "Conduct of life"
+      ],
+      "status": "finished",
+      "shelf": "power"
+    },
+    {
+      "id": "1861977697",
+      "asin": "1861977697",
+      "isbn10": "1861977697",
+      "isbn13": "9781861977694",
+      "title": "The Art of Seduction",
+      "authors": [
+        "Robert Greene"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/15262538-L.jpg",
+      "publisher": "Profile Books Ltd",
+      "publishedYear": 2004,
+      "pageCount": 496,
+      "subjects": [
+        "Courtship",
+        "Seduction",
+        "Sexual excitement",
+        "Sex instruction",
+        "History",
+        "Nonfiction",
+        "Control (psychology)",
+        "Persuasion (psychology)"
+      ],
+      "status": "finished",
+      "spineColor": "#231c28",
+      "shelf": "power"
+    },
+    {
+      "id": "0486272745",
+      "asin": "0486272745",
+      "isbn10": "0486272745",
+      "title": "Il Principe",
+      "authors": [
+        "Niccolò Machiavelli"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/12726179-L.jpg",
+      "publisher": "Dover Publications",
+      "publishedYear": 1992,
+      "pageCount": 46,
+      "subjects": [
+        "Political science, early works to 1800",
+        "Machiavel, Nicolas, 1469-1527. Prince",
+        "Classic Literature",
+        "Fiction",
+        "Ouvrages avant 1800",
+        "Science politique",
+        "Morale politique",
+        "Political science"
+      ],
+      "status": "finished",
+      "spineColor": "#574938",
+      "shelf": "power"
+    },
+    {
+      "id": "0802130305",
+      "asin": "0802130305",
+      "isbn10": "0802130305",
+      "isbn13": "9780802130303",
+      "title": "Ficciones",
+      "authors": [
+        "Jorge Luis Borges"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/13414336-L.jpg",
+      "publisher": "Grove Weidenfeld",
+      "publishedYear": 1983,
+      "pageCount": 174,
+      "subjects": [
+        "Anachronisms",
+        "speculative fiction",
+        "subjective idealism",
+        "duodecimals",
+        "aneurysms",
+        "adjectives",
+        "hermeticism",
+        "philanthropy"
+      ],
+      "status": "finished",
+      "spineColor": "#040303",
+      "shelf": "letters"
+    },
+    {
+      "id": "0199537887",
+      "asin": "0199537887",
+      "isbn10": "0199537887",
+      "isbn13": "9780199537884",
+      "title": "A philosophical enquiry into the origin of our ideas of the sublime and beautiful",
+      "authors": [
+        "Edmund Burke"
+      ],
+      "publisher": "Oxford University Press",
+      "publishedYear": 2008,
+      "pageCount": 173,
+      "description": "First published  World Classics paperback 1990.\n\nIncludes bibliographical references (p. 163-173).",
+      "subjects": [
+        "Early works to 1800",
+        "Aesthetics",
+        "The Sublime",
+        "Esthetica",
+        "Het sublieme",
+        "Philosophical enquiry into the origin of our ideas of the sublime and beautiful",
+        "Schoonheid",
+        "Aesthetics, early works to 1800"
+      ],
+      "status": "finished",
+      "shelf": "letters"
+    },
+    {
+      "id": "0520052560",
+      "asin": "0520052560",
+      "isbn10": "0520052560",
+      "title": "Theories of modern art",
+      "subtitle": "a source book by artists and critics",
+      "authors": [
+        "Herschel Browning Chipp",
+        "Peter Selz"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/9687079-L.jpg",
+      "publisher": "University of California Press",
+      "publishedYear": 1989,
+      "pageCount": 664,
+      "description": "Includes bibliographical references and index.",
+      "subjects": [
+        "Art",
+        "Kunsttheorie",
+        "20th century",
+        "Histoire",
+        "Addresses, essays, lectures",
+        "Modern Art",
+        "19th century",
+        "History"
+      ],
+      "status": "finished",
+      "spineColor": "#040302",
+      "shelf": "letters"
+    },
+    {
+      "id": "0062390627",
+      "asin": "0062390627",
+      "isbn10": "0062390627",
+      "isbn13": "9780062390622",
+      "title": "The Alchemist",
+      "authors": [
+        "Paulo Coelho"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/15076018-L.jpg",
+      "publisher": "HarperOne",
+      "publishedYear": 2016,
+      "pageCount": 208,
+      "subjects": [
+        "Translations into Indonesian",
+        "Voyages and travels",
+        "Fiction",
+        "Portuguese Fiction",
+        "Self-realization",
+        "Alchemists",
+        "Young men",
+        "Shepherds"
+      ],
+      "status": "finished",
+      "spineColor": "#e94706",
+      "shelf": "letters"
+    },
+    {
+      "id": "0192853821",
+      "asin": "0192853821",
+      "isbn10": "0192853821",
+      "isbn13": "9780192853820",
+      "title": "Music",
+      "subtitle": "A Very Short Introduction (Very Short Introductions)",
+      "authors": [
+        "Nicholas Cook"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/119885-L.jpg",
+      "publisher": "Oxford University Press, USA",
+      "publishedYear": 2000,
+      "pageCount": 152,
+      "subjects": [
+        "Music appreciation",
+        "Social aspects",
+        "Music",
+        "History and criticism",
+        "Popular music and art music",
+        "Philosophy and aesthetics",
+        "Merchant marine, history",
+        "Music, instruction and study"
+      ],
+      "status": "finished",
+      "spineColor": "#4b7696",
+      "shelf": "letters"
+    },
+    {
+      "id": "0140187766",
+      "asin": "0140187766",
+      "isbn10": "0140187766",
+      "title": "Exile's return",
+      "subtitle": "a literary Odyssey of the 1920s",
+      "authors": [
+        "Malcolm Cowley"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/97800-L.jpg",
+      "publisher": "Penguin Books",
+      "publishedYear": 1994,
+      "pageCount": 354,
+      "description": "Includes bibliographical references and index.\nRev. ed. first published : Viking Press, 1951.  With new introduction.",
+      "subjects": [
+        "American literature",
+        "History and criticism",
+        "American Authors",
+        "Biography",
+        "Childhood and youth",
+        "Critics",
+        "Intellectual life",
+        "Homes and haunts"
+      ],
+      "status": "finished",
+      "spineColor": "#0b0b09",
+      "shelf": "letters"
+    },
+    {
+      "id": "0140449264",
+      "asin": "0140449264",
+      "isbn10": "0140449264",
+      "title": "The Count of Monte Cristo",
+      "authors": [
+        "Alexandre Dumas"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/14564134-L.jpg",
+      "publisher": "Penguin Books",
+      "publishedYear": 2003,
+      "pageCount": 1276,
+      "subjects": [
+        "France -- History -- 19th century -- Fiction",
+        "France",
+        "Fiction",
+        "France in fiction",
+        "History",
+        "Adventure and adventurers in fiction",
+        "Readers",
+        "French language"
+      ],
+      "status": "finished",
+      "spineColor": "#020404",
+      "shelf": "letters"
+    },
+    {
+      "id": "0156948702",
+      "asin": "0156948702",
+      "isbn10": "0156948702",
+      "title": "The waste land",
+      "subtitle": "a facsimile and transcript of the original drafts including the annotations of Ezra Pound",
+      "authors": [
+        "T. S. Eliot"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/116600-L.jpg",
+      "publisher": "Harcourt Brace",
+      "publishedYear": 1994,
+      "pageCount": 149,
+      "description": "Includes bibliographical references.",
+      "subjects": [
+        "Issues of Presses",
+        "Hogarth",
+        "Facsimiles",
+        "Fiction",
+        "English Manuscripts",
+        "Classic Literature",
+        "English poetry",
+        "Poetry (poetic works by one author)"
+      ],
+      "status": "finished",
+      "spineColor": "#fdfbd8",
+      "shelf": "letters"
+    },
+    {
+      "id": "1588167461",
+      "asin": "1588167461",
+      "isbn10": "1588167461",
+      "isbn13": "9781588167460",
+      "title": "Esquire",
+      "subtitle": "the handbook of style : a man's guide to looking good",
+      "authors": [
+        "Esquire, inc"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/12186302-L.jpg",
+      "publisher": "Hearst Books",
+      "publishedYear": 2008,
+      "description": "Includes index.",
+      "subjects": [
+        "Men's clothing",
+        "Grooming for men"
+      ],
+      "status": "finished",
+      "spineColor": "#121113",
+      "shelf": "letters"
+    },
+    {
+      "id": "045149234X",
+      "asin": "045149234X",
+      "isbn10": "045149234X",
+      "isbn13": "9780451492340",
+      "title": "The Hypnotist's Love Story",
+      "authors": [
+        "Liane Moriarty"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/12460319-L.jpg",
+      "publisher": "Berkley",
+      "publishedYear": 2018,
+      "pageCount": 560,
+      "subjects": [
+        "Fiction, romance, contemporary",
+        "Fiction, women"
+      ],
+      "status": "finished",
+      "spineColor": "#fafbfb",
+      "shelf": "letters"
+    },
+    {
+      "id": "0140443290",
+      "asin": "0140443290",
+      "isbn10": "0140443290",
+      "title": "A Nietzsche reader",
+      "authors": [
+        "Friedrich Nietzsche"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/12912190-L.jpg",
+      "publisher": "Penguin Books",
+      "publishedYear": 1986,
+      "pageCount": 285,
+      "description": "Includes bibliographical references (p. 285-[286]).",
+      "subjects": [
+        "Collected works",
+        "Philosophy",
+        "Nonfiction",
+        "Philosophy, german",
+        "Nietzsche, friedrich wilhelm, 1844-1900"
+      ],
+      "status": "finished",
+      "spineColor": "#c5b3ac",
+      "shelf": "letters"
+    },
+    {
+      "id": "0812980387",
+      "asin": "0812980387",
+      "isbn10": "0812980387",
+      "isbn13": "9780812980387",
+      "title": "The essential writings of Rousseau",
+      "authors": [
+        "Jean-Jacques Rousseau"
+      ],
+      "publisher": "Modern Library",
+      "publishedYear": 2013,
+      "pageCount": 530,
+      "description": "Includes bibliographical references (p. [505]-530).",
+      "subjects": [
+        "Social contract",
+        "Political science",
+        "Political science, early works to 1800",
+        "Jc179 .r7 2013",
+        "320.092"
+      ],
+      "status": "finished",
+      "shelf": "letters"
+    },
+    {
+      "id": "1599639610",
+      "asin": "1599639610",
+      "isbn10": "1599639610",
+      "isbn13": "9781599639611",
+      "title": "Comedy Writing Secrets",
+      "subtitle": "The Best-Selling Guide to Writing Funny and Getting Paid for It",
+      "authors": [
+        "Mark Shatz",
+        "Mel Helitzer"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/9146551-L.jpg",
+      "publisher": "Writer's Digest Books",
+      "publishedYear": 2016,
+      "pageCount": 235,
+      "description": "Source title: Comedy Writing Secrets: The Best-Selling Guide to Writing Funny and Getting Paid for It",
+      "subjects": [
+        "Wit and humor",
+        "Authorship"
+      ],
+      "status": "finished",
+      "spineColor": "#fbd605",
+      "shelf": "letters"
+    },
+    {
+      "id": "0892552905",
+      "asin": "0892552905",
+      "isbn10": "0892552905",
+      "title": "Bread givers",
+      "subtitle": "a novel",
+      "authors": [
+        "Anzia Yezierska"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/690641-L.jpg",
+      "publisher": "Persea Books",
+      "publishedYear": 2003,
+      "pageCount": 297,
+      "description": "\"A Karen and Michael Braziller book.\"",
+      "subjects": [
+        "Assimilation (Sociology)",
+        "Children of immigrants",
+        "Fathers and daughters",
+        "Fiction",
+        "Jewish families",
+        "Women immigrants",
+        "Young women",
+        "Father-daughter relationship"
+      ],
+      "status": "finished",
+      "spineColor": "#667968",
+      "shelf": "letters"
+    },
+    {
+      "id": "1981699783",
+      "asin": "1981699783",
+      "isbn10": "1981699783",
+      "title": "Magnus Liber Sigillorum: Abridged",
+      "authors": [
+        "Michael (Yosef) Cohen"
+      ],
+      "subjects": [],
+      "status": "finished",
+      "shelf": "judaica"
+    },
+    {
+      "id": "0826601286",
+      "asin": "0826601286",
+      "isbn10": "0826601286",
+      "isbn13": "9780826601285",
+      "title": "Tehillim - Book of Psalms with English Translation & Commentary: With Commentary from the Talmud, Midrash, Kabbalah, Classic Commentators and the Chasidic Masters",
+      "authors": [
+        "King David"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/8467932-L.jpg",
+      "publisher": "Kehot Publication Society",
+      "publishedYear": 2016,
+      "pageCount": 696,
+      "subjects": [],
+      "status": "finished",
+      "spineColor": "#2b3633",
+      "shelf": "judaica"
+    },
+    {
+      "id": "1602804494",
+      "asin": "1602804494",
+      "isbn10": "1602804494",
+      "title": "Shomer Emunim: The Introduction to Kabbalah",
+      "authors": [
+        "Yosef Ergas"
+      ],
+      "subjects": [],
+      "status": "finished",
+      "shelf": "judaica"
+    },
+    {
+      "id": "1976006139",
+      "asin": "1976006139",
+      "isbn10": "1976006139",
+      "isbn13": "9781976006135",
+      "title": "Legends of the Jews Complete",
+      "authors": [
+        "Louis Ginzberg",
+        "Henrietta Szold"
+      ],
+      "publisher": "CreateSpace Independent Publishing Platform",
+      "publishedYear": 2017,
+      "pageCount": 514,
+      "subjects": [],
+      "status": "finished",
+      "shelf": "judaica"
+    },
+    {
+      "id": "0877288550",
+      "asin": "0877288550",
+      "isbn10": "0877288550",
+      "title": "Sefer Yetzirah",
+      "subtitle": "The Book of Creation",
+      "authors": [
+        "Aryeh Kaplan",
+        "Sharron Shatil"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/670820-L.jpg",
+      "publisher": "S. Weiser",
+      "publishedYear": 1997,
+      "pageCount": 398,
+      "description": "Includes bibliographical references (p. 341-388) and index.\r\nSubtitle on cover: In theory and practice.",
+      "subjects": [
+        "Nonfiction",
+        "Occult",
+        "Cabala",
+        "Sefer Yeẓirah",
+        "Early works to 1800",
+        "kabbalah",
+        "magic"
+      ],
+      "status": "finished",
+      "spineColor": "#7b96aa",
+      "shelf": "judaica"
+    },
+    {
+      "id": "0877286183",
+      "asin": "0877286183",
+      "isbn10": "0877286183",
+      "title": "The Bahir",
+      "subtitle": "[one of the oldest most important, and most carefully preserved of all ancient Kabbalah texts",
+      "authors": [
+        "Aryeh Kaplan"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/8621373-L.jpg",
+      "publisher": "S. Weiser",
+      "publishedYear": 1990,
+      "pageCount": 244,
+      "description": "Text in English and Hebrew; introd. and commentary in English.\n\n\"First paper ed. 1989.\"--t.p. verso\n\nTitle on cover: The Bahir illumnination.\n\nOriginally published: York Beach, Maine : S. Weiser, 1979.\n\nIncludes bibliographical references.",
+      "subjects": [
+        "Nonfiction",
+        "occult",
+        "kabbalah",
+        "magic",
+        "Sefer ha-bahir",
+        "Early works to 1800",
+        "Cabala",
+        "Commentaries"
+      ],
+      "status": "finished",
+      "spineColor": "#fefefe",
+      "shelf": "judaica"
+    },
+    {
+      "id": "1422619613",
+      "asin": "1422619613",
+      "isbn10": "1422619613",
+      "isbn13": "9781422619612",
+      "title": "Master your words - master your life",
+      "subtitle": "real-life answers, advice and strategies for proper speech ; arranged for daily study",
+      "authors": [
+        "Chana Nestlebaum",
+        "Israel Meir ha-Kohen",
+        "Moshe Mordechai Lowy",
+        "Chofetz Chaim Heritage Foundation"
+      ],
+      "publisher": "Mesorah Publications, ltd",
+      "publishedYear": 2017,
+      "pageCount": 339,
+      "description": "\"The Rosenthal Edition\" -- spine.\n\nIncludes bibliographical references.",
+      "subjects": [
+        "Clean speech",
+        "Religious aspects",
+        "Judaism",
+        "Gossip",
+        "Libel and slander"
+      ],
+      "status": "finished",
+      "shelf": "judaica"
+    },
+    {
+      "id": "1578631688",
+      "asin": "1578631688",
+      "isbn10": "1578631688",
+      "isbn13": "9781578631681",
+      "title": "Sepher Rezial Hemelach",
+      "subtitle": "The Book of the Angel Rezial",
+      "authors": [
+        "Steve Savedow"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/7343030-L.jpg",
+      "publisher": "Weiser Books",
+      "publishedYear": 2000,
+      "pageCount": 302,
+      "subjects": [
+        "Angels",
+        "Early works to 1800",
+        "Judaism",
+        "Cabala",
+        "Magic"
+      ],
+      "status": "finished",
+      "spineColor": "#fefefd",
+      "shelf": "judaica"
+    },
+    {
+      "id": "9698492402",
+      "asin": "9698492402",
+      "isbn10": "9698492402",
+      "title": "Hostage (Hatuf): Hebrew Edition",
+      "authors": [
+        "Eli Sharabi"
+      ],
+      "subjects": [],
+      "status": "finished",
+      "shelf": "judaica"
+    },
+    {
+      "id": "1578193915",
+      "asin": "1578193915",
+      "isbn10": "1578193915",
+      "title": "Twerski on Chumash",
+      "authors": [
+        "Abraham J. Twerski"
+      ],
+      "publisher": "Shaar Press",
+      "publishedYear": 2003,
+      "pageCount": 448,
+      "description": "Includes biblical passages in Hebrew and English.",
+      "subjects": [
+        "Bible",
+        "Commentaries",
+        "Hasidism"
+      ],
+      "status": "finished",
+      "shelf": "judaica"
+    },
+    {
+      "id": "1680252569",
+      "asin": "1680252569",
+      "isbn10": "1680252569",
+      "title": "Orchos Tzaddikim: A Treasure for Life",
+      "authors": [
+        "Avrohom Yachnes"
+      ],
+      "subjects": [],
+      "status": "finished",
+      "shelf": "judaica"
+    },
+    {
+      "id": "1793088195",
+      "asin": "1793088195",
+      "isbn10": "1793088195",
+      "isbn13": "9781793088192",
+      "title": "An MBA from Heaven",
+      "subtitle": "Biblical Wisdom Applied to the Business World",
+      "authors": [
+        "Rabbi Shmuel Yeshayahu",
+        "Daniel Friedmann"
+      ],
+      "publisher": "Independently Published",
+      "publishedYear": 2019,
+      "pageCount": 197,
+      "description": "Source title: An MBA from Heaven: Biblical Wisdom Applied to the Business World",
+      "subjects": [],
+      "status": "finished",
+      "shelf": "judaica"
+    },
+    {
+      "id": "1623173345",
+      "asin": "1623173345",
+      "isbn10": "1623173345",
+      "isbn13": "9781623173340",
+      "title": "Elusive Obvious",
+      "subtitle": "The Convergence of Movement, Neuroplasticity, and Health",
+      "authors": [
+        "Moshe Feldenkrais",
+        "Norman Doidge"
+      ],
+      "publisher": "North Atlantic Books",
+      "publishedYear": 2019,
+      "pageCount": 160,
+      "subjects": [
+        "Exercise",
+        "Movement, psychology of",
+        "Mind and body",
+        "Motor ability"
+      ],
+      "status": "finished",
+      "shelf": "spirit"
+    },
+    {
+      "id": "0345487427",
+      "asin": "0345487427",
+      "isbn10": "0345487427",
+      "isbn13": "9780345487421",
+      "title": "Feel the fear-- and do it anyway",
+      "authors": [
+        "Susan J. Jeffers"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/13156058-L.jpg",
+      "publisher": "Ballantine Books",
+      "publishedYear": 2007,
+      "pageCount": 214,
+      "description": "\"20th anniversary edition\"--Cover.\r\n\r\nIncludes bibliographical references (p. 211-214).",
+      "subjects": [
+        "Fear",
+        "Miedo",
+        "Power, (psychology)",
+        "Self-actualization (psychology)",
+        "Self-culture",
+        "Self-actualization",
+        "Nonfiction",
+        "Self-Improvement"
+      ],
+      "status": "finished",
+      "spineColor": "#678789",
+      "shelf": "spirit"
+    },
+    {
+      "id": "160459201X",
+      "asin": "160459201X",
+      "isbn10": "160459201X",
+      "isbn13": "9781604592016",
+      "title": "The Power of Your Subconscious Mind",
+      "authors": [
+        "Joseph Murphy"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/10465816-L.jpg",
+      "publisher": "Wilder Publications",
+      "publishedYear": 2008,
+      "pageCount": 138,
+      "subjects": [
+        "Self-Help",
+        "Psychology",
+        "Nonfiction",
+        "Personal Development"
+      ],
+      "status": "finished",
+      "spineColor": "#fcfcfb",
+      "shelf": "spirit"
+    },
+    {
+      "id": "1401971369",
+      "asin": "1401971369",
+      "isbn10": "1401971369",
+      "isbn13": "9781401971366",
+      "title": "The Let Them Theory",
+      "subtitle": "The Life-Changing Hack That Millions of People Cant Stop Talking About",
+      "authors": [
+        "Mel Robbins"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/14832368-L.jpg",
+      "publisher": "Hay House, Incorporated",
+      "publishedYear": 2024,
+      "pageCount": 224,
+      "subjects": [],
+      "status": "finished",
+      "spineColor": "#37c647",
+      "shelf": "spirit"
+    },
+    {
+      "id": "1684227348",
+      "asin": "1684227348",
+      "isbn10": "1684227348",
+      "isbn13": "9781684227341",
+      "title": "Universal One",
+      "authors": [
+        "Walter Russell"
+      ],
+      "publisher": "Martino Fine Books",
+      "publishedYear": 2022,
+      "subjects": [],
+      "status": "finished",
+      "shelf": "spirit"
+    },
+    {
+      "id": "1250250692",
+      "asin": "1250250692",
+      "isbn10": "1250250692",
+      "isbn13": "9781250250698",
+      "title": "Game of Life and How to Play It",
+      "subtitle": "The Complete Original Edition",
+      "authors": [
+        "Florence Scovel Shinn"
+      ],
+      "publisher": "St. Martin's Press",
+      "publishedYear": 2020,
+      "pageCount": 128,
+      "subjects": [
+        "Conduct of life",
+        "New Age",
+        "New Thought",
+        "Nonfiction",
+        "Psychological aspects",
+        "Psychological aspects of Success",
+        "Self-Improvement",
+        "Spirituality"
+      ],
+      "status": "finished",
+      "shelf": "spirit"
+    },
+    {
+      "id": "1401968880",
+      "asin": "1401968880",
+      "isbn10": "1401968880",
+      "isbn13": "9781401968885",
+      "title": "Silent Power",
+      "authors": [
+        "Stuart Wilde"
+      ],
+      "publisher": "Hay House, Incorporated",
+      "publishedYear": 2021,
+      "subjects": [],
+      "status": "finished",
+      "shelf": "spirit"
+    },
+    {
+      "id": "0071752137",
+      "asin": "0071752137",
+      "isbn10": "0071752137",
+      "isbn13": "9780071752138",
+      "title": "5 Steps to a 5 AP US History, 2012-2013 Edition",
+      "authors": [
+        "Stephen Armstrong"
+      ],
+      "publisher": "McGraw-Hill Education",
+      "publishedYear": 2011,
+      "pageCount": 432,
+      "subjects": [
+        "United states, history, examinations, questions, etc.",
+        "Advanced placement programs (education)"
+      ],
+      "status": "finished",
+      "shelf": "coursework"
+    },
+    {
+      "id": "0393919595",
+      "asin": "0393919595",
+      "isbn10": "0393919595",
+      "isbn13": "9780393919592",
+      "title": "Norton Field Guide to Writing",
+      "subtitle": "with Readings and Handbook",
+      "authors": [
+        "Richard Bullock"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/10994177-L.jpg",
+      "publisher": "W. W. Norton & Company",
+      "publishedYear": 2013,
+      "pageCount": 1200,
+      "subjects": [
+        "English language, rhetoric",
+        "English language, grammar",
+        "Report writing",
+        "College readers",
+        "Rhetoric",
+        "Grammar",
+        "English language",
+        "Handbooks, manuals"
+      ],
+      "status": "finished",
+      "spineColor": "#867a68",
+      "shelf": "coursework"
+    },
+    {
+      "id": "080361571X",
+      "asin": "080361571X",
+      "isbn10": "080361571X",
+      "isbn13": "9780803615717",
+      "title": "Pathophysiology",
+      "subtitle": "Introductory Concepts and Clinical Perspectives",
+      "authors": [
+        "Theresa M. Capriotti DO  MSN  CRNP",
+        "Joan Parker Frizzell PhD  CRNP  ANP-BC"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/9141496-L.jpg",
+      "publisher": "F.A. Davis Company",
+      "publishedYear": 2015,
+      "pageCount": 1200,
+      "description": "Source title: Pathophysiology: Introductory Concepts and Clinical Perspectives",
+      "subjects": [
+        "Pathological Physiology",
+        "Diseases",
+        "Disease"
+      ],
+      "status": "finished",
+      "spineColor": "#fbfbfb",
+      "shelf": "coursework"
+    },
+    {
+      "id": "0312601441",
+      "asin": "0312601441",
+      "isbn10": "0312601441",
+      "isbn13": "9780312601447",
+      "title": "A writer's reference",
+      "authors": [
+        "Diana Hacker"
+      ],
+      "publisher": "Bedford/St. Martins",
+      "publishedYear": 2011,
+      "pageCount": 736,
+      "description": "\"With Writing in the Disciplines\"--Cover.\n\nIncludes bibliographical references and indexes.",
+      "subjects": [
+        "Rhetoric",
+        "Grammar",
+        "Handbooks, manuals",
+        "Report writing",
+        "English language",
+        "Handbooks, manuals, etc",
+        "Textbooks for foreign speakers",
+        "Kreatives Schreiben"
+      ],
+      "status": "finished",
+      "shelf": "coursework"
+    },
+    {
+      "id": "0738607835",
+      "asin": "0738607835",
+      "isbn10": "0738607835",
+      "isbn13": "9780738607832",
+      "title": "AP English language and composition crash course",
+      "authors": [
+        "Dawn Hogue"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/10291072-L.jpg",
+      "publisher": "Research and Education Association",
+      "publishedYear": 2011,
+      "pageCount": 282,
+      "description": "At head of title: REA, the test prep AP teachers recommend\n\nIncludes bibliographical references (p. 281-282).",
+      "subjects": [
+        "Rhetoric",
+        "English philology",
+        "Advanced placement programs (Education)",
+        "Study guides",
+        "Examinations",
+        "English language",
+        "Problems, exercises",
+        "Advanced placement programs (education)"
+      ],
+      "status": "finished",
+      "spineColor": "#060602",
+      "shelf": "coursework"
+    },
+    {
+      "id": "0738607827",
+      "asin": "0738607827",
+      "isbn10": "0738607827",
+      "isbn13": "9780738607825",
+      "title": "AP English literature and composition crash course",
+      "authors": [
+        "Dawn Hogue"
+      ],
+      "publisher": "Research & Education Association",
+      "publishedYear": 2010,
+      "pageCount": 234,
+      "description": "\"REA: The test prep AP teachers recommend\"--Cover.",
+      "subjects": [
+        "Study guides",
+        "English philology",
+        "Examinations",
+        "Advanced placement programs (Education)",
+        "Advanced placement programs (education)",
+        "English literature, examinations, questions, etc."
+      ],
+      "status": "finished",
+      "shelf": "coursework"
+    },
+    {
+      "id": "0131828398",
+      "asin": "0131828398",
+      "isbn10": "0131828398",
+      "title": "The Western heritage",
+      "authors": [
+        "Donald Kagan",
+        "Steven Ozment",
+        "Frank M. Turner",
+        "Donald M. Kagan",
+        "A. Daniel Frankforter"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/88280-L.jpg",
+      "publisher": "Prentice Hall",
+      "publishedYear": 2003,
+      "pageCount": 1120,
+      "description": "Includes bibliographical references and index.\n\"Combined volume.\"\nMaps on lining papers.",
+      "subjects": [
+        "Textbooks",
+        "Western Civilization",
+        "History",
+        "open_syllabus_project",
+        "Cultuur",
+        "Civilization, Western",
+        "Civilization, western, history",
+        "World history, early works to 1800"
+      ],
+      "status": "finished",
+      "spineColor": "#070504",
+      "shelf": "coursework"
+    },
+    {
+      "id": "0738606618",
+      "asin": "0738606618",
+      "isbn10": "0738606618",
+      "isbn13": "9780738606613",
+      "title": "AP European history",
+      "subtitle": "crash course",
+      "authors": [
+        "Larry S. Krieger"
+      ],
+      "publisher": "Research & Education Association",
+      "publishedYear": 2010,
+      "pageCount": 265,
+      "subjects": [
+        "Examinations, questions",
+        "Examinations",
+        "Study guides",
+        "Advanced placement programs (Education)",
+        "History",
+        "Europe, history"
+      ],
+      "status": "finished",
+      "shelf": "coursework"
+    },
+    {
+      "id": "0738607819",
+      "asin": "0738607819",
+      "isbn10": "0738607819",
+      "isbn13": "9780738607818",
+      "title": "Ap Psychology Crash Course",
+      "authors": [
+        "Larry S. Krieger"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/7470446-L.jpg",
+      "publisher": "Research & Education Association",
+      "publishedYear": 2010,
+      "subjects": [
+        "Study guides",
+        "Examinations",
+        "Psychology",
+        "Advanced placement programs (Education)",
+        "Advanced placement programs (education)",
+        "Psychology, examinations, questions, etc."
+      ],
+      "status": "finished",
+      "spineColor": "#fbfcfc",
+      "shelf": "coursework"
+    },
+    {
+      "id": "0738608130",
+      "asin": "0738608130",
+      "isbn10": "0738666270",
+      "isbn13": "9780738666273",
+      "title": "AP U.S. history",
+      "subtitle": "crash course",
+      "authors": [
+        "Larry S. Krieger"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/10424182-L.jpg",
+      "publisher": "Research & Education Association",
+      "publishedYear": 2010,
+      "pageCount": 230,
+      "subjects": [
+        "Examinations, questions",
+        "Examinations",
+        "Study guides",
+        "Advanced placement programs (Education)",
+        "History",
+        "United states, history, study and teaching",
+        "Advanced placement programs (education)",
+        "History, examinations, questions, etc."
+      ],
+      "status": "finished",
+      "spineColor": "#a9a399",
+      "shelf": "coursework"
+    },
+    {
+      "id": "0495599816",
+      "asin": "0495599816",
+      "isbn10": "049580701X",
+      "isbn13": "9780495807018",
+      "title": "The essence of anthropology",
+      "authors": [
+        "Bunny McBride",
+        "William A. Haviland"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/10752851-L.jpg",
+      "publisher": "Wadsworth Cengage Learning",
+      "publishedYear": 2010,
+      "pageCount": 379,
+      "description": "Previous edition: Australia: Thomson/Wadsworth, 2007.\n\nIncludes bibliographical references (pages 348-364) and index.",
+      "subjects": [
+        "Anthropology",
+        "Anthropology.",
+        "Textbooks",
+        "Anthropologie",
+        "Ethnologie",
+        "Kulturanthropologie"
+      ],
+      "status": "finished",
+      "spineColor": "#191607",
+      "shelf": "coursework"
+    },
+    {
+      "id": "039916524X",
+      "asin": "039916524X",
+      "isbn10": "039916524X",
+      "isbn13": "9780399165245",
+      "title": "A Mind for Numbers",
+      "subtitle": "How to Excel at Math and Science (Even If You Flunked Algebra)",
+      "authors": [
+        "Barbara Oakley"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/8352403-L.jpg",
+      "publisher": "Tarcher",
+      "publishedYear": 2014,
+      "pageCount": 336,
+      "subjects": [
+        "Mathematics",
+        "Study and teaching",
+        "Math anxiety",
+        "Educational psychology",
+        "Psychological aspects",
+        "Pedagogisk psykologi",
+        "Psykologiska aspekter",
+        "Matematik"
+      ],
+      "status": "finished",
+      "spineColor": "#fcfcfd",
+      "shelf": "coursework"
+    },
+    {
+      "id": "0764147005",
+      "asin": "0764147005",
+      "isbn10": "0764147005",
+      "isbn13": "9780764147005",
+      "title": "Barron's AP Microeconomics/Macroeconomics (Barron's Study Guides)",
+      "authors": [
+        "Frank Musgrave Ph.D.",
+        "Elia Kacapyr Ph.D."
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/8451371-L.jpg",
+      "publisher": "Barron's Educational Series",
+      "publishedYear": 2012,
+      "pageCount": 360,
+      "subjects": [
+        "Macroeconomics",
+        "Examinations",
+        "Microeconomics",
+        "Study guides",
+        "College entrance achievement tests",
+        "Examinations, questions",
+        "Advanced placement programs (Education)"
+      ],
+      "status": "finished",
+      "spineColor": "#fafafc",
+      "shelf": "coursework"
+    },
+    {
+      "id": "1496349822",
+      "asin": "1496349822",
+      "isbn10": "1496349822",
+      "isbn13": "9781496349828",
+      "title": "Community and Public Health Nursing Promoting the Public's Health",
+      "authors": [
+        "Cherie Rector PhD  RN-C"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/10286576-L.jpg",
+      "publisher": "LWW",
+      "publishedYear": 2017,
+      "pageCount": 1104,
+      "subjects": [
+        "Community health nursing",
+        "Public health nursing"
+      ],
+      "status": "finished",
+      "spineColor": "#fcf7e7",
+      "shelf": "coursework"
+    },
+    {
+      "id": "0738609714",
+      "asin": "0738609714",
+      "isbn10": "0738609714",
+      "isbn13": "9780738609713",
+      "title": "Ap Macroeconomics Crash Course",
+      "authors": [
+        "Jason Welker"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/7469955-L.jpg",
+      "publisher": "Research & Education Association",
+      "publishedYear": 2011,
+      "subjects": [
+        "Macroeconomics",
+        "Study guides",
+        "Examinations",
+        "Advanced placement programs (Education)",
+        "Problems, exercises",
+        "Advanced placement programs (education)"
+      ],
+      "status": "finished",
+      "spineColor": "#fbfcfb",
+      "shelf": "coursework"
+    },
+    {
+      "id": "0764133640",
+      "asin": "0764133640",
+      "isbn10": "0764133640",
+      "isbn13": "9780764133640",
+      "title": "Let's review.",
+      "authors": [
+        "Mark Willner"
+      ],
+      "coverUrl": "https://covers.openlibrary.org/b/id/517975-L.jpg",
+      "publisher": "Barron's",
+      "publishedYear": 2006,
+      "description": "Includes index.",
+      "subjects": [
+        "World history",
+        "Examinations, questions",
+        "History",
+        "Geography"
+      ],
+      "status": "finished",
+      "spineColor": "#fcfafa",
+      "shelf": "coursework"
+    }
+  ]
+}

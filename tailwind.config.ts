@@ -8,7 +8,15 @@ const config: Config = {
     path.join(__dirname, "pages/**/*.{js,ts,jsx,tsx,mdx}"),
     path.join(__dirname, "components/**/*.{js,ts,jsx,tsx,mdx}"),
   ],
-  theme: { extend: {} },
+  theme: {
+    extend: {
+      fontFamily: {
+        garamond: ["var(--font-garamond)", "Georgia", "serif"],
+        typewriter: ["var(--font-typewriter)", "Courier", "monospace"],
+        pencil: ["var(--font-pencil)", "cursive"],
+      },
+    },
+  },
   plugins: [],
 };
 

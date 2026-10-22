@@ -61,37 +61,39 @@ You can deploy this Next.js project using the [Vercel Platform](https://vercel.c
 
 ### The Study (`/study`)
 
-A 3D room — bookshelves, desk, lamp, leather chair — that displays the books I’ve read.
-Click a spine to pull the book out and read its details (notes, rating, dates, subjects).
-Books and shelves live in Postgres; metadata is pulled from Open Library (with Google
-Books as a fallback) when you paste an ISBN at `/study/admin`.
+A lamplit 3D study — walnut bookcases, a dusk window, banker's lamp, Chesterfield — that
+shelves the books I've read. Take a book down and it turns in your hands to show its
+cover, with a library catalog card (and an Amazon link) beside it. `←`/`→` browse
+neighbouring books; `esc` puts it back.
 
-#### One-time setup
+There's no database: the whole library is one file, **`data/library.json`**, read at
+build time (`getStaticProps`), so the page stays fully static.
 
-1. **Create a Neon Postgres database**. Either:
-   - In the Vercel dashboard: *Storage → Create Database → Neon* (auto-injects `DATABASE_URL`), or
-   - Sign up at [neon.tech](https://neon.tech) and copy the pooled connection string.
+#### Filling the shelves from Amazon
 
-2. **Set environment variables** locally (`.env.local`) and on Vercel (Project → Settings → Environment Variables). See `.env.example`:
-   - `DATABASE_URL` — Neon connection string
-   - `SESSION_SECRET` — 32+ random chars (`openssl rand -base64 48`)
-   - `STUDY_PASSWORD` — the passphrase you’ll type at `/study/admin`
+Order history goes into `data/private/` (always gitignored — the repo is public):
 
-3. **Push the schema**:
-   ```bash
-   yarn db:push
-   ```
-   (Use `yarn db:generate` + `yarn db:push` if you prefer migration files.)
+```bash
+yarn study:amazon enrich   # amazon-orders.json → amazon-library.json (catalog data + spine colors)
+yarn study:amazon apply    # merge the books you kept into data/library.json
+```
 
-#### Adding books
+`enrich` looks each ISBN up in Open Library (Google Books fallback) and samples each
+cover's dominant color for the spine. Before `apply`, set `"include": false` in
+`data/private/amazon-library.json` on anything you bought but didn't read. `apply` adds
+new books, removes excluded ones, and never overwrites a book already in the library —
+so edit `data/library.json` freely (`rating`, `notes`, `status`, `dateFinished`, `shelf`).
 
-Visit `/study/admin`, unlock with `STUDY_PASSWORD`, then:
-- **By ISBN**: paste any ISBN-10 or ISBN-13 → preview → *shelve*.
-- **By title**: type title (and optional author) for older books without ISBNs.
-- **Manual**: enter title/author/year by hand for one-off entries.
+Shelves are optional: add `{ "id": "philosophy", "label": "Philosophy" }` to `shelves`
+and set `"shelf": "philosophy"` on books; each named shelf starts a fresh bay.
 
-Each book’s spine color is derived from a deterministic palette so the room
-stays visually consistent. You can override it per-book in the admin row.
+#### Publishing
 
-Create shelves (e.g. *Philosophy*, *Fiction*, *Reference*) and assign books to them;
-each shelf becomes a horizontal row in the 3D bookcase, sorted by `slotIndex`.
+`data/library.json` is the published shelf — commit it and the site rebuilds with it
+(without the file, the page falls back to a sample shelf). Raw order data in
+`data/private/` is gitignored and never published; `apply` strips purchase dates.
+
+Amazon links use the Associates tag in `lib/amazon.ts` (`NEXT_PUBLIC_AMAZON_TAG` overrides it).
+
+`node scripts/study-shot.mjs <prefix>` renders the room headlessly (desktop + phone),
+takes a book down, and screenshots each step — useful since WebGL needs a real GPU path.

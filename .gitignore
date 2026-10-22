@@ -29,6 +29,10 @@ yarn-error.log*
 .env
 .env*.local
 
+# personal data (Amazon order history etc.) — repo is public.
+# data/library.json (the published shelf) is tracked; raw order data never is.
+/data/private/
+
 # claude code local config
 .claude/settings.local.json
 

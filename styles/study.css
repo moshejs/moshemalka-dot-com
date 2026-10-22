@@ -1,0 +1,54 @@
+/* The Study (/study) — everything is scoped under .study so the main site is untouched. */
+
+.study {
+  font-family: var(--font-garamond), Georgia, serif;
+  color: #e8d9b8;
+  background: #0e0905;
+  -webkit-font-smoothing: antialiased;
+}
+
+.study ::selection {
+  background: rgba(201, 163, 106, 0.38);
+  color: #fff8ea;
+}
+
+.study :focus-visible:not([tabindex="-1"]) {
+  outline: 2px solid #c9a36a;
+  outline-offset: 3px;
+}
+
+/* Catalog card stock: warm cream with paper fibre, a soft resting shadow. */
+.study-card {
+  background-color: #f1e7d0;
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.35  0 0 0 0 0.27  0 0 0 0 0.18  0 0 0 0.09 0'/></filter><rect width='100%' height='100%' filter='url(%23f)'/></svg>"),
+    radial-gradient(ellipse at 30% 0%, rgba(255, 252, 240, 0.7), transparent 60%),
+    linear-gradient(180deg, #f4ebd6, #ebdfc4);
+  border-radius: 3px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.5) inset,
+    0 18px 40px -12px rgba(0, 0, 0, 0.7),
+    0 4px 12px rgba(0, 0, 0, 0.35);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(43, 33, 24, 0.3) transparent;
+}
+
+.study-card ::selection {
+  background: rgba(184, 71, 58, 0.22);
+  color: #1c140d;
+}
+
+/* Spine-hover label: a small brass-plate tag that follows the cursor. */
+.study-tag {
+  background: #1f150d;
+  color: #f1e3c4;
+  box-shadow: 0 8px 22px -8px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(201, 163, 106, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .study *,
+  .study *::before,
+  .study *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
