@@ -1,0 +1,6 @@
+# https://moshemalka.com
+# Allow all well-behaved crawlers full access.
+User-agent: *
+Allow: /
+
+Sitemap: https://moshemalka.com/sitemap.xml

@@ -2,317 +2,280 @@
  * Portfolio data + pure utilities. Imported by `pages/index.tsx` and the test
  * suite. Keep this file framework-free (no React, no next/* imports) so it can
  * be unit-tested in plain Node.
+ *
+ * Everything here is plain English on purpose: company names first, real
+ * dates, no invented figures.
  */
 
-/* ── Trading session ──────────────────────────────────────── */
+/* ── Career clock ─────────────────────────────────────────── */
 
 /**
- * Career start. Used as the epoch for the live session counter on the home
- * page. Anchored to the start of CS at Adelphi (2014-08-15) in Eastern time.
+ * Career start. Anchored to first professional work in 2008 (Eastern time).
+ * The role list below starts in 2016; earlier work predates it.
  */
-export const CAREER_EPOCH = new Date("2014-08-15T00:00:00-04:00").getTime();
+export const CAREER_EPOCH = new Date("2008-06-01T00:00:00-04:00").getTime();
 
-export type SessionParts = {
-  years: number;
-  remDays: number;
-  hh: string;
-  mm: string;
-  ss: string;
-};
+const YEAR_MS = 365.25 * 86_400 * 1000;
 
-/**
- * Convert a duration in milliseconds to a Y/D/HH:MM:SS breakdown for the
- * session pill. Uses 365-day "years" — accurate enough for a header counter,
- * and matches `uptime(1)` style formatting.
- */
-export function formatSession(ms: number): SessionParts {
-  const totalSec = Math.max(0, Math.floor(ms / 1000));
-  const days = Math.floor(totalSec / 86400);
-  const years = Math.floor(days / 365);
-  const remDays = days - years * 365;
-  const hours = Math.floor((totalSec % 86400) / 3600);
-  const minutes = Math.floor((totalSec % 3600) / 60);
-  const seconds = totalSec % 60;
-  return {
-    years,
-    remDays,
-    hh: String(hours).padStart(2, "0"),
-    mm: String(minutes).padStart(2, "0"),
-    ss: String(seconds).padStart(2, "0"),
-  };
+/** Whole years of professional work as of `now`. */
+export function careerYears(now: number = Date.now()): number {
+  return Math.max(0, Math.floor((now - CAREER_EPOCH) / YEAR_MS));
 }
 
-/* ── Execution log (career events scrolling as trade fills) ─ */
+/* ── Roles ────────────────────────────────────────────────── */
 
-export type ExecAction = "FILL" | "EXEC" | "OPEN" | "CLOSE" | "ROLL";
+/** Year-month, e.g. "2024-09". */
+export type YearMonth = `${number}-${number}`;
 
-export type ExecEntry = {
-  ts: string;
-  action: ExecAction;
-  sec: string;
-  status: string;
-  pos?: boolean;
-};
-
-export const EXEC_LOG: ExecEntry[] = [
-  { ts: "26-04-29", action: "FILL",  sec: "ctrl_bar.component @ gs/pwm",         status: "+12 teams",      pos: true },
-  { ts: "26-03-12", action: "FILL",  sec: "portfolio_v2.refresh",                status: "+80% cov",       pos: true },
-  { ts: "25-09-04", action: "EXEC",  sec: "ai.assist --branch=onboarding",       status: "merged",         pos: true },
-  { ts: "25-04-18", action: "EXEC",  sec: "lavita.ring_wizard --gpt-4 --stripe", status: "shipped",        pos: true },
-  { ts: "24-09-15", action: "OPEN",  sec: "GS.PWM",                              status: "▲ active",       pos: true },
-  { ts: "24-03-08", action: "EXEC",  sec: "odeliya.shopify (16 pages)",          status: "shipped",        pos: true },
-  { ts: "23-02-12", action: "OPEN",  sec: "QC.STUDIO",                           status: "▲ active",       pos: true },
-  { ts: "22-06-22", action: "ROLL",  sec: "peloton.web → next.gql",              status: "+core_vitals",   pos: true },
-  { ts: "21-11-04", action: "FILL",  sec: "guide.launch",                        status: "shipped",        pos: true },
-  { ts: "20-03-02", action: "OPEN",  sec: "PELOTON",                             status: "closed 23-02"              },
-  { ts: "19-04-10", action: "OPEN",  sec: "INDUSTRIOUS",                         status: "closed 19-12"              },
-  { ts: "18-10-22", action: "OPEN",  sec: "ICE.BONDS",                           status: "closed 19-01"              },
-  { ts: "18-06-15", action: "OPEN",  sec: "CYA.INSURE",                          status: "closed 18-10"              },
-  { ts: "17-10-15", action: "EXEC",  sec: "hitbit.arb 26ms · 40+ exch",          status: "▲ pnl",          pos: true },
-  { ts: "16-12-01", action: "OPEN",  sec: "INSTANT.CAR.QUOTE",                   status: "closed 17-09"              },
-];
-
-/* ── Candlesticks (mini OHLC plot per card) ───────────────── */
-
-export type Candle = { bt: number; bb: number; wt: number; wb: number; up: boolean };
-
-export const CANDLES: Candle[] = [
-  { bt: 17, bb: 20, wt: 16, wb: 21, up: true  },
-  { bt: 17, bb: 19, wt: 16, wb: 20, up: false },
-  { bt: 15, bb: 19, wt: 14, wb: 20, up: true  },
-  { bt: 15, bb: 17, wt: 13, wb: 18, up: false },
-  { bt: 12, bb: 17, wt: 11, wb: 18, up: true  },
-  { bt: 12, bb: 14, wt: 10, wb: 15, up: false },
-  { bt: 11, bb: 14, wt:  9, wb: 16, up: true  },
-  { bt:  8, bb: 11, wt:  7, wb: 13, up: true  },
-  { bt:  8, bb: 10, wt:  6, wb: 12, up: false },
-  { bt:  6, bb: 10, wt:  5, wb: 11, up: true  },
-];
-
-/* ── Position book ────────────────────────────────────────── */
-
-export type Position = {
+export type Role = {
   id: string;
-  range: string;
-  size: string;
-  side: "OPEN" | "CLOSED" | "META";
-  ticker: string;
-  desc: string;
-  pnl: string;
-  accent: string;
-  basis: string;
-  strikes: string[];
-  instr: string[];
+  company: string;
+  /** One plain line: what the job was. */
+  role: string;
+  start: YearMonth;
+  /** null = current. */
+  end: YearMonth | null;
+  /** What the work involved, in a sentence or two. */
+  summary: string;
+  highlights: string[];
+  tools: string[];
+  link?: { href: string; label: string };
 };
 
-export const POSITIONS: Position[] = [
+export const ROLES: Role[] = [
   {
-    id: "site",
-    range: "26 → ●",
-    size: "1 site",
-    side: "META",
-    ticker: "MM.NYC.SITE",
-    desc: "the art behind this position · click",
-    pnl: "read me",
-    accent: "var(--lightning)",
-    basis:
-      "This site borrows the dense-data ergonomics of a trading desk to describe a software engineering career. The palette is Rolex Milgauss — Z-blue dial, lightning-orange seconds hand, green sapphire crystal, brushed steel — and the visual grammar is Bloomberg: spec sheets, position books, fund holdings, execution logs, analyst tear sheets. Every finance term that appears here was chosen because it carries a second meaning that maps onto a career.",
-    strikes: [
-      "POSITIONS · jobs reframed as open + closed trading positions, with entry / exit / ΔP",
-      "HOLDINGS · the tech stack rendered as a fund-allocation table — weight bars, tenor, LIVE/HELD marks",
-      "Execution log · career events scrolling like a trade ticker (FILL · EXEC · OPEN · CLOSE · ROLL)",
-      "Tear sheets · every position click expands BASIS · STRIKES · INSTRUMENTS · SIZE · TENOR",
-      "Candlesticks · domain expertise as OHLC price action — accent up, Milgauss-red down",
-      "Sound · Web Audio sine tones for hover ticks + directional fills (BUY rises, SELL descends)",
-      "Double meanings · POSITIONS · HOLDINGS · TENOR · SIZE · MARK · STRIKES · BASIS · INSTRUMENTS · VENUES · CYCLE — each reads in two languages",
+    id: "goldman",
+    company: "Goldman Sachs",
+    role: "Private Wealth Management · portfolio platform for brokers and clients",
+    start: "2024-09",
+    end: null,
+    summary:
+      "Frontend on the Private Wealth portfolio platform that brokers and high-net-worth clients rely on every day. I own core portfolio-management pages inside a large React, TypeScript and MobX application.",
+    highlights: [
+      "Built the reusable Control Bar and Currency Picker, now used by 12 teams across the app",
+      "Led the portfolio UX redesign and frontend refactor, aligned with the firm's design system",
+      "Raised unit-test coverage past 80% with Jest, making releases more reliable",
+      "Mentor and onboard analysts on architecture, testing and code quality",
     ],
-    instr: ["Next.js", "TypeScript", "styled-jsx", "Tailwind", "Web Audio", "SVG"],
+    tools: ["TypeScript", "React", "MobX", "Jest"],
   },
   {
-    id: "gs",
-    range: "24-09 → ●",
-    size: "100%",
-    side: "OPEN",
-    ticker: "GS.PWM",
-    desc: "Private Wealth · Frontend on portfolio platform for brokers + HNW clients",
-    pnl: "+12 teams",
-    accent: "var(--z-blue)",
-    basis:
-      "Frontend on the Goldman Sachs Private Wealth platform. Brokers and high-net-worth clients depend on it daily. I own 2–4 core portfolio management pages inside a large-scale React + TypeScript + MobX SPA.",
-    strikes: [
-      "Built reusable Control Bar + Currency Picker — adopted across the broader app",
-      "Led portfolio UX redesign + frontend refactor; aligned with internal design system",
-      "Lifted unit-test coverage to 80%+ with Jest, strengthening release reliability",
-      "Mentor + onboard analysts on architecture, testing, and code quality",
+    id: "quentin",
+    company: "Quentin Software",
+    role: "My studio · AI-first product development, fractional CTO",
+    start: "2023-02",
+    end: null,
+    summary:
+      "My solo studio: AI-first product development, prototypes that ship, and fractional CTO work for early-stage teams, covering planning, marketing strategy, integrations and the whole stack.",
+    highlights: [
+      "Lavita Labs: a diamond-ring design wizard with GPT-4 and Stripe checkout",
+      "Odeliya Probeauty: a full Shopify build, 16 pages with custom sign-in and subscriptions",
+      "uwu Labs: a profile-picture image gallery on React and Firebase",
+      "Cut CI time in half on partner codebases",
     ],
-    instr: ["TypeScript", "React", "MobX", "Jest"],
-  },
-  {
-    id: "qc",
-    range: "23-02 → ●",
-    size: "fractional",
-    side: "OPEN",
-    ticker: "QC.STUDIO",
-    desc: "Solo studio · AI prototypes · fractional CTO for early-stage teams",
-    pnl: "+9 ships",
-    accent: "var(--lightning)",
-    basis:
-      "Solo studio. AI R&D + prototypes that ship. Fractional CTO for early-stage teams — planning, marketing strategy, integrations, the whole stack.",
-    strikes: [
-      "uwu Labs — PFP image gallery (React + Firebase)",
-      "Lavita Labs — diamond ring wizard (Next.js + GPT-4 + Stripe)",
-      "Odeliya Probeauty — full Shopify build, 16 pages + custom auth + subscriptions",
-      "Cut CI time 50% on partner repos",
-    ],
-    instr: ["Next.js", "GPT-4", "Firebase", "Stripe", "Shopify"],
+    tools: ["Next.js", "GPT-4", "Firebase", "Stripe", "Shopify"],
+    link: { href: "https://www.quentin.software/", label: "quentin.software" },
   },
   {
     id: "peloton",
-    range: "20-03 → 23-02",
-    size: "100%",
-    side: "CLOSED",
-    ticker: "PELOTON",
-    desc: "E-commerce React → Next.js + GraphQL · Guide launch · design system",
-    pnl: "+core_vitals",
-    accent: "var(--crystal)",
-    basis:
-      "Owned chunks of the e-commerce web stack. Migrated React to Next.js + GraphQL. Hosted the Blockchain/Web3 working group. Drove cross-functional launches.",
-    strikes: [
-      "Migrated React e-commerce → Next.js + GraphQL — Core Web Vitals up across the funnel",
-      "Guided design-system team to ship a Storybook UI library from scratch",
-      "Led the Guide product launch — cross-fn with product, marketing, content, design, SRE, DevOps",
-      "Refreshed home / bike / bike+ / tread pages — sales funnel cut from 7 steps to 3",
+    company: "Peloton",
+    role: "E-commerce web · Next.js and GraphQL replatform",
+    start: "2020-03",
+    end: "2023-02",
+    summary:
+      "Owned large parts of the e-commerce web stack, moved it from React to Next.js and GraphQL, ran the Blockchain/Web3 working group, and drove cross-team launches.",
+    highlights: [
+      "Moved the store from React to Next.js and GraphQL; Core Web Vitals improved across the funnel",
+      "Guided the design-system team to ship a Storybook component library from scratch",
+      "Led the Guide product launch across product, marketing, content, design, SRE and DevOps",
+      "Rebuilt the home, Bike, Bike+ and Tread pages and cut checkout from 7 steps to 3",
     ],
-    instr: ["React", "Next.js", "GraphQL", "Storybook", "TypeScript"],
+    tools: ["React", "Next.js", "GraphQL", "Storybook", "TypeScript"],
   },
   {
     id: "industrious",
-    range: "19-04 → 19-12",
-    size: "100%",
-    side: "CLOSED",
-    ticker: "INDUSTRIOUS",
-    desc: "Coworking platform · UI library · React → Gatsby + GraphQL (formerly CBRE Hana)",
-    pnl: "+ui_lib v1",
-    accent: "var(--steel)",
-    basis:
-      "Marketing + operations tech for the coworking platform — formerly CBRE Hana Workplaces.",
-    strikes: [
-      "Built UI library for component reuse across marketing + ops surfaces",
-      "Set up CI/CD pipelines for streamlined deploys",
-      "Migrated React → GatsbyJS + GraphQL",
-      "Secured sign-in pages; extended marketing + coworking platforms",
+    company: "Industrious",
+    role: "Coworking platform · marketing and operations web (formerly CBRE Hana)",
+    start: "2019-04",
+    end: "2019-12",
+    summary:
+      "Marketing and operations software for the coworking platform formerly known as CBRE Hana Workplaces.",
+    highlights: [
+      "Built a shared component library for the marketing and operations sites",
+      "Set up CI/CD pipelines for faster, safer deploys",
+      "Migrated the sites from React to Gatsby and GraphQL",
+      "Secured the sign-in pages and extended the coworking platform",
     ],
-    instr: ["React", "Gatsby", "GraphQL"],
+    tools: ["React", "Gatsby", "GraphQL"],
   },
   {
-    id: "icebonds",
-    range: "18-10 → 19-01",
-    size: "100%",
-    side: "CLOSED",
-    ticker: "ICE.BONDS",
-    desc: "Lead frontend · Angular RFQ for institutional bond trading",
-    pnl: "+cusip.parser",
-    accent: "var(--z-blue)",
-    basis:
-      "Lead frontend on the Angular RFQ app for institutional bond trading. Formerly Bondpoint.",
-    strikes: [
-      "Built CUSIP parser — auto-extracts from clipboard, fills validation form",
-      "Streamlined the quote-request workflow",
+    id: "ice",
+    company: "ICE Bonds",
+    role: "Lead frontend · institutional bond trading (formerly BondPoint)",
+    start: "2018-10",
+    end: "2019-01",
+    summary:
+      "Lead frontend engineer on the Angular request-for-quote application institutions use to trade bonds.",
+    highlights: [
+      "Built a CUSIP parser that reads bond IDs straight from the clipboard and fills the order form",
+      "Simplified the quote-request workflow for traders",
     ],
-    instr: ["Angular", "TypeScript"],
+    tools: ["Angular", "TypeScript"],
   },
   {
-    id: "cya",
-    range: "18-06 → 18-10",
-    size: "100%",
-    side: "CLOSED",
-    ticker: "CYA.INSURE",
-    desc: "Tech lead · client-facing warranty platform",
-    pnl: "+200ms loads",
-    accent: "var(--crystal)",
-    basis:
-      "Tech lead on the customer-facing warranty + claims platform for CPS Central. Subsidiary build.",
-    strikes: [
-      "TypeScript / Angular / Ionic on AWS EC2",
-      "Server-side rendering + lazy loading + code splitting",
-      "Page loads under 200ms",
-      "Instituted weekly code discussions + agile workflow",
+    id: "cps",
+    company: "CPS Central",
+    role: "Tech lead · CYA warranty and claims platform",
+    start: "2018-06",
+    end: "2018-10",
+    summary:
+      "Tech lead on CYA, the customer-facing warranty and claims platform, built for a CPS Central subsidiary.",
+    highlights: [
+      "Server-side rendering, lazy loading and code splitting brought page loads under 200ms",
+      "Introduced weekly code discussions and an agile workflow to the team",
+      "Built with TypeScript, Angular and Ionic on AWS",
     ],
-    instr: ["TypeScript", "Angular", "Ionic", "AWS"],
+    tools: ["TypeScript", "Angular", "Ionic", "AWS"],
   },
   {
     id: "hitbit",
-    range: "17-10 → 18-05",
-    size: "100%",
-    side: "CLOSED",
-    ticker: "HITBIT",
-    desc: "Lead full-stack · HFT arbitrage · 26ms · 40+ exchanges · BigQuery",
-    pnl: "▲ pnl 26ms",
-    accent: "var(--lightning)",
-    basis:
-      "Lead full-stack on real-time HFT + quant trading algos. The room where 26ms mattered.",
-    strikes: [
-      "Arbitrage trades executing under 26ms",
-      "Real-time database + BigQuery for volatility analysis across 40+ exchanges",
-      "Trading strategies + profitability significantly enhanced",
+    company: "HitBit",
+    role: "Lead full-stack · high-frequency arbitrage trading",
+    start: "2017-10",
+    end: "2018-05",
+    summary:
+      "Lead full-stack engineer on real-time, high-frequency trading and quantitative strategies, where 26 milliseconds mattered.",
+    highlights: [
+      "Arbitrage trades executing in under 26 milliseconds",
+      "Real-time data and BigQuery analysis of volatility across more than 40 exchanges",
+      "Strategy work that made the trading measurably more profitable",
     ],
-    instr: ["TypeScript", "Node", "GCP", "Kafka", "BigQuery"],
+    tools: ["TypeScript", "Node", "GCP", "Kafka", "BigQuery"],
   },
   {
     id: "icq",
-    range: "16-12 → 17-09",
-    size: "100%",
-    side: "CLOSED",
-    ticker: "INSTANT.CAR.QUOTE",
-    desc: "Lead full-stack · leasing wizard · C# engine → REST API",
-    pnl: "+rest engine",
-    accent: "var(--steel)",
-    basis:
-      "Lead full-stack on a car configuration + leasing wizard.",
-    strikes: [
-      "Full-stack wizard — TypeScript / Angular / Node / AWS",
-      "Repurposed the legacy C# leasing engine into a REST API",
+    company: "Instant Car Quote",
+    role: "Lead full-stack · car configuration and leasing",
+    start: "2016-12",
+    end: "2017-09",
+    summary: "Lead full-stack engineer on a car configuration and leasing wizard.",
+    highlights: [
+      "Built the full wizard on TypeScript, Angular, Node and AWS",
+      "Turned the legacy C# leasing engine into a REST API",
     ],
-    instr: ["TypeScript", "Angular", "Node", "AWS", "C#"],
+    tools: ["TypeScript", "Angular", "Node", "AWS", "C#"],
   },
 ];
 
-/* ── Holdings (tech stack as fund allocation) ─────────────── */
+/* ── Tools (plain list, no weights) ───────────────────────── */
 
-export type Holding = {
-  tkr: string;
-  wt: number;       // % allocation
-  tenor: string;    // years on the desk
-  mark: "LIVE" | "HELD";
-};
-
-export const HOLDINGS: Holding[] = [
-  // Weights are an allocation: must sum to 100. Adjust here, not in the JSX.
-  { tkr: "typescript",     wt: 17, tenor: "9y", mark: "LIVE" },
-  { tkr: "react",          wt: 15, tenor: "9y", mark: "LIVE" },
-  { tkr: "next.js",        wt: 13, tenor: "6y", mark: "LIVE" },
-  { tkr: "node",           wt: 12, tenor: "9y", mark: "LIVE" },
-  { tkr: "python",         wt:  8, tenor: "7y", mark: "LIVE" },
-  { tkr: "graphql",        wt:  7, tenor: "5y", mark: "LIVE" },
-  { tkr: "tailwind",       wt:  6, tenor: "4y", mark: "LIVE" },
-  { tkr: "bun",            wt:  4, tenor: "1y", mark: "LIVE" },
-  { tkr: "websockets",     wt:  3, tenor: "8y", mark: "LIVE" },
-  { tkr: "rest",           wt:  3, tenor: "9y", mark: "LIVE" },
-  { tkr: "mongodb",        wt:  3, tenor: "6y", mark: "HELD" },
-  { tkr: "firebase",       wt:  3, tenor: "5y", mark: "HELD" },
-  { tkr: "aws",            wt:  2, tenor: "9y", mark: "LIVE" },
-  { tkr: "gcp",            wt:  1, tenor: "7y", mark: "HELD" },
-  { tkr: "llms · gpt-4",   wt:  1, tenor: "3y", mark: "LIVE" },
-  { tkr: "docker",         wt:  1, tenor: "5y", mark: "LIVE" },
-  { tkr: "github actions", wt:  1, tenor: "6y", mark: "LIVE" },
+export const TOOLS: string[] = [
+  "TypeScript",
+  "React",
+  "Next.js",
+  "Node",
+  "Python",
+  "GraphQL",
+  "Tailwind",
+  "Bun",
+  "WebSockets",
+  "REST",
+  "MongoDB",
+  "Firebase",
+  "AWS",
+  "GCP",
+  "LLMs",
+  "Docker",
+  "GitHub Actions",
 ];
 
-/* ── Derived counts for the hero spec sheet ───────────────── */
+/* ── Open source (npm package family) ─────────────────────── */
 
-export function countOpenPositions(positions: Position[] = POSITIONS): number {
-  return positions.filter((p) => p.side === "OPEN").length;
+export type OssPackage = {
+  /** npm package name — the listing lives at npmjs.com/package/<name>. */
+  name: string;
+  /** GitHub repo when it differs from the npm name (renamed at publish). */
+  repo?: string;
+  /** Rendered on the homepage; the rest sit behind the "all packages" link. */
+  featured?: true;
+  desc: string;
+  group:
+    | "Rates & Treasury"
+    | "FX & Volatility"
+    | "Market Structure"
+    | "Startup Equity"
+    | "Crypto & Consumer Credit"
+    | "Off Desk";
+};
+
+/**
+ * The npm package family. Every package is zero-dependency TypeScript with
+ * homepage + author pointing back at moshemalka.com; rows render in the
+ * Open Source section and feed the SoftwareSourceCode structured data.
+ */
+export const OSS_PACKAGES: OssPackage[] = [
+  { name: "32nds", featured: true,                     group: "Rates & Treasury", desc: "US Treasury price math — 32nds quotes (105-16+), ticks, basis points" },
+  { name: "treasury-bill-yield",       group: "Rates & Treasury", repo: "tbill", desc: "T-bill math — discount rate ↔ price ↔ bond-equivalent yield" },
+  { name: "accrued-interest",          group: "Rates & Treasury", desc: "Bond accrued interest between coupon dates, across day-count bases" },
+  { name: "day-count-conventions",     group: "Rates & Treasury", repo: "day-count", desc: "ISDA day counts — 30/360, ACT/360, ACT/365F, ACT/ACT & friends" },
+  { name: "tips-index-ratio",          group: "Rates & Treasury", desc: "TIPS inflation math — reference-CPI interpolation & index ratios" },
+  { name: "compounded-sofr", featured: true,           group: "Rates & Treasury", desc: "SOFR compounding in arrears — ARRC & ISDA conventions, SOFR Index" },
+  { name: "sifma-holidays",            group: "Rates & Treasury", desc: "US bond-market holidays, early closes, and settlement dates" },
+  { name: "treasurydirect", featured: true,            group: "Rates & Treasury", desc: "Typed client for the US Treasury's auction & securities APIs" },
+  { name: "newyorkfed",                group: "Rates & Treasury", desc: "Typed client for the NY Fed Markets Data API — SOFR, EFFR, SOMA" },
+  { name: "treasury-fiscaldata",       group: "Rates & Treasury", desc: "Typed client for Treasury FiscalData — Debt to the Penny & more" },
+  { name: "fx-value-date",             group: "FX & Volatility",  desc: "FX settlement dates — spot, tom, forward tenors, dual calendars" },
+  { name: "fx-forward-math",           group: "FX & Volatility",  desc: "Forward points ↔ outrights, cross rates, triangular arbitrage" },
+  { name: "hagan-sabr", featured: true,                group: "FX & Volatility",  desc: "SABR implied vol — Hagan 2002 expansions, Obłój fix, calibration" },
+  { name: "svi-vol-surface",           group: "FX & Volatility",  desc: "Gatheral SVI surfaces — parametrizations, arbitrage checks, fits" },
+  { name: "instrument-identifiers", featured: true,    group: "Market Structure", desc: "CUSIP, ISIN, SEDOL, FIGI, LEI — check digits, parsing, conversion" },
+  { name: "us-equity-market-calendar", group: "Market Structure", desc: "NYSE / NASDAQ trading calendar — holidays, early closes, sessions" },
+  { name: "commitments-of-traders",    group: "Market Structure", desc: "Typed client for CFTC Commitments of Traders reports" },
+  { name: "safe-stack-conversion", featured: true,     group: "Startup Equity",   desc: "YC SAFEs & convertible notes → pro-forma cap table at a priced round" },
+  { name: "exit-waterfall",            group: "Startup Equity",   desc: "Liquidation-preference waterfalls — seniority, participation, conversion" },
+  { name: "priced-round-math",         group: "Startup Equity",   desc: "Priced-round dilution — the option-pool shuffle, PPS, ownership" },
+  { name: "vesting-schedule-math",     group: "Startup Equity",   desc: "Equity vesting — cliffs, tranches, fractional shares, acceleration" },
+  { name: "perp-funding-math",         group: "Crypto & Consumer Credit", desc: "Perp funding — payments, APR/APY, cross-venue arb carry" },
+  { name: "reg-z-apr", featured: true,                 group: "Crypto & Consumer Credit", desc: "Truth in Lending APR — the Reg Z Appendix J actuarial method" },
+  { name: "rmd-uniform-lifetime",      group: "Off Desk",         desc: "IRS required-minimum-distribution math — Pub 590-B life tables" },
+  { name: "mispar", featured: true,                    group: "Off Desk",         desc: "Hebrew gematria — 13 classical methods, atbash & albam transforms" },
+  { name: "dicta-nakdan",              group: "Off Desk",         desc: "Typed client for Dicta's Nakdan API — automatic Hebrew nikud" },
+];
+
+/* ── Formatting ───────────────────────────────────────────── */
+
+const MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+/** "2024-09" → "Sep 2024". */
+export function formatYearMonth(ym: YearMonth): string {
+  const [y, m] = ym.split("-").map(Number);
+  return `${MONTHS[m - 1]} ${y}`;
 }
 
-export function countCareerPositions(positions: Position[] = POSITIONS): number {
-  return positions.filter((p) => p.side === "OPEN" || p.side === "CLOSED").length;
+/** "Sep 2024 – now" or "Mar 2020 – Feb 2023". */
+export function formatRange(start: YearMonth, end: YearMonth | null): string {
+  return `${formatYearMonth(start)} – ${end ? formatYearMonth(end) : "now"}`;
+}
+
+/** Whole months between two year-months; an open role runs to `now`. */
+export function tenureMonths(
+  start: YearMonth,
+  end: YearMonth | null,
+  now: Date = new Date()
+): number {
+  const [sy, sm] = start.split("-").map(Number);
+  const [ey, em] = end
+    ? end.split("-").map(Number)
+    : [now.getFullYear(), now.getMonth() + 1];
+  return Math.max(1, (ey - sy) * 12 + (em - sm));
+}
+
+/** 35 → "2 yr 11 mo". */
+export function formatTenure(months: number): string {
+  const y = Math.floor(months / 12);
+  const m = months % 12;
+  return [y ? `${y} yr` : "", m ? `${m} mo` : ""].filter(Boolean).join(" ");
 }
