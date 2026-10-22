@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import Head from "next/head";
+import Link from "next/link";
 import Script from "next/script";
 import {
   OSS_PACKAGES,
@@ -692,7 +693,7 @@ export default function Home({ asOf, revision }: Props) {
             <a href="#open-source">Open source</a>
             <a href="#shevirah">Shevirah</a>
             <a href="#studio">Studio</a>
-            <a href="/study">Library</a>
+            <Link href="/study">Library</Link>
           </nav>
           <a className="c-btn c-btn--primary c-btn--sm" href={`mailto:${EMAIL}`}>
             Email me
@@ -831,7 +832,7 @@ export default function Home({ asOf, revision }: Props) {
             <p>© {new Date(asOf).getFullYear()} Moshe Malka · New York City</p>
             <ul className="c-links" aria-label="More">
               <li>
-                <a href="/study">The Study</a>
+                <Link href="/study">The Study</Link>
               </li>
               <li>
                 <a href={GITHUB} target="_blank" rel="noopener noreferrer">
