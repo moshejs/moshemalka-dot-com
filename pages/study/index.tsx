@@ -83,6 +83,12 @@ export default function StudyPage({ library, source }: Props) {
         <meta property="og:description" content="A lamplit 3D study of the books Moshe Malka has read, shelved by subject." />
         <meta property="og:image" content="https://moshemalka.com/og-image.jpg" />
         <meta name="twitter:card" content="summary_large_image" />
+        {source === "library" && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(studyStructuredData(library)) }}
+          />
+        )}
       </Head>
       <main className={`study ${studyFontVars} relative h-[100dvh] w-screen overflow-hidden`}>
         <div className="absolute inset-0">
@@ -135,6 +141,27 @@ export default function StudyPage({ library, source }: Props) {
 
         <BookDetail book={pulled} onClose={close} onStep={step} />
 
+        {/* The room is a WebGL canvas that assistive tech can't read, so the
+            catalog is mirrored here as plain lists. Server-rendered. */}
+        {source === "library" && (
+          <section className="sr-only" aria-label="Catalog">
+            <h2>Catalog of Moshe Malka&rsquo;s library</h2>
+            {shelves.map((s) => (
+              <div key={s.id}>
+                <h3>{s.label}</h3>
+                <ul>
+                  {s.books.map((b) => (
+                    <li key={b.id}>
+                      <cite>{b.title}</cite>
+                      {b.authors.length > 0 && ` by ${b.authors.join(", ")}`}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </section>
+        )}
+
         <footer
           className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 flex flex-col items-center gap-1 px-4 pb-4 text-center transition-opacity duration-500 ${
             pulled ? "opacity-0" : "opacity-100"
@@ -152,6 +179,40 @@ export default function StudyPage({ library, source }: Props) {
       </main>
     </>
   );
+}
+
+const SITE_URL = "https://moshemalka.com";
+
+/** The @ids must match the homepage's graph so both pages describe one Person. */
+function studyStructuredData(library: Library) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": `${SITE_URL}/study#webpage`,
+    url: `${SITE_URL}/study`,
+    name: "The Study · Moshe Malka",
+    description: "Moshe Malka's library — the books he's read, shelved by subject.",
+    isPartOf: { "@id": `${SITE_URL}/#website` },
+    about: { "@id": `${SITE_URL}/#person` },
+    author: { "@id": `${SITE_URL}/#person` },
+    inLanguage: "en",
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: library.books.length,
+      itemListElement: library.books.map((b, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        item: {
+          "@type": "Book",
+          name: b.title,
+          ...(b.authors.length && {
+            author: b.authors.map((name) => ({ "@type": "Person", name })),
+          }),
+          ...((b.isbn13 ?? b.isbn10) && { isbn: b.isbn13 ?? b.isbn10 }),
+        },
+      })),
+    },
+  };
 }
 
 // Deterministic per-book variance so the shelf isn't a row of clones.
