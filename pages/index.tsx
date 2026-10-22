@@ -692,6 +692,7 @@ export default function Home({ asOf, revision }: Props) {
             <a href="#open-source">Open source</a>
             <a href="#shevirah">Shevirah</a>
             <a href="#studio">Studio</a>
+            <a href="/study">Library</a>
           </nav>
           <a className="c-btn c-btn--primary c-btn--sm" href={`mailto:${EMAIL}`}>
             Email me
@@ -828,7 +829,10 @@ export default function Home({ asOf, revision }: Props) {
           </div>
           <div className="c-foot">
             <p>© {new Date(asOf).getFullYear()} Moshe Malka · New York City</p>
-            <ul className="c-links" aria-label="Profiles">
+            <ul className="c-links" aria-label="More">
+              <li>
+                <a href="/study">The Study</a>
+              </li>
               <li>
                 <a href={GITHUB} target="_blank" rel="noopener noreferrer">
                   GitHub {Icon.arrow}

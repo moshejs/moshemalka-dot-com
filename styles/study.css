@@ -12,9 +12,17 @@
   color: #fff8ea;
 }
 
+/* Gold focus rings in the study (theme.css's site-wide ring is blue and loads later,
+   so these selectors are deliberately more specific). */
 .study :focus-visible:not([tabindex="-1"]) {
   outline: 2px solid #c9a36a;
   outline-offset: 3px;
+}
+
+/* The catalog card receives focus programmatically for screen readers; no ring. */
+.study [tabindex="-1"]:focus,
+.study [tabindex="-1"]:focus-visible {
+  outline: none;
 }
 
 /* Catalog card stock: warm cream with paper fibre, a soft resting shadow. */

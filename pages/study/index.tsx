@@ -75,7 +75,14 @@ export default function StudyPage({ library, source }: Props) {
     <>
       <Head>
         <title>The Study · Moshe Malka</title>
-        <meta name="description" content="A lamplit study of the books I've read." />
+        <meta name="description" content="Moshe Malka's library — a lamplit 3D study of the books he's read, shelved by subject." />
+        <link rel="canonical" href="https://moshemalka.com/study" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://moshemalka.com/study" />
+        <meta property="og:title" content="The Study · Moshe Malka" />
+        <meta property="og:description" content="A lamplit 3D study of the books Moshe Malka has read, shelved by subject." />
+        <meta property="og:image" content="https://moshemalka.com/og-image.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
       </Head>
       <main className={`study ${studyFontVars} relative h-[100dvh] w-screen overflow-hidden`}>
         <div className="absolute inset-0">
