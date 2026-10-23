@@ -148,11 +148,13 @@ export function Dial() {
         }
       >
         {/* Milgauss seconds hand: long tail, straight shaft, one compact
-            lightning-bolt step (forward-left, hairpin right, forward-left back
-            onto the axis), then an arrowhead tip. */}
+            lightning-bolt step, then an arrowhead tip. Every segment moves
+            outward and the step is point-symmetric about the axis (out-left,
+            across-right, out-left back onto it), so the hand reads straight;
+            a step that doubled back toward the pin made it look bent. */}
         <path
           className="c-dial__bolt"
-          d="M0 52 L0 -92 L-7.5 -114 L7.5 -107 L0 -130 L0 -157"
+          d="M0 52 L0 -96 L-6.5 -110 L6.5 -114 L0 -128 L0 -157"
         />
         <path className="c-dial__boltcap" d="M0 -180 L5.5 -155 L-5.5 -155 Z" />
         <circle className="c-dial__boltcap" r="6" />
