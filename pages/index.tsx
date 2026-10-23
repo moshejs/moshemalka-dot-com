@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import Script from "next/script";
+import dynamic from "next/dynamic";
 import {
   OSS_PACKAGES,
   ROLES,
@@ -13,6 +14,11 @@ import {
   type Role,
 } from "@/lib/portfolio";
 import { Dial } from "@/components/Dial";
+
+// Live Spotify + Oura bands under the hero; client-only, since they poll.
+const NowStrip = dynamic(() => import("@/components/LiveStats").then((m) => m.NowStrip), { ssr: false });
+const NowTrends = dynamic(() => import("@/components/LiveStats").then((m) => m.NowTrends), { ssr: false });
+const NowPatterns = dynamic(() => import("@/components/Insights").then((m) => m.NowPatterns), { ssr: false });
 
 /**
  * Moshe Malka — product-grade.
@@ -374,15 +380,14 @@ function FeaturedPackage() {
   );
 }
 
-// Most-downloaded packages lead the grid; the rest keep their family order.
+// Only the three most-downloaded packages are promoted; the rest are one
+// click away on npm.
 const TOP_PACKAGES = ["us-equity-market-calendar", "options-greeks", "options-expiration"];
-const topRank = (name: string) => {
-  const i = TOP_PACKAGES.indexOf(name);
-  return i === -1 ? TOP_PACKAGES.length : i;
-};
-const FEATURED = OSS_PACKAGES.filter((p) => p.featured && p.name !== "32nds").sort(
-  (a, b) => topRank(a.name) - topRank(b.name)
-);
+const FEATURED = TOP_PACKAGES.map((name) => {
+  const pkg = OSS_PACKAGES.find((p) => p.name === name);
+  if (!pkg) throw new Error(`TOP_PACKAGES lists unknown package ${name}`);
+  return pkg;
+});
 
 function OpenSource() {
   return (
@@ -777,6 +782,15 @@ export default function Home({ asOf, revision }: Props) {
             </figcaption>
           </figure>
         </section>
+
+        {/* Live data under the hero: one 12-column rhythm per band (a wide
+            card, then two compact ones). Each band renders nothing until its
+            provider is connected. */}
+        <div className="c-dash">
+          <NowStrip />
+          <NowTrends />
+          <NowPatterns />
+        </div>
 
         <Work asOf={asOf} />
         <OpenSource />

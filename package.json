@@ -11,7 +11,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "study:amazon": "tsx scripts/import-amazon.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "connect": "node scripts/connect.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.114.0",
