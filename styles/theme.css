@@ -937,15 +937,30 @@ a:hover > .c-arrow { transform: translate(2px, -2px); }
 
 /* ── Right now (live Spotify + Oura, under the hero shot) ─── */
 
-/* Top-align the hero so the strip appearing after load doesn't re-centre
-   the copy column. */
-.c-hero { align-items: start; }
-.c-hero__side { min-width: 0; }
+/* The hero splits the live data across both columns: now-playing and scores
+   under the dial (right), two-week trends under the intro (left). The right
+   column spans both rows; row 2 absorbs its extra height so the trends sit
+   directly under the intro. Top-aligned so data arriving after load doesn't
+   re-centre the copy. */
+.c-hero {
+  grid-template-rows: auto 1fr;
+  align-items: start;
+  row-gap: 44px;
+}
+.c-hero__copy { grid-column: 1; grid-row: 1; }
+.c-hero__side { grid-column: 2; grid-row: 1 / span 2; min-width: 0; }
+.c-hero__trends { grid-column: 1; grid-row: 2; min-width: 0; }
+.c-hero__trends:empty { display: none; }
 
 .c-now {
-  /* Clear the portrait, which hangs 7% (of this column's width) below the shot. */
-  margin-top: calc(7% + 28px);
+  /* Chart marks: history recedes, the latest reading carries the accent.
+     Validated on --surface: both >= 3:1, and ΔE 22.9 apart. */
+  --viz-muted: #56627a;
+  --viz-accent: var(--z-blue-hi);
+  --viz-ref: rgba(238, 242, 248, 0.42);
 }
+/* Clear the portrait, which hangs 7% (of this column's width) below the shot. */
+.c-now--side { margin-top: calc(7% + 28px); }
 .c-now__head {
   display: flex;
   flex-wrap: wrap;
@@ -987,12 +1002,13 @@ a:hover > .c-arrow { transform: translate(2px, -2px); }
 .c-now__card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
   padding: 16px 18px;
 }
+.c-now__card--wide { grid-column: 1 / -1; }
 .c-now__card--listen {
-  grid-column: 1 / -1;
+  gap: 10px;
   background:
     radial-gradient(360px 180px at 0% 0%, rgba(93, 187, 154, 0.1), transparent 70%),
     linear-gradient(180deg, var(--surface-2), var(--surface));
@@ -1009,6 +1025,7 @@ a:hover > .c-arrow { transform: translate(2px, -2px); }
   color: var(--soft);
 }
 
+/* Listening */
 .c-now__song { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .c-now__art {
   flex: none;
@@ -1035,7 +1052,6 @@ span.c-now__art { display: grid; place-items: center; color: rgba(238, 242, 248,
 a.c-now__track { transition: color 160ms var(--ease-out); }
 a.c-now__track:hover { color: var(--z-blue-hi); }
 .c-now__artist { font-size: 0.875rem; color: var(--muted); }
-
 .c-now__progress {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -1057,29 +1073,119 @@ a.c-now__track:hover { color: var(--z-blue-hi); }
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--z-blue-hi);
+  background: var(--viz-accent);
   transition: width 1s linear;
 }
 
+/* Stat tiles: label · value · delta · trend · readout */
 .c-now__score {
   margin: 0;
   font-weight: 650;
-  font-size: 2rem;
+  font-size: 1.875rem;
   line-height: 1;
-  letter-spacing: -0.04em;
-  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.035em;
   color: var(--ink);
 }
-.c-now__score.is-optimal { color: var(--crystal); }
-.c-now__score.is-optimal + .c-now__bar > span { background: var(--crystal); }
-.c-now__of { margin-left: 3px; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0; color: var(--soft); }
-.c-now__detail { margin: 0; font-family: var(--f-mono); font-size: 0.6875rem; line-height: 1.5; color: var(--soft); }
+.c-now__of {
+  margin-left: 5px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--soft);
+}
+.c-delta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  min-height: 1.25em;
+  font-size: 0.75rem;
+  line-height: 1.25;
+  color: var(--muted);
+}
+.c-delta.is-good { color: var(--crystal); }
+.c-now__plot { margin-top: 2px; min-width: 0; }
+.c-now__detail {
+  margin: 0;
+  font-family: var(--f-mono);
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  color: var(--soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Sparkline */
+.c-spark,
+.c-steps { display: block; overflow: visible; cursor: crosshair; touch-action: pan-y; }
+.c-spark:focus-visible,
+.c-steps:focus-visible { outline-offset: 4px; }
+.c-spark__line {
+  fill: none;
+  stroke: var(--viz-muted);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.c-spark__lone { fill: var(--viz-muted); }
+.c-spark__end {
+  fill: var(--viz-accent);
+  stroke: var(--surface);
+  stroke-width: 2;
+  paint-order: stroke;
+}
+.c-spark__cross,
+.c-steps__cross { stroke: var(--border-2); stroke-width: 1; }
+
+/* Steps */
+.c-steps__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+.c-steps__figure { display: grid; gap: 8px; }
+.c-steps__avg {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 2px;
+  font-family: var(--f-mono);
+  font-size: 0.6875rem;
+  color: var(--soft);
+}
+.c-steps__key { width: 14px; height: 0; border-top: 1px solid var(--viz-ref); }
+.c-steps__bar { fill: var(--viz-muted); transition: fill 120ms var(--ease-out); }
+.c-steps__bar.is-latest { fill: var(--viz-accent); }
+.c-steps__bar.is-active { fill: var(--steel); }
+.c-steps__avgline { stroke: var(--viz-ref); stroke-width: 1; shape-rendering: crispEdges; }
+.c-steps__axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: -2px;
+  font-family: var(--f-mono);
+  font-size: 0.625rem;
+  color: var(--soft);
+}
 
 @media (max-width: 960px) {
+  .c-hero { grid-template-rows: none; row-gap: 0; }
+  .c-hero__copy,
+  .c-hero__side,
+  .c-hero__trends { grid-column: 1; grid-row: auto; }
   .c-hero__side { width: min(100%, 440px); justify-self: center; }
   .c-hero__side .c-shot { width: 100%; }
+  .c-hero__trends { width: min(100%, 440px); justify-self: center; margin-top: 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .c-live--pulse { animation: none; }
-  .c-now__bar > span { transition: none; }
+  .c-now__bar > span,
+  .c-steps__bar { transition: none; }
+}
+@media (forced-colors: active) {
+  .c-spark__line { stroke: CanvasText; }
+  .c-spark__end,
+  .c-steps__bar.is-latest { fill: Highlight; }
+  .c-steps__bar { fill: GrayText; }
 }

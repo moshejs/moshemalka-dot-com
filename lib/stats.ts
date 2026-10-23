@@ -34,14 +34,24 @@ export type SpotifyState =
       playedAt: string;
     };
 
-export type OuraState = {
+/** One calendar day of Oura data. Fields are absent when the ring has no
+    reading for that day (not worn, not synced), so charts can show gaps. */
+export type OuraDay = {
+  day: string;
   readiness?: number;
   sleepScore?: number;
   sleepHours?: number;
-  restingHr?: number;
   hrv?: number;
-  day?: string;
+  restingHr?: number;
+  steps?: number;
 };
+
+export type OuraState = {
+  /** Continuous calendar days, oldest first, ending at the latest day with data. */
+  days: OuraDay[];
+};
+
+export const OURA_DAYS = 14;
 
 export type NowSnapshot = {
   spotify: SpotifyState | null;
@@ -210,6 +220,10 @@ type OuraDailySleep = {
   day: string;
   score: number | null;
 };
+type OuraDailyActivity = {
+  day: string;
+  steps: number | null;
+};
 type OuraSleep = {
   day: string;
   type?: string;
@@ -228,10 +242,13 @@ async function ouraGet<T>(
   path: string,
   token: string
 ): Promise<OuraDaily<T> | null> {
-  const today = new Date();
-  const start = new Date(today);
-  start.setUTCDate(start.getUTCDate() - 3);
-  const url = `${OURA_BASE}/${path}?start_date=${isoDay(start)}&end_date=${isoDay(today)}`;
+  // Oura days are the wearer's local dates, which can run a day ahead of or
+  // behind UTC, so pad both ends and let the caller trim.
+  const start = new Date();
+  start.setUTCDate(start.getUTCDate() - OURA_DAYS - 2);
+  const end = new Date();
+  end.setUTCDate(end.getUTCDate() + 1);
+  const url = `${OURA_BASE}/${path}?start_date=${isoDay(start)}&end_date=${isoDay(end)}`;
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -243,9 +260,10 @@ async function ouraGet<T>(
   return (await res.json()) as OuraDaily<T>;
 }
 
-function latestByDay<T extends { day: string }>(items: T[] | undefined): T | null {
-  if (!items || items.length === 0) return null;
-  return [...items].sort((a, b) => (a.day < b.day ? 1 : -1))[0];
+function addDays(day: string, n: number): string {
+  const d = new Date(`${day}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return isoDay(d);
 }
 
 /* Upstash Redis over REST. The Vercel Marketplace integration sets either
@@ -351,37 +369,64 @@ export async function fetchOuraNow(): Promise<OuraState | null> {
 async function loadOura(): Promise<OuraState | null> {
   const token = await getOuraAccessToken();
   if (!token) return null;
-  const [readinessRes, sleepScoreRes, sleepRes] = await Promise.all([
+  const [readiness, sleepScores, sleeps, activity] = await Promise.all([
     ouraGet<OuraDailyReadiness>("daily_readiness", token),
     ouraGet<OuraDailySleep>("daily_sleep", token),
     ouraGet<OuraSleep>("sleep", token),
+    ouraGet<OuraDailyActivity>("daily_activity", token),
   ]);
 
-  const readiness = latestByDay(readinessRes?.data);
-  const sleepScore = latestByDay(sleepScoreRes?.data);
-  // Sleep periods include naps; prefer the main overnight one.
-  const periods = sleepRes?.data ?? [];
-  const main = periods.filter((p) => p.type === "long_sleep");
-  const sleep = latestByDay(main.length ? main : periods);
-
-  if (!readiness && !sleepScore && !sleep) return null;
-
-  const out: OuraState = {};
-  if (readiness?.score != null) out.readiness = readiness.score;
-  if (sleepScore?.score != null) out.sleepScore = sleepScore.score;
-  if (sleep?.total_sleep_duration != null) {
-    out.sleepHours = +(sleep.total_sleep_duration / 3600).toFixed(1);
+  const byDay = new Map<string, OuraDay>();
+  const at = (day: string) => {
+    let d = byDay.get(day);
+    if (!d) byDay.set(day, (d = { day }));
+    return d;
+  };
+  for (const r of readiness?.data ?? []) if (r.score != null) at(r.day).readiness = r.score;
+  for (const r of sleepScores?.data ?? []) if (r.score != null) at(r.day).sleepScore = r.score;
+  for (const r of activity?.data ?? []) if (r.steps != null) at(r.day).steps = r.steps;
+  // Sleep periods include naps; only the main overnight sleep counts. HRV and
+  // the overnight low heart rate (true resting bpm) come from it.
+  for (const r of sleeps?.data ?? []) {
+    if (r.type !== "long_sleep") continue;
+    const d = at(r.day);
+    if (r.total_sleep_duration != null) d.sleepHours = +(r.total_sleep_duration / 3600).toFixed(1);
+    if (r.average_hrv != null) d.hrv = r.average_hrv;
+    if (r.lowest_heart_rate != null) d.restingHr = r.lowest_heart_rate;
   }
-  if (sleep?.average_hrv != null) out.hrv = sleep.average_hrv;
-  // Readiness only exposes a 0–100 "resting_heart_rate" contributor score;
-  // the overnight low from the sleep record is the actual bpm.
-  if (sleep?.lowest_heart_rate != null) out.restingHr = sleep.lowest_heart_rate;
-  const day = readiness?.day || sleepScore?.day || sleep?.day;
-  if (day) out.day = day;
-  return out;
+  if (byDay.size === 0) return null;
+
+  // Lay the data on a continuous axis so missing days stay visible as gaps.
+  const last = [...byDay.keys()].sort().at(-1)!;
+  const days: OuraDay[] = [];
+  for (let i = OURA_DAYS - 1; i >= 0; i--) {
+    const day = addDays(last, -i);
+    days.push(byDay.get(day) ?? { day });
+  }
+  return { days };
 }
 
 /* ── Demo fixtures (dev only, via /api/now?demo=…) ──────────── */
+
+// Deterministic so screenshots are stable across runs.
+function demoDays(): OuraDay[] {
+  const today = isoDay(new Date());
+  const steps = [9120, 11840, 7430, 13210, 6020, 10450, 15880, 8210, 4970, 12030, 17524, 12289, 5765, 3180];
+  const ready = [81, 84, 77, 86, 79, undefined, 74, 83, 88, 72, 80, undefined, 73, 85];
+  const sleep = [76, 82, 71, 85, 74, undefined, 66, 79, 88, 63, 69, undefined, 56, 81];
+  const hrv = [52, 57, 49, 61, 55, undefined, 47, 58, 66, 51, 58, undefined, 63, 64];
+  const rhr = [51, 49, 53, 48, 50, undefined, 54, 49, 46, 52, 51, undefined, 47, 48];
+  const hours = [7.1, 7.8, 6.4, 8.2, 6.9, undefined, 5.9, 7.4, 8.6, 5.7, 6.6, undefined, 4.7, 7.6];
+  return steps.map((s, i) => ({
+    day: addDays(today, i - (steps.length - 1)),
+    steps: s,
+    readiness: ready[i],
+    sleepScore: sleep[i],
+    hrv: hrv[i],
+    restingHr: rhr[i],
+    sleepHours: hours[i],
+  }));
+}
 
 export function demoSnapshot(state: string): NowSnapshot {
   const now = Date.now();
@@ -397,9 +442,6 @@ export function demoSnapshot(state: string): NowSnapshot {
       : state === "recent"
         ? { kind: "recent", ...track, playedAt: new Date(now - 47 * 60_000).toISOString() }
         : { kind: state === "paused" ? "paused" : "playing", ...track, progressMs: 118_000, durationMs: 330_000 };
-  const oura: OuraState | null =
-    state === "spotify"
-      ? null
-      : { readiness: 87, restingHr: 52, sleepScore: 78, sleepHours: 7.2, hrv: 64, day: new Date(now).toISOString().slice(0, 10) };
+  const oura: OuraState | null = state === "spotify" ? null : { days: demoDays() };
   return { spotify, oura, generatedAt: now };
 }

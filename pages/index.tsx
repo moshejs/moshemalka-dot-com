@@ -15,9 +15,9 @@ import {
 } from "@/lib/portfolio";
 import { Dial } from "@/components/Dial";
 
-const LiveStats = dynamic(() => import("@/components/LiveStats"), {
-  ssr: false,
-});
+// Live Spotify + Oura; each half renders nothing until a provider is connected.
+const NowStrip = dynamic(() => import("@/components/LiveStats").then((m) => m.NowStrip), { ssr: false });
+const NowTrends = dynamic(() => import("@/components/LiveStats").then((m) => m.NowTrends), { ssr: false });
 
 /**
  * Moshe Malka — product-grade.
@@ -379,15 +379,14 @@ function FeaturedPackage() {
   );
 }
 
-// Most-downloaded packages lead the grid; the rest keep their family order.
+// Only the three most-downloaded packages are promoted; the rest are one
+// click away on npm.
 const TOP_PACKAGES = ["us-equity-market-calendar", "options-greeks", "options-expiration"];
-const topRank = (name: string) => {
-  const i = TOP_PACKAGES.indexOf(name);
-  return i === -1 ? TOP_PACKAGES.length : i;
-};
-const FEATURED = OSS_PACKAGES.filter((p) => p.featured && p.name !== "32nds").sort(
-  (a, b) => topRank(a.name) - topRank(b.name)
-);
+const FEATURED = TOP_PACKAGES.map((name) => {
+  const pkg = OSS_PACKAGES.find((p) => p.name === name);
+  if (!pkg) throw new Error(`TOP_PACKAGES lists unknown package ${name}`);
+  return pkg;
+});
 
 function OpenSource() {
   return (
@@ -782,8 +781,11 @@ export default function Home({ asOf, revision }: Props) {
                 Live New York time
               </figcaption>
             </figure>
-            {/* Live Spotify + Oura; renders nothing until a provider is connected. */}
-            <LiveStats />
+            <NowStrip />
+          </div>
+
+          <div className="c-hero__trends">
+            <NowTrends />
           </div>
         </section>
 
