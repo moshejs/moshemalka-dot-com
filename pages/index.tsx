@@ -760,27 +760,31 @@ export default function Home({ asOf, revision }: Props) {
             </ul>
           </div>
 
-          <figure className="c-shot">
-            <div className="c-shot__stage">
-              <Dial />
-            </div>
-            <div className="c-shot__portrait">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/moshe.jpg"
-                alt="Moshe Malka"
-                width="300"
-                height="400"
-                loading="eager"
-                decoding="async"
-                {...({ fetchpriority: "high" } as object)}
-              />
-            </div>
-            <figcaption className="c-shot__caption">
-              <span className="c-live" aria-hidden="true" />
-              Live New York time
-            </figcaption>
-          </figure>
+          <div className="c-hero__side">
+            <figure className="c-shot">
+              <div className="c-shot__stage">
+                <Dial />
+              </div>
+              <div className="c-shot__portrait">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/moshe.jpg"
+                  alt="Moshe Malka"
+                  width="300"
+                  height="400"
+                  loading="eager"
+                  decoding="async"
+                  {...({ fetchpriority: "high" } as object)}
+                />
+              </div>
+              <figcaption className="c-shot__caption">
+                <span className="c-live" aria-hidden="true" />
+                Live New York time
+              </figcaption>
+            </figure>
+            {/* Live Spotify + Oura; renders nothing until a provider is connected. */}
+            <LiveStats />
+          </div>
         </section>
 
         <Work asOf={asOf} />
@@ -820,9 +824,6 @@ export default function Home({ asOf, revision }: Props) {
             </ul>
           </div>
         </section>
-
-        {/* Live Spotify + Oura; renders nothing until a provider is configured. */}
-        <LiveStats />
 
         <footer className="c-section c-close" aria-labelledby="close-h">
           <div className="c-panel c-close__cta">

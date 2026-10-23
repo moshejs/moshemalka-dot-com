@@ -45,7 +45,7 @@ function Listening({ s, fetchedAt, now }: { s: SpotifyState; fetchedAt: number; 
       <div className="c-now__song">
         {s.albumArt ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img className="c-now__art" src={s.albumArt} alt="" width="64" height="64" loading="lazy" />
+          <img className="c-now__art" src={s.albumArt} alt="" width="52" height="52" decoding="async" />
         ) : (
           <span className="c-now__art" aria-hidden="true">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -57,13 +57,13 @@ function Listening({ s, fetchedAt, now }: { s: SpotifyState; fetchedAt: number; 
         )}
         <div className="c-now__song-text">
           {s.url ? (
-            <a className="c-now__track" href={s.url} target="_blank" rel="noopener noreferrer">
+            <a className="c-now__track" dir="auto" href={s.url} target="_blank" rel="noopener noreferrer">
               {s.track}
             </a>
           ) : (
-            <span className="c-now__track">{s.track}</span>
+            <span className="c-now__track" dir="auto">{s.track}</span>
           )}
-          <span className="c-now__artist">{s.artist}</span>
+          <span className="c-now__artist" dir="auto">{s.artist}</span>
         </div>
       </div>
       {s.kind !== "recent" ? (
@@ -156,17 +156,15 @@ export default function LiveStats() {
   const sources = [spotify && "Spotify", oura && "Oura"].filter(Boolean).join(" + ");
 
   return (
-    <section className="c-section c-now" id="now" aria-labelledby="now-h">
-      <div className="c-sechead">
-        <h2 id="now-h" className="c-h2">
-          Right now
-        </h2>
-        <p className="c-secmeta c-now__source">
+    <div className="c-now" role="group" aria-labelledby="now-h">
+      <p className="c-now__head">
+        <span id="now-h">Right now</span>
+        <span className="c-now__source">
           <span className="c-live" aria-hidden="true" />
           Live from {sources}
-        </p>
-      </div>
-      <ul className={`c-now__grid${spotify && oura ? "" : " c-now__grid--solo"}`}>
+        </span>
+      </p>
+      <ul className="c-now__grid">
         {spotify ? (
           <Listening s={spotify} fetchedAt={snap.generatedAt} now={Math.max(now, snap.generatedAt)} />
         ) : null}
@@ -177,6 +175,6 @@ export default function LiveStats() {
           </>
         ) : null}
       </ul>
-    </section>
+    </div>
   );
 }
