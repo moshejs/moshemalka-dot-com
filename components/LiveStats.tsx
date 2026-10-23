@@ -1,12 +1,25 @@
+import { useEffect, useId, useState } from "react";
+import type {
+  NowSnapshot,
+  OuraDay,
+  OuraState,
+  SpotifyRange,
+  SpotifyState,
+  SpotifyTop,
+} from "@/lib/stats";
 import {
-  useEffect,
-  useId,
-  useLayoutEffect,
-  useState,
-  type KeyboardEvent,
-  type PointerEvent,
-} from "react";
-import type { NowSnapshot, OuraDay, OuraState, SpotifyState } from "@/lib/stats";
+  BAR_MAX,
+  PAD,
+  barPath,
+  dayLabel,
+  fmt,
+  localIso,
+  mean,
+  useScrub,
+  useSize,
+  useWidth,
+  type ScrubHandlers,
+} from "@/components/viz";
 
 const POLL_MS = 30_000;
 
@@ -31,26 +44,6 @@ function demoParam(): string | null {
 }
 
 /* ── Formatting ─────────────────────────────────────────────── */
-
-function localIso(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-// Oura's "day" is a local calendar date.
-function dayLabel(day: string, style: "relative" | "short" = "relative"): string {
-  if (style === "relative") {
-    const now = new Date();
-    if (day === localIso(now)) return "today";
-    now.setDate(now.getDate() - 1);
-    if (day === localIso(now)) return "yesterday";
-  }
-  return new Date(`${day}T12:00:00`).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-}
-
-const fmt = (n: number) => n.toLocaleString("en-US");
 
 type Metric = "readiness" | "sleepScore" | "hrv" | "restingHr" | "steps";
 
@@ -96,72 +89,36 @@ function Delta({
 
 /* ── Chart plumbing ─────────────────────────────────────────── */
 
-// Callback ref, so it measures whenever the element mounts, including one
-// that appears later (a chart rendered once its data arrives).
-function useWidth<T extends HTMLElement>() {
-  const [el, setEl] = useState<T | null>(null);
-  const [width, setWidth] = useState(0);
-  useLayoutEffect(() => {
-    if (!el) return;
-    setWidth(el.clientWidth);
-    const ro = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [el]);
-  return [setEl, width] as const;
-}
-
-// The pointer snaps to the nearest day; arrow keys step through days when the
-// chart has focus. The readout line under each chart shows the selected day.
-function useScrub(count: number) {
-  const [active, setActive] = useState<number | null>(null);
-  const onPointerMove = (e: PointerEvent<SVGSVGElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const i = Math.floor(((e.clientX - rect.left) / rect.width) * count);
-    setActive(Math.max(0, Math.min(count - 1, i)));
-  };
-  const onKeyDown = (e: KeyboardEvent<SVGSVGElement>) => {
-    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-    e.preventDefault();
-    const step = e.key === "ArrowLeft" ? -1 : 1;
-    setActive((i) => Math.max(0, Math.min(count - 1, (i ?? count - 1) + step)));
-  };
-  const clear = () => setActive(null);
-  return {
-    active,
-    handlers: {
-      onPointerMove,
-      onPointerLeave: clear,
-      onBlur: clear,
-      onKeyDown,
-      tabIndex: 0,
-    },
-  };
-}
-
-type ScrubHandlers = ReturnType<typeof useScrub>["handlers"];
-
-const SPARK_H = 34;
-const PAD = 6; // room for the 4px end-dot plus its 2px ring
+// Fills its container's height when the card has room (a tile stretched to
+// match a taller neighbour), never less than SPARK_H.
+const SPARK_MAX = 96;
 
 function Sparkline({
   values,
   width,
+  height,
   active,
   label,
   handlers,
 }: {
   values: (number | undefined)[];
   width: number;
+  height: number;
   active: number | null;
   label: string;
   handlers: ScrubHandlers;
 }) {
   const defined = values.filter((v): v is number => v != null);
-  if (!width || defined.length < 2) return <div style={{ height: SPARK_H }} />;
-  const min = Math.min(...defined);
-  const max = Math.max(...defined);
-  const span = max - min || 1;
+  if (!width || defined.length < 2) return null;
+  const SPARK_H = Math.round(Math.min(SPARK_MAX, Math.max(height, 34)));
+  // Never zoom in tighter than ±10% of the average, so a 47–52 bpm wobble
+  // doesn't read as a dramatic swing when the chart is tall.
+  const lo = Math.min(...defined);
+  const hi = Math.max(...defined);
+  const floor = Math.abs(mean(defined)) * 0.2;
+  const pad = Math.max(0, floor - (hi - lo)) / 2;
+  const min = lo - pad;
+  const span = hi - lo + pad * 2 || 1;
   const step = (width - PAD * 2) / (values.length - 1);
   const x = (i: number) => PAD + i * step;
   const y = (v: number) => PAD + (1 - (v - min) / span) * (SPARK_H - PAD * 2);
@@ -221,9 +178,10 @@ function loadYtd(): Promise<OuraDay[] | null> {
   return ytdRequest;
 }
 
-type YtdState = { status: "loading" } | { status: "ready"; days: OuraDay[] } | { status: "error" };
+export type YtdState =
+  { status: "loading" } | { status: "ready"; days: OuraDay[] } | { status: "error" };
 
-function useYtd(enabled: boolean): YtdState {
+export function useYtd(enabled: boolean): YtdState {
   const [state, setState] = useState<YtdState>({ status: "loading" });
   useEffect(() => {
     if (!enabled) return;
@@ -249,11 +207,13 @@ function YtdToggle({
   panelId,
   label,
   onClick,
+  text = "YTD",
 }: {
   open: boolean;
   panelId: string;
   label: string;
   onClick: () => void;
+  text?: string;
 }) {
   return (
     <button
@@ -263,7 +223,8 @@ function YtdToggle({
       aria-controls={panelId}
       onClick={onClick}
     >
-      YTD<span className="c-sr"> {label}</span>
+      {text}
+      <span className="c-sr"> {label}</span>
       <svg className="c-chevron" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
         <path
           d="m6 9 6 6 6-6"
@@ -275,10 +236,6 @@ function YtdToggle({
       </svg>
     </button>
   );
-}
-
-function mean(values: number[]): number {
-  return values.reduce((a, b) => a + b, 0) / values.length;
 }
 
 // Trailing 7-day mean; a window with fewer than 3 readings is a gap.
@@ -576,15 +533,6 @@ function weeks(days: OuraDay[]) {
   });
 }
 
-function barPath(x0: number, y: number, bar: number, base: number): string {
-  const r = Math.min(RADIUS, base - y, bar / 2);
-  // Rounded data-end, square at the baseline.
-  return (
-    `M${x0},${base}V${y + r}Q${x0},${y} ${x0 + r},${y}` +
-    `H${x0 + bar - r}Q${x0 + bar},${y} ${x0 + bar},${y + r}V${base}Z`
-  );
-}
-
 function YtdStepsPanel({ id }: { id: string }) {
   const ytd = useYtd(true);
   const [ref, width] = useWidth<HTMLDivElement>();
@@ -712,7 +660,7 @@ function TrendTile({
 }) {
   const values = series(days, metric);
   const last = lastIndex(values);
-  const [ref, width] = useWidth<HTMLDivElement>();
+  const [ref, { width, height }] = useSize<HTMLDivElement>();
   const { active, handlers } = useScrub(values.length);
   const { open, panelId, toggle } = useToggle();
   if (last < 0) return null;
@@ -725,7 +673,7 @@ function TrendTile({
     v == null ? `${when} · no reading` : [when, context?.(day)].filter(Boolean).join(" · ");
 
   return (
-    <li className={`c-panel c-now__card${open ? " c-now__card--wide is-open" : ""}`}>
+    <li className={`c-panel c-now__card${open ? " is-open" : ""}`}>
       <div className="c-now__top">
         <p className="c-now__label">{label}</p>
         <YtdToggle open={open} panelId={panelId} label={label} onClick={toggle} />
@@ -746,10 +694,11 @@ function TrendTile({
           &nbsp;
         </span>
       )}
-      <div ref={ref} className="c-now__plot">
+      <div ref={ref} className="c-now__plot c-now__plot--fill">
         <Sparkline
           values={values}
           width={width}
+          height={height}
           active={active}
           label={`${label}, last ${days.length} days`}
           handlers={handlers}
@@ -766,8 +715,6 @@ function TrendTile({
 }
 
 const STEPS_H = 92;
-const BAR_MAX = 24;
-const RADIUS = 4;
 
 function StepsCard({ days }: { days: OuraDay[] }) {
   const values = series(days, "steps");
@@ -895,8 +842,138 @@ function OuraTable({ days }: { days: OuraDay[] }) {
 
 /* ── Spotify ────────────────────────────────────────────────── */
 
+const RANGES: { id: SpotifyRange; label: string }[] = [
+  { id: "short_term", label: "4 weeks" },
+  { id: "medium_term", label: "6 months" },
+  { id: "long_term", label: "12 months" },
+];
+
+const topRequests = new Map<SpotifyRange, Promise<SpotifyTop | null>>();
+
+function loadTop(range: SpotifyRange): Promise<SpotifyTop | null> {
+  let req = topRequests.get(range);
+  if (!req) {
+    const url = `/api/spotify-top?range=${range}${demoParam() ? "&demo" : ""}`;
+    req = fetch(url)
+      .then((r) => (r.ok ? (r.json() as Promise<SpotifyTop | null>) : null))
+      .catch(() => null);
+    topRequests.set(range, req);
+    req.then((top) => {
+      if (!top) topRequests.delete(range);
+    });
+  }
+  return req;
+}
+
+// Spotify only offers its own rolling windows; there is no calendar-year view.
+function SpotifyTopPanel({ id }: { id: string }) {
+  const [range, setRange] = useState<SpotifyRange>("long_term");
+  const [top, setTop] = useState<SpotifyTop | null>(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let live = true;
+    loadTop(range).then((t) => {
+      if (!live) return;
+      setFailed(!t);
+      if (t) setTop(t);
+    });
+    return () => {
+      live = false;
+    };
+  }, [range]);
+
+  // Keep the previous range on screen, dimmed, while the next one loads.
+  const stale = top != null && top.range !== range;
+  return (
+    <div id={id} className="c-ytd">
+      <div className="c-ytd__head">
+        <p className="c-ytd__title">Most played</p>
+        <div className="c-seg" role="group" aria-label="Time range">
+          {RANGES.map((r) => (
+            <button
+              key={r.id}
+              type="button"
+              aria-pressed={r.id === range}
+              onClick={() => setRange(r.id)}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      {top ? (
+        <div className={`c-top${stale ? " is-stale" : ""}`} aria-busy={stale}>
+          <div>
+            <p className="c-now__label">Artists</p>
+            <ol className="c-top__list">
+              {top.artists.map((a, i) => (
+                <li key={a.name}>
+                  <span className="c-top__rank">{i + 1}</span>
+                  {a.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      className="c-top__img c-top__img--round"
+                      src={a.image}
+                      alt=""
+                      width="36"
+                      height="36"
+                    />
+                  ) : (
+                    <span className="c-top__img c-top__img--round" aria-hidden="true" />
+                  )}
+                  <span className="c-top__text">
+                    {a.url ? (
+                      <a href={a.url} target="_blank" rel="noopener noreferrer" dir="auto">
+                        {a.name}
+                      </a>
+                    ) : (
+                      <span dir="auto">{a.name}</span>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </div>
+          <div>
+            <p className="c-now__label">Tracks</p>
+            <ol className="c-top__list">
+              {top.tracks.map((t, i) => (
+                <li key={`${t.name}-${t.artist}`}>
+                  <span className="c-top__rank">{i + 1}</span>
+                  {t.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img className="c-top__img" src={t.image} alt="" width="36" height="36" />
+                  ) : (
+                    <span className="c-top__img" aria-hidden="true" />
+                  )}
+                  <span className="c-top__text">
+                    {t.url ? (
+                      <a href={t.url} target="_blank" rel="noopener noreferrer" dir="auto">
+                        {t.name}
+                      </a>
+                    ) : (
+                      <span dir="auto">{t.name}</span>
+                    )}
+                    <span className="c-top__sub" dir="auto">
+                      {t.artist}
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      ) : (
+        <p className="c-now__detail">{failed ? "Couldn’t load top artists." : "Loading…"}</p>
+      )}
+      <p className="c-now__detail">Spotify’s rolling windows; it has no calendar-year view.</p>
+    </div>
+  );
+}
+
 function Listening({ s, fetchedAt, now }: { s: SpotifyState; fetchedAt: number; now: number }) {
   const playing = s.kind === "playing";
+  const { open, panelId, toggle } = useToggle();
   const progress =
     s.kind === "recent"
       ? 0
@@ -909,11 +986,22 @@ function Listening({ s, fetchedAt, now }: { s: SpotifyState; fetchedAt: number; 
         : "Listening";
 
   return (
-    <li className="c-panel c-now__card c-now__card--wide c-now__card--listen">
-      <p className="c-now__label">
-        {playing ? <span className="c-live c-live--pulse" aria-hidden="true" /> : null}
-        {status}
-      </p>
+    <li
+      className={`c-panel c-now__card c-now__card--wide c-now__card--listen${open ? " is-open" : ""}`}
+    >
+      <div className="c-now__top">
+        <p className="c-now__label">
+          {playing ? <span className="c-live c-live--pulse" aria-hidden="true" /> : null}
+          {status}
+        </p>
+        <YtdToggle
+          open={open}
+          panelId={panelId}
+          label="most played on Spotify"
+          text="Top"
+          onClick={toggle}
+        />
+      </div>
       <div className="c-now__song">
         {s.albumArt ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -973,6 +1061,7 @@ function Listening({ s, fetchedAt, now }: { s: SpotifyState; fetchedAt: number; 
           <span>{clock(s.durationMs)}</span>
         </div>
       ) : null}
+      {open ? <SpotifyTopPanel id={panelId} /> : null}
     </li>
   );
 }
@@ -1023,7 +1112,7 @@ function startPolling() {
   };
 }
 
-function useNowSnapshot(): NowSnapshot | null {
+export function useNowSnapshot(): NowSnapshot | null {
   const [snap, setSnap] = useState<NowSnapshot | null>(latest);
   useEffect(() => {
     listeners.add(setSnap);
@@ -1062,7 +1151,7 @@ export function NowStrip() {
   const sources = [spotify && "Spotify", oura && "Oura"].filter(Boolean).join(" + ");
 
   return (
-    <div className="c-now c-now--side" role="group" aria-labelledby="now-h">
+    <div className="c-now c-now--live" role="group" aria-labelledby="now-h">
       <p className="c-now__head">
         <span id="now-h">Right now</span>
         <span className="c-now__source">
@@ -1114,7 +1203,9 @@ export function NowTrends() {
     <div className="c-now c-now--trends" role="group" aria-labelledby="trends-h">
       <p className="c-now__head">
         <span id="trends-h">Last {days.length} days</span>
-        <span className="c-now__source">From Oura</span>
+        <span className="c-now__source">
+          {dayLabel(days[0].day, "short")} – {dayLabel(days[days.length - 1].day, "short")}
+        </span>
       </p>
       <ul className="c-now__grid">
         <StepsCard days={days} />

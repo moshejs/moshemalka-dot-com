@@ -44,6 +44,9 @@ export type OuraDay = {
   hrv?: number;
   restingHr?: number;
   steps?: number;
+  /** Bedtime for the night ending this morning, in minutes from local
+      midnight: 23:30 is -30, 01:15 is 75. */
+  bedtime?: number;
 };
 
 export type OuraState = {
@@ -132,7 +135,7 @@ async function getSpotifyAccessToken(): Promise<string | null> {
 
 type SpotifyTrack = {
   name: string;
-  album?: { name?: string; images?: { url: string }[] };
+  album?: { name?: string; images?: { url: string; width?: number }[] };
   artists?: { name: string }[];
   external_urls?: { spotify?: string };
   duration_ms: number;
@@ -207,6 +210,94 @@ export async function fetchSpotifyNow(): Promise<SpotifyState | null> {
   });
 }
 
+/* ── Spotify top artists & tracks ──────────────────────────────── */
+
+// Spotify's own windows: roughly 4 weeks, 6 months and 12 months. There is
+// no calendar-year option. Needs the user-top-read scope.
+export type SpotifyRange = "short_term" | "medium_term" | "long_term";
+export const SPOTIFY_RANGES: SpotifyRange[] = ["short_term", "medium_term", "long_term"];
+
+export type SpotifyTop = {
+  range: SpotifyRange;
+  artists: { name: string; image?: string; url?: string }[];
+  tracks: { name: string; artist: string; image?: string; url?: string }[];
+};
+
+type SpotifyArtist = {
+  name: string;
+  images?: { url: string; width?: number }[];
+  external_urls?: { spotify?: string };
+};
+
+// Smallest image that's still sharp at ~48px on a 2x screen.
+function thumb(images?: { url: string; width?: number }[]): string | undefined {
+  if (!images?.length) return undefined;
+  const ok = images.filter((i) => (i.width ?? 0) >= 96).sort((a, b) => (a.width ?? 0) - (b.width ?? 0));
+  return (ok[0] ?? images[0]).url;
+}
+
+export async function fetchSpotifyTop(range: SpotifyRange): Promise<SpotifyTop | null> {
+  return cached(`spotify:top:${range}`, 6 * 60 * 60_000, async () => {
+    const token = await getSpotifyAccessToken();
+    if (!token) return null;
+    try {
+      const get = (kind: string) =>
+        fetch(`https://api.spotify.com/v1/me/top/${kind}?time_range=${range}&limit=5`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      const [a, t] = await Promise.all([get("artists"), get("tracks")]);
+      if (!a.ok || !t.ok) {
+        // 403 here almost always means the token predates user-top-read:
+        // rerun `yarn connect spotify`.
+        console.error("[spotify] top failed:", a.status, t.status);
+        return null;
+      }
+      const artists = ((await a.json()) as { items: SpotifyArtist[] }).items;
+      const tracks = ((await t.json()) as { items: SpotifyTrack[] }).items;
+      return {
+        range,
+        artists: artists.map((x) => ({
+          name: x.name,
+          image: thumb(x.images),
+          url: x.external_urls?.spotify,
+        })),
+        tracks: tracks.map((x) => ({
+          name: x.name,
+          artist: (x.artists || []).map((ar) => ar.name).join(", "),
+          image: thumb(x.album?.images),
+          url: x.external_urls?.spotify,
+        })),
+      };
+    } catch (err) {
+      console.error("[spotify] top error:", err);
+      return null;
+    }
+  });
+}
+
+export function demoSpotifyTop(range: SpotifyRange): SpotifyTop {
+  const sets: Record<SpotifyRange, [string[], [string, string][]]> = {
+    short_term: [
+      ["HUGEL", "Dafina Zeqiri", "Teapacks", "DYSTINCT", "Ethnix"],
+      [["El Sueno", "HUGEL, Cumbiafrica"], ["Dumlla Dumlla", "Dafina Zeqiri"], ["Majnuna", "HUGEL"], ["YAMA", "DYSTINCT"], ["Teardrop", "Massive Attack"]],
+    ],
+    medium_term: [
+      ["HUGEL", "Massive Attack", "Ethnix", "Teapacks", "Matt Sassari"],
+      [["It Feels So Good", "Matt Sassari, HUGEL"], ["Teardrop", "Massive Attack"], ["El Sueno", "HUGEL"], ["Habibi", "DYSTINCT"], ["YAMA", "DYSTINCT"]],
+    ],
+    long_term: [
+      ["Massive Attack", "HUGEL", "Ethnix", "Teapacks", "Portishead"],
+      [["Teardrop", "Massive Attack"], ["Glory Box", "Portishead"], ["El Sueno", "HUGEL"], ["Angel", "Massive Attack"], ["Majnuna", "HUGEL"]],
+    ],
+  };
+  const [artists, tracks] = sets[range];
+  return {
+    range,
+    artists: artists.map((name) => ({ name })),
+    tracks: tracks.map(([name, artist]) => ({ name, artist })),
+  };
+}
+
 /* ── Oura ───────────────────────────────────────────────────── */
 
 const OURA_BASE = "https://api.ouraring.com/v2/usercollection";
@@ -227,6 +318,7 @@ type OuraDailyActivity = {
 type OuraSleep = {
   day: string;
   type?: string;
+  bedtime_start?: string;
   total_sleep_duration: number | null;
   average_hrv: number | null;
   lowest_heart_rate: number | null;
@@ -259,6 +351,16 @@ async function ouraGet<T>(path: string, token: string, start: string, end: strin
     next = page.next_token;
   } while (next);
   return out;
+}
+
+// Oura timestamps carry the wearer's UTC offset ("2026-10-22T00:41:09-04:00"),
+// so the wall-clock time is right there in the string.
+export function bedtimeMinutes(iso: string): number | undefined {
+  const m = iso.match(/T(\d{2}):(\d{2})/);
+  if (!m) return undefined;
+  const mins = Number(m[1]) * 60 + Number(m[2]);
+  // Evenings count back from midnight so 23:30 and 00:30 sit an hour apart.
+  return mins >= 12 * 60 ? mins - 24 * 60 : mins;
 }
 
 function addDays(day: string, n: number): string {
@@ -402,6 +504,7 @@ async function loadOuraDays(token: string, from: string): Promise<OuraDay[] | nu
     if (r.total_sleep_duration != null) d.sleepHours = +(r.total_sleep_duration / 3600).toFixed(1);
     if (r.average_hrv != null) d.hrv = r.average_hrv;
     if (r.lowest_heart_rate != null) d.restingHr = r.lowest_heart_rate;
+    if (r.bedtime_start) d.bedtime = bedtimeMinutes(r.bedtime_start);
   }
   const last = [...byDay.keys()].filter((d) => d >= from).sort().at(-1);
   if (!last) return null;
@@ -476,6 +579,7 @@ export function demoYtd(): OuraState {
       hrv: Math.round(56 + season * 5 + (rand() - 0.5) * 20),
       restingHr: Math.round(50 - season * 2 + (rand() - 0.5) * 6),
       sleepHours: +(7 + (rand() - 0.5) * 2.4).toFixed(1),
+      bedtime: Math.round(-20 + (weekend ? 70 : 0) + (rand() - 0.5) * 90),
     });
   }
   return { days };

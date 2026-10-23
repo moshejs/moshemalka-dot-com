@@ -935,22 +935,14 @@ a:hover > .c-arrow { transform: translate(2px, -2px); }
 }
 .c-moves__asset { font-weight: 600; color: var(--ink); }
 
-/* ── Right now (live Spotify + Oura, under the hero shot) ─── */
+/* ── Live dashboard (Spotify + Oura, under the hero) ───────── */
 
-/* The hero splits the live data across both columns: now-playing and scores
-   under the dial (right), two-week trends under the intro (left). The right
-   column spans both rows; row 2 absorbs its extra height so the trends sit
-   directly under the intro. Top-aligned so data arriving after load doesn't
-   re-centre the copy. */
-.c-hero {
-  grid-template-rows: auto 1fr;
-  align-items: start;
-  row-gap: 44px;
-}
-.c-hero__copy { grid-column: 1; grid-row: 1; }
-.c-hero__side { grid-column: 2; grid-row: 1 / span 2; min-width: 0; }
-.c-hero__trends { grid-column: 1; grid-row: 2; min-width: 0; }
-.c-hero__trends:empty { display: none; }
+/* Three bands (right now, last 14 days, patterns) on one 12-column grid.
+   Every band has the same rhythm: a wide card (6) then two compact ones
+   (3 + 3), or two wide ones. Cards in a row share a height, and their charts
+   and readouts sit at the bottom so baselines line up across the row. */
+.c-dash { display: grid; gap: 36px; }
+.c-dash:empty { display: none; }
 
 .c-now {
   /* Chart marks: history recedes, the latest reading carries the accent.
@@ -959,8 +951,6 @@ a:hover > .c-arrow { transform: translate(2px, -2px); }
   --viz-accent: var(--z-blue-hi);
   --viz-ref: rgba(238, 242, 248, 0.42);
 }
-/* Clear the portrait, which hangs 7% (of this column's width) below the shot. */
-.c-now--side { margin-top: calc(7% + 28px); }
 .c-now__head {
   display: flex;
   flex-wrap: wrap;
@@ -993,12 +983,19 @@ a:hover > .c-arrow { transform: translate(2px, -2px); }
 
 .c-now__grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  /* Let a card that's left alone by an opened neighbour backfill the row. */
+  grid-auto-flow: row dense;
   gap: 12px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
+.c-now__grid > .c-now__card { grid-column: span 3; }
+.c-now__grid > .c-now__card--wide { grid-column: span 6; }
+/* An opened card takes the full row; the rest of its band pairs up. */
+.c-now__grid:has(> .is-open) > .c-now__card { grid-column: span 6; }
+.c-now__grid > .c-now__card.is-open { grid-column: 1 / -1; }
 .c-now__card {
   display: flex;
   flex-direction: column;
@@ -1006,7 +1003,17 @@ a:hover > .c-arrow { transform: translate(2px, -2px); }
   min-width: 0;
   padding: 16px 18px;
 }
-.c-now__card--wide { grid-column: 1 / -1; }
+/* Pin the trend and its readout to the card's foot. */
+.c-now__card > .c-now__plot,
+.c-now__card--listen > .c-now__progress { margin-top: auto; }
+/* A sparkline that takes the card's spare height instead of leaving a gap. */
+.c-now__card > .c-now__plot--fill {
+  flex: 1 1 0;
+  display: flex;
+  align-items: flex-end;
+  min-height: 34px;
+  max-height: 96px;
+}
 .c-now__card--listen {
   gap: 10px;
   background:
@@ -1203,10 +1210,6 @@ a.c-now__track:hover { color: var(--z-blue-hi); }
 .c-ytd-toggle .c-chevron { color: inherit; }
 .c-ytd-toggle[aria-expanded="true"] .c-chevron { transform: rotate(180deg); }
 
-/* An open card spans its column; its half-width neighbour would be left
-   alone in half a row, so it widens too. */
-.c-now__grid:has(> .is-open) > .c-now__card { grid-column: 1 / -1; }
-
 .c-ytd {
   display: grid;
   gap: 12px;
@@ -1273,20 +1276,174 @@ a.c-now__track:hover { color: var(--z-blue-hi); }
   .c-ytd__facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
+/* Spotify most played */
+.c-seg {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+.c-seg button {
+  min-height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  font: inherit;
+  font-family: var(--f-mono);
+  font-size: 0.6875rem;
+  color: var(--soft);
+  cursor: pointer;
+}
+.c-seg button:hover { color: var(--ink); }
+.c-seg button[aria-pressed="true"] { background: var(--surface-2); color: var(--ink); box-shadow: var(--edge); }
+.c-top {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 24px;
+  transition: opacity 160ms var(--ease-out);
+}
+.c-top.is-stale { opacity: 0.45; }
+.c-top__list { display: grid; gap: 8px; margin: 8px 0 0; padding: 0; list-style: none; }
+.c-top__list li { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.c-top__rank {
+  width: 1.2em;
+  flex: none;
+  font-family: var(--f-mono);
+  font-size: 0.6875rem;
+  text-align: right;
+  color: var(--soft);
+}
+.c-top__img {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  object-fit: cover;
+}
+.c-top__img--round { border-radius: 50%; }
+.c-top__text { display: grid; min-width: 0; }
+.c-top__text a,
+.c-top__text > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.c-top__text a { font-weight: 600; font-size: 0.875rem; color: var(--ink); transition: color 160ms var(--ease-out); }
+.c-top__text a:hover { color: var(--z-blue-hi); }
+.c-top__sub { font-size: 0.75rem; color: var(--muted); }
+@media (max-width: 560px) {
+  .c-top { grid-template-columns: minmax(0, 1fr); }
+}
+
+.c-pattern { gap: 12px; }
+.c-pattern__lede {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+.c-pattern__lede strong { font-weight: 600; color: var(--ink); }
+
+/* Diverging bars: readiness points either side of zero */
+.c-factors { display: grid; gap: 12px; margin: 4px 0 0; padding: 0; list-style: none; }
+.c-factors li {
+  display: grid;
+  grid-template-columns: minmax(0, 9.5em) minmax(0, 1fr) 2.5em;
+  align-items: center;
+  gap: 2px 12px;
+}
+.c-factors__name { font-size: 0.875rem; font-weight: 600; color: var(--ink); }
+.c-factors__track { position: relative; height: 12px; }
+.c-factors__track::before {
+  /* the zero line */
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -3px;
+  bottom: -3px;
+  border-left: 1px solid var(--viz-ref);
+}
+.c-factors__bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  min-width: 2px;
+  border-radius: 0 4px 4px 0;
+  background: var(--viz-accent);
+}
+/* Rounded at the data end, square at zero. */
+.c-factors__bar.is-neg { border-radius: 4px 0 0 4px; }
+.c-factors__val {
+  font-family: var(--f-mono);
+  font-size: 0.8125rem;
+  text-align: right;
+  color: var(--ink);
+}
+.c-factors__sub {
+  grid-column: 1 / -1;
+  font-family: var(--f-mono);
+  font-size: 0.6875rem;
+  color: var(--soft);
+}
+
+/* Weekday heatmap */
+.c-heat { width: 100%; border-collapse: separate; border-spacing: 2px; table-layout: fixed; }
+.c-heat thead th {
+  padding: 0 0 4px;
+  font-family: var(--f-mono);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  color: var(--soft);
+}
+.c-heat tbody th {
+  width: 5.75em;
+  padding-right: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: left;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.c-heat__short { display: none; }
+.c-pattern .c-now__detail { white-space: normal; }
+.c-heat td {
+  height: 34px;
+  border-radius: 4px;
+  /* one hue, stronger for higher values within the row */
+  background: color-mix(in oklab, var(--z-blue-hi) calc(10% + var(--t, 0) * 50%), var(--surface));
+  font-family: var(--f-mono);
+  font-size: 0.6875rem;
+  text-align: center;
+  color: var(--ink);
+}
+.c-heat td.is-empty { background: transparent; color: var(--soft); }
+.c-heat thead td { background: none; height: auto; }
+@media (max-width: 560px) {
+  .c-heat tbody th { width: 3.4em; padding-right: 4px; }
+  .c-heat__long { display: none; }
+  .c-heat__short { display: inline; }
+  .c-heat td { font-size: 0.625rem; letter-spacing: -0.02em; }
+}
+
+
+/* Tablet: wide cards take the row, compact ones pair up. Phone: one column. */
 @media (max-width: 960px) {
-  .c-hero { grid-template-rows: none; row-gap: 0; }
-  .c-hero__copy,
-  .c-hero__side,
-  .c-hero__trends { grid-column: 1; grid-row: auto; }
-  .c-hero__side { width: min(100%, 440px); justify-self: center; }
-  .c-hero__side .c-shot { width: 100%; }
-  .c-hero__trends { width: min(100%, 440px); justify-self: center; margin-top: 12px; }
+  .c-dash { gap: 28px; }
+  .c-now__grid > .c-now__card,
+  .c-now__grid:has(> .is-open) > .c-now__card { grid-column: span 6; }
+  .c-now__grid > .c-now__card--wide,
+  .c-now__grid > .c-now__card.is-open { grid-column: 1 / -1; }
+}
+@media (max-width: 560px) {
+  .c-now__grid > .c-now__card,
+  .c-now__grid:has(> .is-open) > .c-now__card { grid-column: 1 / -1; }
 }
 @media (prefers-reduced-motion: reduce) {
   .c-live--pulse { animation: none; }
   .c-now__bar > span,
   .c-steps__bar,
-  .c-ytd-toggle { transition: none; }
+  .c-ytd-toggle,
+  .c-top { transition: none; }
 }
 @media (forced-colors: active) {
   .c-spark__line,

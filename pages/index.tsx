@@ -15,9 +15,10 @@ import {
 } from "@/lib/portfolio";
 import { Dial } from "@/components/Dial";
 
-// Live Spotify + Oura; each half renders nothing until a provider is connected.
+// Live Spotify + Oura bands under the hero; client-only, since they poll.
 const NowStrip = dynamic(() => import("@/components/LiveStats").then((m) => m.NowStrip), { ssr: false });
 const NowTrends = dynamic(() => import("@/components/LiveStats").then((m) => m.NowTrends), { ssr: false });
+const NowPatterns = dynamic(() => import("@/components/Insights").then((m) => m.NowPatterns), { ssr: false });
 
 /**
  * Moshe Malka — product-grade.
@@ -759,35 +760,37 @@ export default function Home({ asOf, revision }: Props) {
             </ul>
           </div>
 
-          <div className="c-hero__side">
-            <figure className="c-shot">
-              <div className="c-shot__stage">
-                <Dial />
-              </div>
-              <div className="c-shot__portrait">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/moshe.jpg"
-                  alt="Moshe Malka"
-                  width="300"
-                  height="400"
-                  loading="eager"
-                  decoding="async"
-                  {...({ fetchpriority: "high" } as object)}
-                />
-              </div>
-              <figcaption className="c-shot__caption">
-                <span className="c-live" aria-hidden="true" />
-                Live New York time
-              </figcaption>
-            </figure>
-            <NowStrip />
-          </div>
-
-          <div className="c-hero__trends">
-            <NowTrends />
-          </div>
+          <figure className="c-shot">
+            <div className="c-shot__stage">
+              <Dial />
+            </div>
+            <div className="c-shot__portrait">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/moshe.jpg"
+                alt="Moshe Malka"
+                width="300"
+                height="400"
+                loading="eager"
+                decoding="async"
+                {...({ fetchpriority: "high" } as object)}
+              />
+            </div>
+            <figcaption className="c-shot__caption">
+              <span className="c-live" aria-hidden="true" />
+              Live New York time
+            </figcaption>
+          </figure>
         </section>
+
+        {/* Live data under the hero: one 12-column rhythm per band (a wide
+            card, then two compact ones). Each band renders nothing until its
+            provider is connected. */}
+        <div className="c-dash">
+          <NowStrip />
+          <NowTrends />
+          <NowPatterns />
+        </div>
 
         <Work asOf={asOf} />
         <OpenSource />

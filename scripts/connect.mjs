@@ -27,7 +27,7 @@ const PROVIDERS = {
   spotify: {
     authorize: "https://accounts.spotify.com/authorize",
     token: "https://accounts.spotify.com/api/token",
-    scope: "user-read-currently-playing user-read-recently-played",
+    scope: "user-read-currently-playing user-read-recently-played user-top-read",
     idKey: "SPOTIFY_CLIENT_ID",
     secretKey: "SPOTIFY_CLIENT_SECRET",
     redirectKey: "SPOTIFY_REDIRECT_URI",
