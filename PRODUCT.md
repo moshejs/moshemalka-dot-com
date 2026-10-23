@@ -42,7 +42,7 @@ What sets him apart: deep fintech and trading-systems experience combined with c
 ## Brand Commitments
 
 - **Name and title:** "Moshe Malka — Software Engineer & Engineering Leader", New York City.
-- **Studio name:** Quentin Software (www.quentin.software); npm profile ~quentin_code.
+- **Studio name:** Quentin Software (www.quentin.software); npm profile ~moshejs.
 - **Restraint:** after the July 2026 simplification, the owner's standing direction is one confident idea over gimmicks. Don't bring back ambient animation layers, audio or haptics, or decorative chrome.
 - **The trading-desk metaphor is not binding.** Positions, tape, tear sheets, the ⌘K terminal, and the Milgauss palette are the current execution only. A future redesign may replace them.
 
@@ -50,7 +50,7 @@ What sets him apart: deep fintech and trading-systems experience combined with c
 
 - Headshot: `public/moshe.jpg`. OG image: `public/og-image.jpg`. Favicon and apple-touch icon are in `public/`.
 - Career record with dated roles and shipped work: `EXEC_LOG` and `POSITIONS` in `lib/portfolio.ts`.
-- Public work: 26 zero-dependency TypeScript packages on npm (list in `OSS_PACKAGES`, lib/portfolio.ts), repos under github.com/moshejs. Also a Stack Overflow profile (about 2.7k reputation) and the Quentin Software studio with its client sites.
+- Public work: 29 zero-dependency TypeScript packages on npm (list in `OSS_PACKAGES`, lib/portfolio.ts), repos under github.com/moshejs. Also a Stack Overflow profile (about 2.7k reputation) and the Quentin Software studio with its client sites.
 - **Absent, so never fabricate:** testimonials, client quotes, press coverage, speaking credits, metrics not already in the career record.
 
 ## Product Principles

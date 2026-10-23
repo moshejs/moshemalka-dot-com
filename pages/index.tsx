@@ -138,7 +138,7 @@ const EMAIL = "hello@moshemalka.com";
 const LINKEDIN = "https://www.linkedin.com/in/moshenyc/";
 const GITHUB = "https://github.com/moshejs";
 const STUDIO = "https://www.quentin.software/";
-const NPM_PROFILE = "https://www.npmjs.com/~quentin_code";
+const NPM_PROFILE = "https://www.npmjs.com/~moshejs";
 
 /* ── Icons: authored, one 1.5 stroke ───────────────────────────────── */
 
@@ -374,7 +374,15 @@ function FeaturedPackage() {
   );
 }
 
-const FEATURED = OSS_PACKAGES.filter((p) => p.featured && p.name !== "32nds");
+// Most-downloaded packages lead the grid; the rest keep their family order.
+const TOP_PACKAGES = ["us-equity-market-calendar", "options-greeks", "options-expiration"];
+const topRank = (name: string) => {
+  const i = TOP_PACKAGES.indexOf(name);
+  return i === -1 ? TOP_PACKAGES.length : i;
+};
+const FEATURED = OSS_PACKAGES.filter((p) => p.featured && p.name !== "32nds").sort(
+  (a, b) => topRank(a.name) - topRank(b.name)
+);
 
 function OpenSource() {
   return (
@@ -386,7 +394,7 @@ function OpenSource() {
         <p className="c-secmeta">{OSS_PACKAGES.length} packages on npm · zero dependencies</p>
       </div>
       <p className="c-lede">
-        Typed TypeScript libraries for rates and Treasury math, FX and volatility, market
+        Typed TypeScript libraries for rates and Treasury math, options, FX and volatility, market
         structure, startup equity, and a few things off the desk.
       </p>
       <FeaturedPackage />
