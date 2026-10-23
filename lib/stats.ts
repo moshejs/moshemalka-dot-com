@@ -211,7 +211,7 @@ export async function fetchSpotifyNow(): Promise<SpotifyState | null> {
 
 const OURA_BASE = "https://api.ouraring.com/v2/usercollection";
 
-type OuraDaily<T> = { data: T[] };
+type OuraDaily<T> = { data: T[]; next_token?: string | null };
 type OuraDailyReadiness = {
   day: string;
   score: number | null;
@@ -238,26 +238,27 @@ function isoDay(date: Date): string {
 
 class OuraUnauthorized extends Error {}
 
-async function ouraGet<T>(
-  path: string,
-  token: string
-): Promise<OuraDaily<T> | null> {
-  // Oura days are the wearer's local dates, which can run a day ahead of or
-  // behind UTC, so pad both ends and let the caller trim.
-  const start = new Date();
-  start.setUTCDate(start.getUTCDate() - OURA_DAYS - 2);
-  const end = new Date();
-  end.setUTCDate(end.getUTCDate() + 1);
-  const url = `${OURA_BASE}/${path}?start_date=${isoDay(start)}&end_date=${isoDay(end)}`;
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (res.status === 401) throw new OuraUnauthorized(await res.text());
-  if (!res.ok) {
-    console.error(`[oura] ${path} failed:`, res.status, await res.text());
-    return null;
-  }
-  return (await res.json()) as OuraDaily<T>;
+// Every record for [start, end], following Oura's pagination. Null on a
+// non-auth failure so one bad endpoint doesn't blank the others.
+async function ouraGet<T>(path: string, token: string, start: string, end: string): Promise<T[] | null> {
+  const out: T[] = [];
+  let next: string | null | undefined;
+  do {
+    const params = new URLSearchParams({ start_date: start, end_date: end });
+    if (next) params.set("next_token", next);
+    const res = await fetch(`${OURA_BASE}/${path}?${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.status === 401) throw new OuraUnauthorized(await res.text());
+    if (!res.ok) {
+      console.error(`[oura] ${path} failed:`, res.status, await res.text());
+      return null;
+    }
+    const page = (await res.json()) as OuraDaily<T>;
+    out.push(...page.data);
+    next = page.next_token;
+  } while (next);
+  return out;
 }
 
 function addDays(day: string, n: number): string {
@@ -347,33 +348,39 @@ async function getOuraAccessToken(): Promise<string | null> {
   return ouraTokens && ouraTokens.expiresAt > Date.now() ? ouraTokens.accessToken : null;
 }
 
-export async function fetchOuraNow(): Promise<OuraState | null> {
-  if (!redisConfig()) return null;
-
-  return cached("oura:now", 10 * 60_000, async () => {
+// Retry once with a fresh token from the store if ours turns out stale
+// (reconnected, or another instance rotated it).
+async function withOuraAuth<T>(load: (token: string) => Promise<T | null>): Promise<T | null> {
+  const attempt = async () => {
+    const token = await getOuraAccessToken();
+    return token ? load(token) : null;
+  };
+  try {
     try {
-      return await loadOura();
+      return await attempt();
     } catch (err) {
       if (!(err instanceof OuraUnauthorized)) throw err;
-      // Our in-memory token is stale (reconnected, or another instance
-      // rotated it). Re-read the store and try once more.
       ouraTokens = null;
-      return await loadOura();
+      return await attempt();
     }
-  }).catch((err) => {
+  } catch (err) {
     console.error("[oura] fetch error:", err);
     return null;
-  });
+  }
 }
 
-async function loadOura(): Promise<OuraState | null> {
-  const token = await getOuraAccessToken();
-  if (!token) return null;
+/** Every day from `from` to the latest day with data, oldest first. Days with
+    no reading are present but empty, so charts show them as gaps. */
+async function loadOuraDays(token: string, from: string): Promise<OuraDay[] | null> {
+  // Oura days are the wearer's local dates, which can run a day ahead of or
+  // behind UTC, so pad both ends and trim afterwards.
+  const start = addDays(from, -1);
+  const end = addDays(isoDay(new Date()), 1);
   const [readiness, sleepScores, sleeps, activity] = await Promise.all([
-    ouraGet<OuraDailyReadiness>("daily_readiness", token),
-    ouraGet<OuraDailySleep>("daily_sleep", token),
-    ouraGet<OuraSleep>("sleep", token),
-    ouraGet<OuraDailyActivity>("daily_activity", token),
+    ouraGet<OuraDailyReadiness>("daily_readiness", token, start, end),
+    ouraGet<OuraDailySleep>("daily_sleep", token, start, end),
+    ouraGet<OuraSleep>("sleep", token, start, end),
+    ouraGet<OuraDailyActivity>("daily_activity", token, start, end),
   ]);
 
   const byDay = new Map<string, OuraDay>();
@@ -382,28 +389,48 @@ async function loadOura(): Promise<OuraState | null> {
     if (!d) byDay.set(day, (d = { day }));
     return d;
   };
-  for (const r of readiness?.data ?? []) if (r.score != null) at(r.day).readiness = r.score;
-  for (const r of sleepScores?.data ?? []) if (r.score != null) at(r.day).sleepScore = r.score;
-  for (const r of activity?.data ?? []) if (r.steps != null) at(r.day).steps = r.steps;
+  for (const r of readiness ?? []) if (r.score != null) at(r.day).readiness = r.score;
+  for (const r of sleepScores ?? []) if (r.score != null) at(r.day).sleepScore = r.score;
+  // Oura writes an activity record even on days the ring sat on the charger;
+  // zero steps means "not worn", not a reading.
+  for (const r of activity ?? []) if (r.steps) at(r.day).steps = r.steps;
   // Sleep periods include naps; only the main overnight sleep counts. HRV and
   // the overnight low heart rate (true resting bpm) come from it.
-  for (const r of sleeps?.data ?? []) {
+  for (const r of sleeps ?? []) {
     if (r.type !== "long_sleep") continue;
     const d = at(r.day);
     if (r.total_sleep_duration != null) d.sleepHours = +(r.total_sleep_duration / 3600).toFixed(1);
     if (r.average_hrv != null) d.hrv = r.average_hrv;
     if (r.lowest_heart_rate != null) d.restingHr = r.lowest_heart_rate;
   }
-  if (byDay.size === 0) return null;
+  const last = [...byDay.keys()].filter((d) => d >= from).sort().at(-1);
+  if (!last) return null;
 
-  // Lay the data on a continuous axis so missing days stay visible as gaps.
-  const last = [...byDay.keys()].sort().at(-1)!;
   const days: OuraDay[] = [];
-  for (let i = OURA_DAYS - 1; i >= 0; i--) {
-    const day = addDays(last, -i);
-    days.push(byDay.get(day) ?? { day });
-  }
-  return { days };
+  for (let day = from; day <= last; day = addDays(day, 1)) days.push(byDay.get(day) ?? { day });
+  return days;
+}
+
+export async function fetchOuraNow(): Promise<OuraState | null> {
+  if (!redisConfig()) return null;
+  return cached("oura:now", 10 * 60_000, () =>
+    withOuraAuth(async (token) => {
+      const days = await loadOuraDays(token, addDays(isoDay(new Date()), -(OURA_DAYS + 1)));
+      return days ? { days: days.slice(-OURA_DAYS) } : null;
+    })
+  );
+}
+
+/** Jan 1 through the latest day with data. Changes at most daily, so it's
+    cached for an hour and only requested when a card is opened. */
+export async function fetchOuraYtd(): Promise<OuraState | null> {
+  if (!redisConfig()) return null;
+  return cached("oura:ytd", 60 * 60_000, () =>
+    withOuraAuth(async (token) => {
+      const days = await loadOuraDays(token, `${new Date().getUTCFullYear()}-01-01`);
+      return days ? { days } : null;
+    })
+  );
 }
 
 /* ── Demo fixtures (dev only, via /api/now?demo=…) ──────────── */
@@ -426,6 +453,32 @@ function demoDays(): OuraDay[] {
     restingHr: rhr[i],
     sleepHours: hours[i],
   }));
+}
+
+// A plausible year: seasonal drift plus weekly rhythm, with a few unworn days.
+export function demoYtd(): OuraState {
+  const today = isoDay(new Date());
+  const days: OuraDay[] = [];
+  let seed = 7;
+  const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  for (let day = `${today.slice(0, 4)}-01-01`, i = 0; day <= today; day = addDays(day, 1), i++) {
+    if (rand() < 0.04) {
+      days.push({ day });
+      continue;
+    }
+    const season = Math.sin((i / 365) * Math.PI * 2 - 1.2);
+    const weekend = [0, 6].includes(new Date(`${day}T12:00:00Z`).getUTCDay());
+    days.push({
+      day,
+      steps: Math.round(8200 + season * 2100 + (weekend ? 2600 : 0) + (rand() - 0.5) * 7000),
+      readiness: Math.round(78 + season * 4 + (rand() - 0.5) * 18),
+      sleepScore: Math.round(75 + season * 3 + (rand() - 0.5) * 22),
+      hrv: Math.round(56 + season * 5 + (rand() - 0.5) * 20),
+      restingHr: Math.round(50 - season * 2 + (rand() - 0.5) * 6),
+      sleepHours: +(7 + (rand() - 0.5) * 2.4).toFixed(1),
+    });
+  }
+  return { days };
 }
 
 export function demoSnapshot(state: string): NowSnapshot {

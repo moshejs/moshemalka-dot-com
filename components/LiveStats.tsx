@@ -1,12 +1,12 @@
 import {
   useEffect,
+  useId,
   useLayoutEffect,
-  useRef,
   useState,
   type KeyboardEvent,
   type PointerEvent,
 } from "react";
-import type { NowSnapshot, OuraDay, SpotifyState } from "@/lib/stats";
+import type { NowSnapshot, OuraDay, OuraState, SpotifyState } from "@/lib/stats";
 
 const POLL_MS = 30_000;
 
@@ -96,18 +96,19 @@ function Delta({
 
 /* ── Chart plumbing ─────────────────────────────────────────── */
 
+// Callback ref, so it measures whenever the element mounts, including one
+// that appears later (a chart rendered once its data arrives).
 function useWidth<T extends HTMLElement>() {
-  const ref = useRef<T>(null);
+  const [el, setEl] = useState<T | null>(null);
   const [width, setWidth] = useState(0);
   useLayoutEffect(() => {
-    const el = ref.current;
     if (!el) return;
     setWidth(el.clientWidth);
     const ro = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width));
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
-  return [ref, width] as const;
+  }, [el]);
+  return [setEl, width] as const;
 }
 
 // The pointer snaps to the nearest day; arrow keys step through days when the
@@ -200,6 +201,496 @@ function Sparkline({
   );
 }
 
+/* ── Year to date ───────────────────────────────────────────── */
+
+// Fetched once, on the first card opened, and shared by every card after.
+let ytdRequest: Promise<OuraDay[] | null> | null = null;
+
+function loadYtd(): Promise<OuraDay[] | null> {
+  if (!ytdRequest) {
+    const url = demoParam() ? "/api/oura-ytd?demo" : "/api/oura-ytd";
+    ytdRequest = fetch(url)
+      .then((r) => (r.ok ? (r.json() as Promise<OuraState | null>) : null))
+      .then((state) => state?.days ?? null)
+      .catch(() => null);
+    // A failure shouldn't stick: the next open tries again.
+    ytdRequest.then((days) => {
+      if (!days) ytdRequest = null;
+    });
+  }
+  return ytdRequest;
+}
+
+type YtdState = { status: "loading" } | { status: "ready"; days: OuraDay[] } | { status: "error" };
+
+function useYtd(enabled: boolean): YtdState {
+  const [state, setState] = useState<YtdState>({ status: "loading" });
+  useEffect(() => {
+    if (!enabled) return;
+    let live = true;
+    loadYtd().then((days) => {
+      if (live) setState(days ? { status: "ready", days } : { status: "error" });
+    });
+    return () => {
+      live = false;
+    };
+  }, [enabled]);
+  return state;
+}
+
+function useToggle() {
+  const [open, setOpen] = useState(false);
+  const id = useId();
+  return { open, panelId: `ytd-${id.replace(/:/g, "")}`, toggle: () => setOpen((o) => !o) };
+}
+
+function YtdToggle({
+  open,
+  panelId,
+  label,
+  onClick,
+}: {
+  open: boolean;
+  panelId: string;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="c-ytd-toggle"
+      aria-expanded={open}
+      aria-controls={panelId}
+      onClick={onClick}
+    >
+      YTD<span className="c-sr"> {label}</span>
+      <svg className="c-chevron" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="m6 9 6 6 6-6"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </svg>
+    </button>
+  );
+}
+
+function mean(values: number[]): number {
+  return values.reduce((a, b) => a + b, 0) / values.length;
+}
+
+// Trailing 7-day mean; a window with fewer than 3 readings is a gap.
+function rolling(values: (number | undefined)[], window = 7): (number | undefined)[] {
+  return values.map((_, i) => {
+    const w = values
+      .slice(Math.max(0, i - window + 1), i + 1)
+      .filter((v): v is number => v != null);
+    return w.length >= 3 ? mean(w) : undefined;
+  });
+}
+
+// The last 30 calendar days against the year: is the recent stretch above or
+// below the norm?
+function recent30(values: (number | undefined)[], ytdAvg: number, suffix: string): Fact | null {
+  const v = values.slice(-30).filter((x): x is number => x != null);
+  if (!v.length) return null;
+  const avg = mean(v);
+  const diff = Math.round(avg - ytdAvg);
+  const rel =
+    Math.abs(ytdAvg) >= 1000
+      ? `${Math.round((Math.abs(avg - ytdAvg) / ytdAvg) * 100)}%`
+      : `${Math.abs(diff)}${suffix}`;
+  return {
+    k: "Last 30 days",
+    v: `${fmt(Math.round(avg))}${suffix}`,
+    sub: diff === 0 ? "level with YTD" : `${diff > 0 ? "▲" : "▼"} ${rel} vs YTD`,
+  };
+}
+
+function extreme(days: OuraDay[], metric: Metric, highest: boolean) {
+  let best: { v: number; day: string } | null = null;
+  for (const d of days) {
+    const v = d[metric];
+    if (v == null) continue;
+    if (!best || (highest ? v > best.v : v < best.v)) best = { v, day: d.day };
+  }
+  return best;
+}
+
+type Fact = { k: string; v: string; sub?: string };
+
+function Facts({ facts }: { facts: Fact[] }) {
+  return (
+    <dl className="c-ytd__facts">
+      {facts.map((f) => (
+        <div key={f.k}>
+          <dt>{f.k}</dt>
+          <dd>
+            {f.v}
+            {f.sub ? <span>{f.sub}</span> : null}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+// Month starts within the series, for axis ticks and the summary table.
+function monthStarts(days: OuraDay[]): { i: number; label: string }[] {
+  return days.flatMap((d, i) =>
+    d.day.endsWith("-01") || i === 0 ? [{ i, label: MONTHS[Number(d.day.slice(5, 7)) - 1] }] : [],
+  );
+}
+
+function MonthTable({
+  days,
+  metric,
+  caption,
+  unit,
+}: {
+  days: OuraDay[];
+  metric: Metric;
+  caption: string;
+  unit: string;
+}) {
+  const rows = monthStarts(days).map(({ i, label }, n, all) => {
+    const slice = days.slice(i, all[n + 1]?.i ?? days.length);
+    const v = slice.map((d) => d[metric]).filter((x): x is number => x != null);
+    return { label, avg: v.length ? Math.round(mean(v)) : null, n: v.length };
+  });
+  return (
+    <div className="c-sr">
+      <table>
+        <caption>{caption}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Month</th>
+            <th scope="col">Average{unit ? ` (${unit})` : ""}</th>
+            <th scope="col">Days logged</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.label}>
+              <th scope="row">{r.label}</th>
+              <td>{r.avg == null ? "—" : fmt(r.avg)}</td>
+              <td>{r.n}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+const YTD_H = 112;
+const AXIS_H = 18;
+
+function MonthAxis({
+  ticks,
+  x,
+  width,
+}: {
+  ticks: { i: number; label: string }[];
+  x: (i: number) => number;
+  width: number;
+}) {
+  // Thin the labels when months are packed tighter than a label is wide.
+  const every = width / Math.max(ticks.length, 1) < 34 ? 2 : 1;
+  return (
+    <g className="c-ytd__axis" aria-hidden="true">
+      {ticks.map((t, n) =>
+        n % every === 0 ? (
+          <text key={t.i} x={Math.min(x(t.i), width - 22)} y={YTD_H + 13}>
+            {t.label}
+          </text>
+        ) : null,
+      )}
+    </g>
+  );
+}
+
+function YtdPanel({
+  id,
+  label,
+  metric,
+  unit,
+  upIsGood,
+}: {
+  id: string;
+  label: string;
+  metric: Metric;
+  unit: string;
+  upIsGood: boolean;
+}) {
+  const ytd = useYtd(true);
+  const [ref, width] = useWidth<HTMLDivElement>();
+  const days = ytd.status === "ready" ? ytd.days : [];
+  const values = series(days, metric);
+  const smooth = rolling(values);
+  const { active, handlers } = useScrub(values.length);
+  const suffix = unit === "/100" ? "" : ` ${unit}`;
+
+  if (ytd.status !== "ready") {
+    return (
+      <div id={id} className="c-ytd">
+        <p className="c-now__detail">
+          {ytd.status === "loading" ? "Loading year to date…" : "Couldn’t load year to date."}
+        </p>
+      </div>
+    );
+  }
+
+  const logged = values.filter((v): v is number => v != null);
+  if (logged.length < 3) {
+    return (
+      <div id={id} className="c-ytd">
+        <p className="c-now__detail">Not enough readings this year yet.</p>
+      </div>
+    );
+  }
+  const avg = mean(logged);
+  const best = extreme(days, metric, upIsGood);
+  const worst = extreme(days, metric, !upIsGood);
+  const year = days[0].day.slice(0, 4);
+
+  const defined = smooth.filter((v): v is number => v != null);
+  const lo = Math.min(...defined, avg);
+  const hi = Math.max(...defined, avg);
+  const span = hi - lo || 1;
+  const x = (i: number) => PAD + (i / (values.length - 1)) * (width - PAD * 2);
+  const y = (v: number) => PAD + (1 - (v - lo) / span) * (YTD_H - PAD * 2);
+
+  const runs: string[] = [];
+  let run = "";
+  smooth.forEach((v, i) => {
+    if (v == null) {
+      if (run.includes("L")) runs.push(run);
+      run = "";
+      return;
+    }
+    run += `${run ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`;
+  });
+  if (run.includes("L")) runs.push(run);
+  const last = lastIndex(smooth);
+  const marker = active != null && smooth[active] != null ? active : last;
+
+  const shown = active ?? lastIndex(values);
+  const sv = smooth[shown];
+  const dv = values[shown];
+  const readout = [
+    dayLabel(days[shown].day, active == null ? "relative" : "short"),
+    sv != null ? `7-day avg ${fmt(Math.round(sv))}${suffix}` : "no 7-day avg",
+    dv != null ? `day ${fmt(dv)}` : "no reading",
+  ].join(" · ");
+
+  return (
+    <div id={id} className="c-ytd">
+      <div className="c-ytd__head">
+        <p className="c-ytd__title">{year} to date · 7-day average</p>
+        <p className="c-steps__avg">
+          <span className="c-steps__key" aria-hidden="true" />
+          YTD avg {fmt(Math.round(avg))}
+          {suffix}
+        </p>
+      </div>
+      <Facts
+        facts={[
+          recent30(values, avg, suffix) ?? { k: "YTD avg", v: `${fmt(Math.round(avg))}${suffix}` },
+          {
+            k: upIsGood ? "Best" : "Lowest",
+            v: `${fmt(best!.v)}${suffix}`,
+            sub: dayLabel(best!.day, "short"),
+          },
+          {
+            k: upIsGood ? "Worst" : "Highest",
+            v: `${fmt(worst!.v)}${suffix}`,
+            sub: dayLabel(worst!.day, "short"),
+          },
+          { k: "Days logged", v: fmt(logged.length), sub: `of ${values.length}` },
+        ]}
+      />
+      <div ref={ref} className="c-now__plot">
+        {width ? (
+          <svg
+            className="c-spark c-ytd__chart"
+            width={width}
+            height={YTD_H + AXIS_H}
+            aria-label={`${label}, 7-day average, ${year} to date`}
+            {...handlers}
+          >
+            <line className="c-steps__avgline" x1={0} x2={width} y1={y(avg)} y2={y(avg)} />
+            {runs.map((d) => (
+              <path key={d} d={d} className="c-ytd__line" />
+            ))}
+            {active != null ? (
+              <line className="c-spark__cross" x1={x(active)} x2={x(active)} y1={0} y2={YTD_H} />
+            ) : null}
+            {marker >= 0 ? (
+              <circle
+                cx={x(marker)}
+                cy={y(smooth[marker] as number)}
+                r={4}
+                className="c-spark__end"
+              />
+            ) : null}
+            <MonthAxis ticks={monthStarts(days)} x={x} width={width} />
+          </svg>
+        ) : (
+          <div style={{ height: YTD_H + AXIS_H }} />
+        )}
+      </div>
+      <p className="c-now__detail" aria-live="polite">
+        {readout}
+      </p>
+      <MonthTable
+        days={days}
+        metric={metric}
+        caption={`${label}, monthly average, ${year}`}
+        unit={unit === "/100" ? "" : unit}
+      />
+    </div>
+  );
+}
+
+// Monday-start weeks; the first and current weeks may be partial.
+function weeks(days: OuraDay[]) {
+  const out: { start: string; days: OuraDay[] }[] = [];
+  for (const d of days) {
+    const dow = (new Date(`${d.day}T12:00:00Z`).getUTCDay() + 6) % 7;
+    if (dow === 0 || out.length === 0) out.push({ start: d.day, days: [] });
+    out[out.length - 1].days.push(d);
+  }
+  return out.map((w) => {
+    const v = w.days.map((d) => d.steps).filter((x): x is number => x != null);
+    return {
+      start: w.start,
+      perDay: v.length ? mean(v) : undefined,
+      total: v.reduce((a, b) => a + b, 0),
+      n: v.length,
+    };
+  });
+}
+
+function barPath(x0: number, y: number, bar: number, base: number): string {
+  const r = Math.min(RADIUS, base - y, bar / 2);
+  // Rounded data-end, square at the baseline.
+  return (
+    `M${x0},${base}V${y + r}Q${x0},${y} ${x0 + r},${y}` +
+    `H${x0 + bar - r}Q${x0 + bar},${y} ${x0 + bar},${y + r}V${base}Z`
+  );
+}
+
+function YtdStepsPanel({ id }: { id: string }) {
+  const ytd = useYtd(true);
+  const [ref, width] = useWidth<HTMLDivElement>();
+  const days = ytd.status === "ready" ? ytd.days : [];
+  const wk = weeks(days);
+  const { active, handlers } = useScrub(wk.length);
+
+  if (ytd.status !== "ready") {
+    return (
+      <div id={id} className="c-ytd">
+        <p className="c-now__detail">
+          {ytd.status === "loading" ? "Loading year to date…" : "Couldn’t load year to date."}
+        </p>
+      </div>
+    );
+  }
+
+  const logged = series(days, "steps").filter((v): v is number => v != null);
+  if (!logged.length) {
+    return (
+      <div id={id} className="c-ytd">
+        <p className="c-now__detail">No steps logged this year yet.</p>
+      </div>
+    );
+  }
+  const total = logged.reduce((a, b) => a + b, 0);
+  const avg = total / logged.length;
+  const best = extreme(days, "steps", true)!;
+  const tenK = logged.filter((v) => v >= 10_000).length;
+  const year = days[0].day.slice(0, 4);
+
+  const perDay = wk.map((w) => w.perDay).filter((v): v is number => v != null);
+  const max = Math.max(...perDay, avg) * 1.08;
+  const slot = width / wk.length;
+  const bar = Math.max(2, Math.min(BAR_MAX, slot - 2));
+  const top = (v: number) => YTD_H - (v / max) * YTD_H;
+  // Place each month's tick under the week containing its first day.
+  const ticks = monthStarts(days).map((t) => ({
+    i: wk.findIndex(
+      (w, n) => w.start <= days[t.i].day && (wk[n + 1]?.start ?? "9999") > days[t.i].day,
+    ),
+    label: t.label,
+  }));
+
+  const shown = active ?? wk.length - 1;
+  const w = wk[shown];
+  const readout =
+    w.perDay == null
+      ? `Week of ${dayLabel(w.start, "short")} · no reading`
+      : `Week of ${dayLabel(w.start, "short")} · ${fmt(Math.round(w.perDay))}/day · ${fmt(w.total)} total`;
+
+  return (
+    <div id={id} className="c-ytd">
+      <div className="c-ytd__head">
+        <p className="c-ytd__title">{year} to date · daily average by week</p>
+        <p className="c-steps__avg">
+          <span className="c-steps__key" aria-hidden="true" />
+          YTD avg {fmt(Math.round(avg))}/day
+        </p>
+      </div>
+      <Facts
+        facts={[
+          { k: "Total", v: total >= 1e6 ? `${(total / 1e6).toFixed(2)}M` : fmt(total) },
+          recent30(series(days, "steps"), avg, "") ?? { k: "Avg / day", v: fmt(Math.round(avg)) },
+          { k: "Best day", v: fmt(best.v), sub: dayLabel(best.day, "short") },
+          { k: "10K+ days", v: fmt(tenK), sub: `of ${logged.length}` },
+        ]}
+      />
+      <div ref={ref} className="c-now__plot">
+        {width ? (
+          <svg
+            className="c-steps c-ytd__chart"
+            width={width}
+            height={YTD_H + AXIS_H}
+            aria-label={`Steps, daily average by week, ${year} to date`}
+            {...handlers}
+          >
+            {wk.map((wkx, i) =>
+              wkx.perDay == null ? null : (
+                <path
+                  key={wkx.start}
+                  d={barPath(i * slot + (slot - bar) / 2, top(wkx.perDay), bar, YTD_H)}
+                  className={`c-steps__bar${i === wk.length - 1 ? " is-latest" : ""}${i === active ? " is-active" : ""}`}
+                />
+              ),
+            )}
+            <line className="c-steps__avgline" x1={0} x2={width} y1={top(avg)} y2={top(avg)} />
+            <MonthAxis ticks={ticks} x={(i) => i * slot + (slot - bar) / 2} width={width} />
+          </svg>
+        ) : (
+          <div style={{ height: YTD_H + AXIS_H }} />
+        )}
+      </div>
+      <p className="c-now__detail" aria-live="polite">
+        {readout}
+      </p>
+      <MonthTable
+        days={days}
+        metric="steps"
+        caption={`Steps, monthly daily average, ${year}`}
+        unit=""
+      />
+    </div>
+  );
+}
+
 /* ── Oura tiles ─────────────────────────────────────────────── */
 
 function TrendTile({
@@ -223,6 +714,7 @@ function TrendTile({
   const last = lastIndex(values);
   const [ref, width] = useWidth<HTMLDivElement>();
   const { active, handlers } = useScrub(values.length);
+  const { open, panelId, toggle } = useToggle();
   if (last < 0) return null;
 
   const shown = active ?? last;
@@ -233,8 +725,11 @@ function TrendTile({
     v == null ? `${when} · no reading` : [when, context?.(day)].filter(Boolean).join(" · ");
 
   return (
-    <li className="c-panel c-now__card">
-      <p className="c-now__label">{label}</p>
+    <li className={`c-panel c-now__card${open ? " c-now__card--wide is-open" : ""}`}>
+      <div className="c-now__top">
+        <p className="c-now__label">{label}</p>
+        <YtdToggle open={open} panelId={panelId} label={label} onClick={toggle} />
+      </div>
       <p className="c-now__score">
         {v != null ? fmt(v) : "—"}
         <span className="c-now__of">{unit}</span>
@@ -263,6 +758,9 @@ function TrendTile({
       <p className="c-now__detail" aria-live="polite">
         {readout}
       </p>
+      {open ? (
+        <YtdPanel id={panelId} label={label} metric={metric} unit={unit} upIsGood={upIsGood} />
+      ) : null}
     </li>
   );
 }
@@ -276,6 +774,7 @@ function StepsCard({ days }: { days: OuraDay[] }) {
   const last = lastIndex(values);
   const [ref, width] = useWidth<HTMLDivElement>();
   const { active, handlers } = useScrub(values.length);
+  const { open, panelId, toggle } = useToggle();
   if (last < 0) return null;
 
   const defined = values.filter((v): v is number => v != null);
@@ -294,10 +793,13 @@ function StepsCard({ days }: { days: OuraDay[] }) {
       : `${when} · ${fmt(values[shown] as number)} steps`;
 
   return (
-    <li className="c-panel c-now__card c-now__card--wide">
+    <li className={`c-panel c-now__card c-now__card--wide${open ? " is-open" : ""}`}>
+      <div className="c-now__top">
+        <p className="c-now__label">Steps</p>
+        <YtdToggle open={open} panelId={panelId} label="Steps" onClick={toggle} />
+      </div>
       <div className="c-steps__head">
         <div className="c-steps__figure">
-          <p className="c-now__label">Steps</p>
           <p className="c-now__score">
             {fmt(values[last] as number)}
             <span className="c-now__of">
@@ -328,18 +830,15 @@ function StepsCard({ days }: { days: OuraDay[] }) {
             aria-label={`Daily steps, last ${days.length} days`}
             {...handlers}
           >
-            {values.map((v, i) => {
-              if (v == null || v <= 0) return null;
-              const y = top(v);
-              const x0 = i * slot + (slot - bar) / 2;
-              const r = Math.min(RADIUS, STEPS_H - y, bar / 2);
-              // Rounded data-end, square at the baseline.
-              const d =
-                `M${x0},${STEPS_H}V${y + r}Q${x0},${y} ${x0 + r},${y}` +
-                `H${x0 + bar - r}Q${x0 + bar},${y} ${x0 + bar},${y + r}V${STEPS_H}Z`;
-              const cls = `c-steps__bar${i === last ? " is-latest" : ""}${i === active ? " is-active" : ""}`;
-              return <path key={days[i].day} d={d} className={cls} />;
-            })}
+            {values.map((v, i) =>
+              v == null ? null : (
+                <path
+                  key={days[i].day}
+                  d={barPath(i * slot + (slot - bar) / 2, top(v), bar, STEPS_H)}
+                  className={`c-steps__bar${i === last ? " is-latest" : ""}${i === active ? " is-active" : ""}`}
+                />
+              ),
+            )}
             <line className="c-steps__avgline" x1={0} x2={width} y1={top(avg)} y2={top(avg)} />
           </svg>
         ) : (
@@ -353,6 +852,7 @@ function StepsCard({ days }: { days: OuraDay[] }) {
       <p className="c-now__detail" aria-live="polite">
         {readout}
       </p>
+      {open ? <YtdStepsPanel id={panelId} /> : null}
     </li>
   );
 }

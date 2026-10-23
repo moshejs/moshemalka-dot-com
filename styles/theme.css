@@ -1169,6 +1169,110 @@ a.c-now__track:hover { color: var(--z-blue-hi); }
   color: var(--soft);
 }
 
+/* Year to date: each card opens in place, spanning its column. */
+.c-now__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  /* The toggle's 32px hit area shouldn't push the card taller. */
+  margin: -6px -8px -6px 0;
+}
+.c-ytd-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: 0 8px 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  font-family: var(--f-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  color: var(--soft);
+  cursor: pointer;
+  transition: color 160ms var(--ease-out), border-color 160ms var(--ease-out), background-color 160ms var(--ease-out);
+}
+/* Grow the hit target past the visible pill without moving it. */
+.c-ytd-toggle { position: relative; }
+.c-ytd-toggle::after { content: ""; position: absolute; inset: -6px; }
+.c-ytd-toggle:hover { color: var(--ink); border-color: var(--border-2); background: rgba(255, 255, 255, 0.03); }
+.c-ytd-toggle[aria-expanded="true"] { color: var(--ink); border-color: var(--border-2); }
+.c-ytd-toggle .c-chevron { color: inherit; }
+.c-ytd-toggle[aria-expanded="true"] .c-chevron { transform: rotate(180deg); }
+
+/* An open card spans its column; its half-width neighbour would be left
+   alone in half a row, so it widens too. */
+.c-now__grid:has(> .is-open) > .c-now__card { grid-column: 1 / -1; }
+
+.c-ytd {
+  display: grid;
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.c-ytd__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+}
+.c-ytd__title {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.c-ytd__facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+.c-ytd__facts div { min-width: 0; }
+.c-ytd__facts dt {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+.c-ytd__facts dd {
+  display: grid;
+  margin: 3px 0 0;
+  font-weight: 600;
+  font-size: 1.0625rem;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.c-ytd__facts dd span {
+  font-family: var(--f-mono);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--soft);
+}
+.c-ytd__line {
+  fill: none;
+  stroke: var(--viz-accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.c-ytd__axis text {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  fill: var(--soft);
+}
+
+@media (max-width: 560px) {
+  .c-ytd__facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 @media (max-width: 960px) {
   .c-hero { grid-template-rows: none; row-gap: 0; }
   .c-hero__copy,
@@ -1181,10 +1285,12 @@ a.c-now__track:hover { color: var(--z-blue-hi); }
 @media (prefers-reduced-motion: reduce) {
   .c-live--pulse { animation: none; }
   .c-now__bar > span,
-  .c-steps__bar { transition: none; }
+  .c-steps__bar,
+  .c-ytd-toggle { transition: none; }
 }
 @media (forced-colors: active) {
-  .c-spark__line { stroke: CanvasText; }
+  .c-spark__line,
+  .c-ytd__line { stroke: CanvasText; }
   .c-spark__end,
   .c-steps__bar.is-latest { fill: Highlight; }
   .c-steps__bar { fill: GrayText; }
