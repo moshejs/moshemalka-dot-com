@@ -1,5 +1,5 @@
 /**
- * Live-stats providers for the homepage Signal strip.
+ * Live-stats providers for the homepage "Right now" section.
  *
  * Each provider returns null when its env vars aren't configured, when the
  * upstream call fails, or when the user has nothing to show. The API routes
@@ -7,7 +7,10 @@
  *
  * Both providers cache responses in module-level memory with a short TTL.
  * Vercel warm-instance reuse keeps these caches effective; cold starts pay
- * one extra upstream call. We intentionally avoid an external KV.
+ * one extra upstream call.
+ *
+ * Oura refresh tokens are single-use, so its token pair lives in Upstash
+ * Redis (REST, no SDK). Seed it with `node scripts/connect.mjs oura`.
  */
 
 export type SpotifyState =
@@ -240,12 +243,94 @@ function latestByDay<T extends { day: string }>(items: T[] | undefined): T | nul
   return [...items].sort((a, b) => (a.day < b.day ? 1 : -1))[0];
 }
 
+/* Upstash Redis over REST. The Vercel Marketplace integration sets either
+   the KV_* or UPSTASH_* names depending on how it was added. */
+function redisConfig(): { url: string; token: string } | null {
+  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  return url && token ? { url, token } : null;
+}
+
+async function redis(command: string[]): Promise<string | null> {
+  const cfg = redisConfig();
+  if (!cfg) return null;
+  const res = await fetch(cfg.url, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${cfg.token}` },
+    body: JSON.stringify(command),
+  });
+  if (!res.ok) throw new Error(`redis ${command[0]} failed: ${res.status}`);
+  return ((await res.json()) as { result: string | null }).result;
+}
+
+export const OURA_TOKEN_KEY = "oura:tokens";
+const OURA_TOKEN_URL = "https://api.ouraring.com/oauth/token";
+
+type OuraTokens = { accessToken: string; refreshToken: string; expiresAt: number };
+
+let ouraTokens: OuraTokens | null = null;
+
+async function loadOuraTokens(): Promise<OuraTokens | null> {
+  const raw = await redis(["GET", OURA_TOKEN_KEY]);
+  return raw ? (JSON.parse(raw) as OuraTokens) : null;
+}
+
+async function refreshOura(refreshToken: string): Promise<OuraTokens | null> {
+  const clientId = process.env.OURA_CLIENT_ID;
+  const clientSecret = process.env.OURA_CLIENT_SECRET;
+  if (!clientId || !clientSecret) return null;
+  const res = await fetch(OURA_TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "refresh_token",
+      refresh_token: refreshToken,
+      client_id: clientId,
+      client_secret: clientSecret,
+    }),
+  });
+  if (!res.ok) {
+    console.error("[oura] token refresh failed:", res.status);
+    return null;
+  }
+  const data = (await res.json()) as {
+    access_token: string;
+    refresh_token: string;
+    expires_in: number;
+  };
+  const next: OuraTokens = {
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token,
+    expiresAt: Date.now() + (data.expires_in - 3600) * 1000,
+  };
+  await redis(["SET", OURA_TOKEN_KEY, JSON.stringify(next)]);
+  return next;
+}
+
+async function getOuraAccessToken(): Promise<string | null> {
+  if (ouraTokens && ouraTokens.expiresAt > Date.now()) return ouraTokens.accessToken;
+  ouraTokens = await loadOuraTokens();
+  if (!ouraTokens) return null;
+  if (ouraTokens.expiresAt > Date.now()) return ouraTokens.accessToken;
+
+  // Expired: rotate. If another instance rotated first, our refresh token is
+  // spent, so re-read the store once before giving up.
+  const rotated = await refreshOura(ouraTokens.refreshToken);
+  if (rotated) {
+    ouraTokens = rotated;
+    return rotated.accessToken;
+  }
+  ouraTokens = await loadOuraTokens();
+  return ouraTokens && ouraTokens.expiresAt > Date.now() ? ouraTokens.accessToken : null;
+}
+
 export async function fetchOuraNow(): Promise<OuraState | null> {
-  const token = process.env.OURA_PAT;
-  if (!token) return null;
+  if (!redisConfig()) return null;
 
   return cached("oura:now", 10 * 60_000, async () => {
     try {
+      const token = await getOuraAccessToken();
+      if (!token) return null;
       const [readinessRes, sleepScoreRes, sleepRes] = await Promise.all([
         ouraGet<OuraDailyReadiness>("daily_readiness", token),
         ouraGet<OuraDailySleep>("daily_sleep", token),
