@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import Script from "next/script";
+import dynamic from "next/dynamic";
 import {
   OSS_PACKAGES,
   ROLES,
@@ -13,6 +14,10 @@ import {
   type Role,
 } from "@/lib/portfolio";
 import { Dial } from "@/components/Dial";
+
+const LiveStats = dynamic(() => import("@/components/LiveStats"), {
+  ssr: false,
+});
 
 /**
  * Moshe Malka — product-grade.
@@ -815,6 +820,9 @@ export default function Home({ asOf, revision }: Props) {
             </ul>
           </div>
         </section>
+
+        {/* Live Spotify + Oura; renders nothing until a provider is configured. */}
+        <LiveStats />
 
         <footer className="c-section c-close" aria-labelledby="close-h">
           <div className="c-panel c-close__cta">
