@@ -11,8 +11,9 @@
  *   spotify → writes SPOTIFY_REFRESH_TOKEN to .env.local (it never rotates)
  *   oura    → seeds the token pair into Upstash Redis (refresh tokens rotate)
  *
- * Register http://127.0.0.1:8888/callback as the redirect URI in both apps.
- * Spotify rejects "localhost"; it must be the loopback IP.
+ * Register http://127.0.0.1:8888/callback as the redirect URI in both apps
+ * (Spotify rejects "localhost"). If an app is registered with a different
+ * loopback URI, set SPOTIFY_REDIRECT_URI / OURA_REDIRECT_URI to match it.
  */
 import { createServer } from "node:http";
 import { randomBytes } from "node:crypto";
@@ -20,8 +21,7 @@ import { execFile } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 
 const ENV_FILE = ".env.local";
-const PORT = 8888;
-const REDIRECT_URI = `http://127.0.0.1:${PORT}/callback`;
+const DEFAULT_REDIRECT_URI = "http://127.0.0.1:8888/callback";
 
 const PROVIDERS = {
   spotify: {
@@ -30,6 +30,7 @@ const PROVIDERS = {
     scope: "user-read-currently-playing user-read-recently-played",
     idKey: "SPOTIFY_CLIENT_ID",
     secretKey: "SPOTIFY_CLIENT_SECRET",
+    redirectKey: "SPOTIFY_REDIRECT_URI",
   },
   oura: {
     authorize: "https://cloud.ouraring.com/oauth/authorize",
@@ -37,6 +38,7 @@ const PROVIDERS = {
     scope: "daily heartrate personal",
     idKey: "OURA_CLIENT_ID",
     secretKey: "OURA_CLIENT_SECRET",
+    redirectKey: "OURA_REDIRECT_URI",
   },
 };
 
@@ -59,14 +61,22 @@ function setEnvVar(key, value) {
   writeFileSync(ENV_FILE, lines.join("\n").replace(/\n?$/, "\n"));
 }
 
-function waitForCode(state) {
+// Listen on the redirect URI's own loopback host and port. "localhost" may
+// resolve to either stack in the browser, so cover both.
+function waitForCode(redirectUri, state) {
+  const target = new URL(redirectUri);
+  const port = Number(target.port) || 80;
+  const hosts =
+    target.hostname === "localhost" ? ["127.0.0.1", "::1"] : [target.hostname.replace(/^\[|\]$/g, "")];
+  const servers = [];
+  const closeAll = () => servers.forEach((s) => s.close());
   return new Promise((resolve, reject) => {
-    const server = createServer((req, res) => {
-      const url = new URL(req.url, REDIRECT_URI);
-      if (url.pathname !== "/callback") return res.writeHead(404).end();
+    const handler = (req, res) => {
+      const url = new URL(req.url, redirectUri);
+      if (url.pathname !== target.pathname) return res.writeHead(404).end();
       const done = (status, msg) => {
         res.writeHead(status, { "Content-Type": "text/plain" }).end(msg);
-        server.close();
+        closeAll();
       };
       if (url.searchParams.get("state") !== state) {
         done(400, "State mismatch. Close this tab and run the script again.");
@@ -79,9 +89,18 @@ function waitForCode(state) {
       }
       done(200, "Got it. You can close this tab; the terminal finishes the setup.");
       resolve(url.searchParams.get("code"));
-    });
-    server.listen(PORT, "127.0.0.1");
-    server.on("error", reject);
+    };
+    for (const host of hosts) {
+      const server = createServer(handler);
+      server.on("error", (err) => {
+        // ::1 can be unavailable when IPv6 is off; the IPv4 listener suffices.
+        if (host === "::1" && err.code === "EADDRNOTAVAIL") return;
+        closeAll();
+        reject(err);
+      });
+      server.listen(port, host);
+      servers.push(server);
+    }
   });
 }
 
@@ -109,15 +128,17 @@ async function main() {
     process.exit(1);
   }
 
+  const redirectUri = env[p.redirectKey] || DEFAULT_REDIRECT_URI;
   const state = randomBytes(16).toString("hex");
   const authUrl = `${p.authorize}?${new URLSearchParams({
     client_id: clientId,
     response_type: "code",
-    redirect_uri: REDIRECT_URI,
+    redirect_uri: redirectUri,
     scope: p.scope,
     state,
   })}`;
-  const codePromise = waitForCode(state);
+  const codePromise = waitForCode(redirectUri, state);
+  console.log(`Redirect URI: ${redirectUri} (must match the app's settings exactly)`);
   console.log(`Opening ${name} consent page. If it doesn't open, visit:\n\n  ${authUrl}\n`);
   execFile("open", [authUrl], () => {});
   const code = await codePromise;
@@ -128,7 +149,7 @@ async function main() {
     body: new URLSearchParams({
       grant_type: "authorization_code",
       code,
-      redirect_uri: REDIRECT_URI,
+      redirect_uri: redirectUri,
       client_id: clientId,
       client_secret: clientSecret,
     }),
