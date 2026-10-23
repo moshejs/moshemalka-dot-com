@@ -63,7 +63,9 @@ async function cached<T>(
   const now = Date.now();
   if (hit && hit.expiresAt > now) return hit.value;
   const value = await loader();
-  cache.set(key, { value, expiresAt: now + ttlMs });
+  // Don't pin a miss: a provider that just got connected (or recovered from
+  // an error) should show up on the next poll, not after the TTL.
+  if (value != null) cache.set(key, { value, expiresAt: now + ttlMs });
   return value;
 }
 
@@ -232,7 +234,7 @@ async function ouraGet<T>(
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {
-    console.error(`[oura] ${path} failed:`, res.status);
+    console.error(`[oura] ${path} failed:`, res.status, await res.text());
     return null;
   }
   return (await res.json()) as OuraDaily<T>;
