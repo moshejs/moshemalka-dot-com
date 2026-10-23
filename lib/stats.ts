@@ -205,7 +205,6 @@ type OuraDaily<T> = { data: T[] };
 type OuraDailyReadiness = {
   day: string;
   score: number | null;
-  contributors?: { resting_heart_rate?: number };
 };
 type OuraDailySleep = {
   day: string;
@@ -213,6 +212,7 @@ type OuraDailySleep = {
 };
 type OuraSleep = {
   day: string;
+  type?: string;
   total_sleep_duration: number | null;
   average_hrv: number | null;
   lowest_heart_rate: number | null;
@@ -221,6 +221,8 @@ type OuraSleep = {
 function isoDay(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
+
+class OuraUnauthorized extends Error {}
 
 async function ouraGet<T>(
   path: string,
@@ -233,6 +235,7 @@ async function ouraGet<T>(
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
+  if (res.status === 401) throw new OuraUnauthorized(await res.text());
   if (!res.ok) {
     console.error(`[oura] ${path} failed:`, res.status, await res.text());
     return null;
@@ -331,41 +334,51 @@ export async function fetchOuraNow(): Promise<OuraState | null> {
 
   return cached("oura:now", 10 * 60_000, async () => {
     try {
-      const token = await getOuraAccessToken();
-      if (!token) return null;
-      const [readinessRes, sleepScoreRes, sleepRes] = await Promise.all([
-        ouraGet<OuraDailyReadiness>("daily_readiness", token),
-        ouraGet<OuraDailySleep>("daily_sleep", token),
-        ouraGet<OuraSleep>("sleep", token),
-      ]);
-
-      const readiness = latestByDay(readinessRes?.data);
-      const sleepScore = latestByDay(sleepScoreRes?.data);
-      const sleep = latestByDay(sleepRes?.data);
-
-      if (!readiness && !sleepScore && !sleep) return null;
-
-      const out: OuraState = {};
-      if (readiness?.score != null) out.readiness = readiness.score;
-      if (readiness?.contributors?.resting_heart_rate != null) {
-        out.restingHr = readiness.contributors.resting_heart_rate;
-      }
-      if (sleepScore?.score != null) out.sleepScore = sleepScore.score;
-      if (sleep?.total_sleep_duration != null) {
-        out.sleepHours = +(sleep.total_sleep_duration / 3600).toFixed(1);
-      }
-      if (sleep?.average_hrv != null) out.hrv = sleep.average_hrv;
-      if (sleep?.lowest_heart_rate != null && out.restingHr == null) {
-        out.restingHr = sleep.lowest_heart_rate;
-      }
-      const day = readiness?.day || sleepScore?.day || sleep?.day;
-      if (day) out.day = day;
-      return out;
+      return await loadOura();
     } catch (err) {
-      console.error("[oura] fetch error:", err);
-      return null;
+      if (!(err instanceof OuraUnauthorized)) throw err;
+      // Our in-memory token is stale (reconnected, or another instance
+      // rotated it). Re-read the store and try once more.
+      ouraTokens = null;
+      return await loadOura();
     }
+  }).catch((err) => {
+    console.error("[oura] fetch error:", err);
+    return null;
   });
+}
+
+async function loadOura(): Promise<OuraState | null> {
+  const token = await getOuraAccessToken();
+  if (!token) return null;
+  const [readinessRes, sleepScoreRes, sleepRes] = await Promise.all([
+    ouraGet<OuraDailyReadiness>("daily_readiness", token),
+    ouraGet<OuraDailySleep>("daily_sleep", token),
+    ouraGet<OuraSleep>("sleep", token),
+  ]);
+
+  const readiness = latestByDay(readinessRes?.data);
+  const sleepScore = latestByDay(sleepScoreRes?.data);
+  // Sleep periods include naps; prefer the main overnight one.
+  const periods = sleepRes?.data ?? [];
+  const main = periods.filter((p) => p.type === "long_sleep");
+  const sleep = latestByDay(main.length ? main : periods);
+
+  if (!readiness && !sleepScore && !sleep) return null;
+
+  const out: OuraState = {};
+  if (readiness?.score != null) out.readiness = readiness.score;
+  if (sleepScore?.score != null) out.sleepScore = sleepScore.score;
+  if (sleep?.total_sleep_duration != null) {
+    out.sleepHours = +(sleep.total_sleep_duration / 3600).toFixed(1);
+  }
+  if (sleep?.average_hrv != null) out.hrv = sleep.average_hrv;
+  // Readiness only exposes a 0–100 "resting_heart_rate" contributor score;
+  // the overnight low from the sleep record is the actual bpm.
+  if (sleep?.lowest_heart_rate != null) out.restingHr = sleep.lowest_heart_rate;
+  const day = readiness?.day || sleepScore?.day || sleep?.day;
+  if (day) out.day = day;
+  return out;
 }
 
 /* ── Demo fixtures (dev only, via /api/now?demo=…) ──────────── */

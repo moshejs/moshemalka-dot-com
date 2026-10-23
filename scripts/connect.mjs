@@ -136,7 +136,11 @@ async function main() {
     redirect_uri: redirectUri,
     scope: p.scope,
     state,
-  })}`;
+  })
+    // URLSearchParams encodes spaces as "+", which Oura reads literally (one
+    // unknown scope, so the token gets no scopes). %20 works for both.
+    .toString()
+    .replace(/\+/g, "%20")}`;
   const codePromise = waitForCode(redirectUri, state);
   console.log(`Redirect URI: ${redirectUri} (must match the app's settings exactly)`);
   console.log(`Opening ${name} consent page. If it doesn't open, visit:\n\n  ${authUrl}\n`);

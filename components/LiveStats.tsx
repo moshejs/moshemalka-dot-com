@@ -95,8 +95,20 @@ function Score({ label, score, detail }: { label: string; score: number | undefi
   );
 }
 
+// Oura's "day" is a local calendar date; today's readiness may not exist yet.
+function dayLabel(day: string | undefined): string {
+  if (!day) return "";
+  const local = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const now = new Date();
+  if (day === local(now)) return "today";
+  now.setDate(now.getDate() - 1);
+  if (day === local(now)) return "yesterday";
+  return new Date(`${day}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
 function readinessDetail(o: OuraState): string[] {
-  return [o.restingHr != null ? `${o.restingHr} bpm resting` : "", "today"];
+  return [o.restingHr != null ? `${o.restingHr} bpm resting` : "", dayLabel(o.day)];
 }
 
 function sleepDetail(o: OuraState): string[] {
