@@ -32,7 +32,7 @@ const NowPatterns = dynamic(() => import("@/components/Insights").then((m) => m.
 
 // ── SEO ───────────────────────────────────────────────────────────────────
 const SITE_URL = "https://moshemalka.com";
-const SHEVIRAH = "https://moshejs.github.io/shevirah/";
+const SHEVIRAH = "https://kelipot.vercel.app/";
 
 const SEO = {
   title: "Moshe Malka — Software Engineer & Engineering Leader",
