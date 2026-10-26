@@ -74,15 +74,24 @@ export default function StudyPage({ library, source }: Props) {
   return (
     <>
       <Head>
-        <title>The Study · Moshe Malka</title>
-        <meta name="description" content="Moshe Malka's library — a lamplit 3D study of the books he's read, shelved by subject." />
-        <link rel="canonical" href="https://moshemalka.com/study" />
+        <title>{STUDY_TITLE}</title>
+        <meta name="description" content={STUDY_DESCRIPTION} />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+        <link rel="canonical" href={`${SITE_URL}/study`} />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://moshemalka.com/study" />
-        <meta property="og:title" content="The Study · Moshe Malka" />
-        <meta property="og:description" content="A lamplit 3D study of the books Moshe Malka has read, shelved by subject." />
-        <meta property="og:image" content="https://moshemalka.com/og-image.jpg" />
+        <meta property="og:site_name" content="Moshe Malka" />
+        <meta property="og:url" content={`${SITE_URL}/study`} />
+        <meta property="og:title" content={STUDY_TITLE} />
+        <meta property="og:description" content={STUDY_DESCRIPTION} />
+        <meta property="og:image" content={`${SITE_URL}/og-image.jpg`} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:locale" content="en_US" />
         <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={STUDY_TITLE} />
+        <meta name="twitter:description" content={STUDY_DESCRIPTION} />
+        <meta name="twitter:image" content={`${SITE_URL}/og-image.jpg`} />
         {source === "library" && (
           <script
             type="application/ld+json"
@@ -182,36 +191,69 @@ export default function StudyPage({ library, source }: Props) {
 }
 
 const SITE_URL = "https://moshemalka.com";
+const STUDY_TITLE = "The Study: Moshe Malka's Library, Shelved by Subject";
+const STUDY_DESCRIPTION =
+  "Moshe Malka's library — the books he's read, from Knuth and Kahneman to Kabbalah, shelved by subject in a lamplit 3D study you can walk through.";
 
-/** The @ids must match the homepage's graph so both pages describe one Person. */
+/**
+ * The @ids match the homepage's graph so both pages describe one Person; the
+ * Person and WebSite nodes are repeated here because each page is read alone.
+ */
 function studyStructuredData(library: Library) {
   return {
     "@context": "https://schema.org",
-    "@type": "CollectionPage",
-    "@id": `${SITE_URL}/study#webpage`,
-    url: `${SITE_URL}/study`,
-    name: "The Study · Moshe Malka",
-    description: "Moshe Malka's library — the books he's read, shelved by subject.",
-    isPartOf: { "@id": `${SITE_URL}/#website` },
-    about: { "@id": `${SITE_URL}/#person` },
-    author: { "@id": `${SITE_URL}/#person` },
-    inLanguage: "en",
-    mainEntity: {
-      "@type": "ItemList",
-      numberOfItems: library.books.length,
-      itemListElement: library.books.map((b, i) => ({
-        "@type": "ListItem",
-        position: i + 1,
-        item: {
-          "@type": "Book",
-          name: b.title,
-          ...(b.authors.length && {
-            author: b.authors.map((name) => ({ "@type": "Person", name })),
-          }),
-          ...((b.isbn13 ?? b.isbn10) && { isbn: b.isbn13 ?? b.isbn10 }),
+    "@graph": [
+      {
+        "@type": "Person",
+        "@id": `${SITE_URL}/#person`,
+        name: "Moshe Malka",
+        url: `${SITE_URL}/`,
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${SITE_URL}/#website`,
+        url: `${SITE_URL}/`,
+        name: "Moshe Malka",
+        publisher: { "@id": `${SITE_URL}/#person` },
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${SITE_URL}/study#breadcrumb`,
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` },
+          { "@type": "ListItem", position: 2, name: "The Study", item: `${SITE_URL}/study` },
+        ],
+      },
+      {
+        "@type": "CollectionPage",
+        "@id": `${SITE_URL}/study#webpage`,
+        url: `${SITE_URL}/study`,
+        name: STUDY_TITLE,
+        description: STUDY_DESCRIPTION,
+        isPartOf: { "@id": `${SITE_URL}/#website` },
+        breadcrumb: { "@id": `${SITE_URL}/study#breadcrumb` },
+        about: { "@id": `${SITE_URL}/#person` },
+        author: { "@id": `${SITE_URL}/#person` },
+        inLanguage: "en",
+        mainEntity: {
+          "@type": "ItemList",
+          name: "Books Moshe Malka has read",
+          numberOfItems: library.books.length,
+          itemListElement: library.books.map((b, i) => ({
+            "@type": "ListItem",
+            position: i + 1,
+            item: {
+              "@type": "Book",
+              name: b.title,
+              ...(b.authors.length && {
+                author: b.authors.map((name) => ({ "@type": "Person", name })),
+              }),
+              ...((b.isbn13 ?? b.isbn10) && { isbn: b.isbn13 ?? b.isbn10 }),
+            },
+          })),
         },
-      })),
-    },
+      },
+    ],
   };
 }
 

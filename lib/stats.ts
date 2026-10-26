@@ -154,7 +154,7 @@ function trackBase(item: SpotifyTrack): TrackBase {
     track: item.name,
     artist: (item.artists || []).map((a) => a.name).join(", "),
     album: item.album?.name,
-    albumArt: item.album?.images?.[0]?.url,
+    albumArt: thumb(item.album?.images),
     url: item.external_urls?.spotify,
   };
 }
