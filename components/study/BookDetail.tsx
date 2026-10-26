@@ -45,10 +45,10 @@ export default function BookDetail({
         role="dialog"
         aria-modal="false"
         aria-label={book ? `${book.title} — catalog card` : undefined}
-        className={`study-card relative w-full max-w-[34rem] md:w-[32rem] max-h-[50dvh] md:max-h-[86vh] overflow-y-auto outline-none text-[#2b2118] transition-[transform,opacity] duration-700 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] ${
+        className={`study-card relative w-full max-w-136 md:w-lg max-h-[50dvh] md:max-h-[86vh] overflow-y-auto outline-hidden text-[#2b2118] transition-[translate,rotate,opacity] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           open
-            ? "pointer-events-auto translate-y-0 md:translate-x-0 md:-rotate-[1.25deg]"
-            : "pointer-events-none translate-y-10 md:translate-y-0 md:translate-x-16 md:rotate-[2deg] invisible"
+            ? "pointer-events-auto translate-y-0 md:translate-x-0 md:rotate-[-1.25deg]"
+            : "pointer-events-none translate-y-10 md:translate-y-0 md:translate-x-16 md:rotate-2 invisible"
         }`}
       >
         {book && <Card book={book} onClose={onClose} />}
@@ -82,7 +82,7 @@ function Card({ book, onClose }: { book: Book; onClose: () => void }) {
         <button
           onClick={onClose}
           aria-label="Put the book back"
-          className="-mr-2 -mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-full text-[#5b4a3a] transition-colors hover:bg-[#2b2118]/[0.07] hover:text-[#2b2118] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8a3324]"
+          className="-mr-2 -mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-full text-[#5b4a3a] transition-colors hover:bg-[#2b2118]/[0.07] hover:text-[#2b2118] focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8a3324]"
         >
           <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden>
             <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -92,7 +92,7 @@ function Card({ book, onClose }: { book: Book; onClose: () => void }) {
 
       <div className="mt-4 md:mt-5 font-typewriter text-[0.84rem] md:text-[0.92rem] leading-[1.55]">
         {first && <p className="text-[#2b2118]">{invertName(first).replace(/\.+$/, "")}.</p>}
-        <h2 className="mt-1 pl-6 font-garamond text-[1.4rem] md:text-[1.85rem] leading-[1.15] tracking-[-0.01em] text-[#1c140d] [text-wrap:balance]">
+        <h2 className="mt-1 pl-6 font-garamond text-[1.4rem] md:text-[1.85rem] leading-[1.15] tracking-[-0.01em] text-[#1c140d] text-balance">
           {titleLine}
         </h2>
         <p className="pl-6 mt-1 text-[#3a2d22]">
@@ -121,15 +121,15 @@ function Card({ book, onClose }: { book: Book; onClose: () => void }) {
       </div>
 
       {book.notes && (
-        <div className="mt-6 -rotate-[0.6deg]">
-          <p className="font-pencil text-[1.45rem] leading-[1.25] text-[#4a4440] [text-wrap:pretty]">
+        <div className="mt-6 rotate-[-0.6deg]">
+          <p className="font-pencil text-[1.45rem] leading-tight text-[#4a4440] text-pretty">
             {book.notes}
           </p>
         </div>
       )}
 
       {!book.notes && book.description && (
-        <p className="mt-6 font-garamond text-[1.02rem] leading-[1.6] text-[#3a2d22] [text-wrap:pretty]">
+        <p className="mt-6 font-garamond text-[1.02rem] leading-[1.6] text-[#3a2d22] text-pretty">
           {truncate(stripHtml(book.description), 520)}
         </p>
       )}
@@ -139,7 +139,7 @@ function Card({ book, onClose }: { book: Book; onClose: () => void }) {
           href={amazonUrl(book)}
           target="_blank"
           rel="sponsored noopener noreferrer"
-          className="group inline-flex items-center gap-2 font-garamond text-[1.05rem] text-[#1c140d] underline decoration-[#b8473a]/60 decoration-1 underline-offset-[5px] transition-colors hover:decoration-[#b8473a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8a3324]"
+          className="group inline-flex items-center gap-2 font-garamond text-[1.05rem] text-[#1c140d] underline decoration-[#b8473a]/60 decoration-1 underline-offset-[5px] transition-colors hover:decoration-[#b8473a] focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8a3324]"
         >
           Find it on Amazon
           <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">

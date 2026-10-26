@@ -1,8 +1,24 @@
-@import "./study.css";
+/* Tailwind 3 emitted plain, unlayered CSS, and theme.css (imported after this
+   file) relies on beating or losing to utilities by specificity, like
+   `a { text-decoration: none }` vs `.underline`. So preflight and utilities
+   are imported unlayered here, in v3's order: study.css, preflight, utilities.
+   Sources are anchored to this file's directory so the content scan works
+   regardless of the dev server's working directory. */
+@import './study.css';
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css';
+@import './preflight-v3.css';
+@import 'tailwindcss/utilities.css' source(none);
+@source '../pages';
+@source '../components';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* inline: the utilities carry the full stack, and the next/font variables
+   (set on .study) resolve where the class is used. */
+@theme inline {
+  --font-garamond: var(--font-garamond), Georgia, serif;
+  --font-typewriter: var(--font-typewriter), Courier, monospace;
+  --font-pencil: var(--font-pencil), cursive;
+}
 
 html, body {
   padding: 0;

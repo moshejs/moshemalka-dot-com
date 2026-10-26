@@ -99,7 +99,7 @@ export default function StudyPage({ library, source }: Props) {
           />
         )}
       </Head>
-      <main className={`study ${studyFontVars} relative h-[100dvh] w-screen overflow-hidden`}>
+      <main className={`study ${studyFontVars} relative h-dvh w-screen overflow-hidden`}>
         <div className="absolute inset-0">
           <Room
             shelves={roomShelves}
