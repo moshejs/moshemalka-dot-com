@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type JSX } from "react";
 import Book, { type BookData, type PullInfo } from "./Book";
 import { BookStack, Bookend, Candle, DeskGlobe, Hourglass, Plant } from "./Decor";
 import { darkWalnut, walnut } from "./materials";
