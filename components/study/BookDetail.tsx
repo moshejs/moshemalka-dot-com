@@ -45,7 +45,7 @@ export default function BookDetail({
         role="dialog"
         aria-modal="false"
         aria-label={book ? `${book.title} — catalog card` : undefined}
-        className={`study-card relative w-full max-w-136 md:w-lg max-h-[50dvh] md:max-h-[86vh] overflow-y-auto outline-hidden text-[#2b2118] transition-[transform,opacity] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        className={`study-card relative w-full max-w-136 md:w-lg max-h-[50dvh] md:max-h-[86vh] overflow-y-auto outline-hidden text-[#2b2118] transition-[translate,rotate,opacity] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           open
             ? "pointer-events-auto translate-y-0 md:translate-x-0 md:rotate-[-1.25deg]"
             : "pointer-events-none translate-y-10 md:translate-y-0 md:translate-x-16 md:rotate-2 invisible"
