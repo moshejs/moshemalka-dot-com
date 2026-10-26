@@ -1,8 +1,37 @@
-@import "./study.css";
+/* Sources are anchored to this file's directory so the content scan works
+   regardless of the dev server's working directory. */
+@import 'tailwindcss' source(none);
+@source '../pages';
+@source '../components';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Unlayered, like theme.css, so its deliberately specific selectors still
+   beat theme.css and the utilities as they did under Tailwind 3. */
+@import './study.css';
+
+/* inline: the utilities carry the full stack, and the next/font variables
+   (set on .study) resolve where the class is used. */
+@theme inline {
+  --font-garamond: var(--font-garamond), Georgia, serif;
+  --font-typewriter: var(--font-typewriter), Courier, monospace;
+  --font-pencil: var(--font-pencil), cursive;
+}
+
+/* Tailwind 3 preflight defaults that v4 dropped; kept so nothing shifts.
+   v4 borders default to currentcolor and buttons to cursor: default. */
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+}
 
 html, body {
   padding: 0;
