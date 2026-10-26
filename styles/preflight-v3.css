@@ -1,0 +1,14 @@
+/* Tailwind 3 preflight defaults that v4 dropped; kept so nothing shifts.
+   v4 borders default to currentcolor and buttons to cursor: default. */
+*,
+::after,
+::before,
+::backdrop,
+::file-selector-button {
+  border-color: #e5e7eb; /* v3 gray-200 */
+}
+
+button:not(:disabled),
+[role='button']:not(:disabled) {
+  cursor: pointer;
+}

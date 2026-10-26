@@ -1,12 +1,16 @@
-/* Sources are anchored to this file's directory so the content scan works
+/* Tailwind 3 emitted plain, unlayered CSS, and theme.css (imported after this
+   file) relies on beating or losing to utilities by specificity, like
+   `a { text-decoration: none }` vs `.underline`. So preflight and utilities
+   are imported unlayered here, in v3's order: study.css, preflight, utilities.
+   Sources are anchored to this file's directory so the content scan works
    regardless of the dev server's working directory. */
-@import 'tailwindcss' source(none);
+@import './study.css';
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css';
+@import './preflight-v3.css';
+@import 'tailwindcss/utilities.css' source(none);
 @source '../pages';
 @source '../components';
-
-/* Unlayered, like theme.css, so its deliberately specific selectors still
-   beat theme.css and the utilities as they did under Tailwind 3. */
-@import './study.css';
 
 /* inline: the utilities carry the full stack, and the next/font variables
    (set on .study) resolve where the class is used. */
@@ -14,23 +18,6 @@
   --font-garamond: var(--font-garamond), Georgia, serif;
   --font-typewriter: var(--font-typewriter), Courier, monospace;
   --font-pencil: var(--font-pencil), cursive;
-}
-
-/* Tailwind 3 preflight defaults that v4 dropped; kept so nothing shifts.
-   v4 borders default to currentcolor and buttons to cursor: default. */
-@layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: #e5e7eb; /* v3 gray-200 */
-  }
-
-  button:not(:disabled),
-  [role='button']:not(:disabled) {
-    cursor: pointer;
-  }
 }
 
 html, body {
