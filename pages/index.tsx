@@ -35,7 +35,7 @@ const SITE_URL = "https://moshemalka.com";
 const SHEVIRAH = "https://kelipot.vercel.app/";
 
 const SEO = {
-  title: "Moshe Malka — Software Engineer & Engineering Leader",
+  title: "Moshe Malka — NYC Software Engineer & Engineering Leader",
   description:
     "Moshe Malka is a software engineer and engineering leader in New York City — writing software since 2008, leading teams, and shipping products with AI.",
   ogImage: `${SITE_URL}/og-image.jpg`,
@@ -78,9 +78,13 @@ const STRUCTURED_DATA = {
         "https://www.linkedin.com/in/moshenyc/",
         "https://github.com/moshejs",
         "https://stackoverflow.com/users/7381252/moshe",
+        "https://www.npmjs.com/~moshejs",
         "https://www.instagram.com/justmoshemalka/",
       ],
-      affiliation: { "@id": "https://www.quentin.software/#organization" },
+      worksFor: [
+        { "@type": "Organization", name: "Goldman Sachs", url: "https://www.goldmansachs.com/" },
+        { "@id": "https://www.quentin.software/#organization" },
+      ],
     },
     {
       "@type": "Organization",
@@ -104,11 +108,16 @@ const STRUCTURED_DATA = {
       "@type": "ProfilePage",
       "@id": `${SITE_URL}/#webpage`,
       url: `${SITE_URL}/`,
-      name: "Moshe Malka — Software Engineer & Engineering Leader",
+      name: "Moshe Malka — NYC Software Engineer & Engineering Leader",
       isPartOf: { "@id": `${SITE_URL}/#website` },
       about: { "@id": `${SITE_URL}/#person` },
       mainEntity: { "@id": `${SITE_URL}/#person` },
-      primaryImageOfPage: `${SITE_URL}/og-image.jpg`,
+      primaryImageOfPage: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/og-image.jpg`,
+        width: 1200,
+        height: 630,
+      },
       inLanguage: "en",
     },
     {
@@ -677,7 +686,7 @@ export default function Home({ asOf, revision }: Props) {
         <meta property="og:image" content={SEO.ogImage} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="Moshe Malka — Engineering Leader" />
+        <meta property="og:image:alt" content="Moshe Malka — Software Engineer & Engineering Leader" />
         <meta property="og:locale" content="en_US" />
         <meta property="profile:first_name" content="Moshe" />
         <meta property="profile:last_name" content="Malka" />
@@ -687,7 +696,7 @@ export default function Home({ asOf, revision }: Props) {
         <meta name="twitter:title" content={SEO.title} />
         <meta name="twitter:description" content={SEO.description} />
         <meta name="twitter:image" content={SEO.ogImage} />
-        <meta name="twitter:image:alt" content="Moshe Malka — Engineering Leader" />
+        <meta name="twitter:image:alt" content="Moshe Malka — Software Engineer & Engineering Leader" />
 
         {/* Structured data — Person / WebSite / ProfilePage */}
         <script

@@ -1,0 +1,46 @@
+# Moshe Malka
+
+> Moshe Malka is a software engineer and engineering leader in New York City, writing software since 2008. He works on Goldman Sachs' Private Wealth Management portfolio platform, runs the software studio Quentin Software, and publishes 29 zero-dependency TypeScript packages on npm for finance and market math.
+
+This is the official personal site of Moshe Malka, the New York City software engineer. Contact: hello@moshemalka.com.
+
+## Profile
+
+- [Home: Moshe Malka, Software Engineer & Engineering Leader](https://moshemalka.com/): career history, open-source work, Shevirah, and Quentin Software
+- [The Study](https://moshemalka.com/study): a 3D library of 121 books Moshe Malka has read, shelved by subject
+
+## Career
+
+- Goldman Sachs (Sep 2024 – present): frontend on the Private Wealth Management portfolio platform for brokers and high-net-worth clients (React, TypeScript, MobX). Built the reusable Control Bar and Currency Picker used by 12 teams; led the portfolio UX redesign; raised unit-test coverage past 80%.
+- Quentin Software (Feb 2023 – present): his solo studio for AI-first product development, prototypes, and fractional CTO work for early-stage teams.
+- Peloton (Mar 2020 – Feb 2023): moved the e-commerce store from React to Next.js and GraphQL; cut checkout from 7 steps to 3; led the Guide product launch; ran the Blockchain/Web3 working group.
+- Industrious, formerly CBRE Hana (Apr 2019 – Dec 2019): marketing and operations web; migrated sites from React to Gatsby and GraphQL.
+- ICE Bonds, formerly BondPoint (Oct 2018 – Jan 2019): lead frontend on the institutional bond-trading request-for-quote app; built a clipboard CUSIP parser.
+- CPS Central (Jun 2018 – Oct 2018): tech lead on the CYA warranty and claims platform; page loads under 200 ms.
+- HitBit (Oct 2017 – May 2018): lead full-stack on high-frequency arbitrage trading; trades executed in under 26 milliseconds across more than 40 exchanges.
+- Instant Car Quote (Dec 2016 – Sep 2017): lead full-stack on a car configuration and leasing wizard.
+
+## Open source
+
+- [npm profile ~moshejs](https://www.npmjs.com/~moshejs): 29 zero-dependency, MIT-licensed TypeScript packages for rates and Treasury math, options, FX and volatility, market structure, startup equity, and more
+- [32nds](https://www.npmjs.com/package/32nds): US Treasury price math (32nds quotes such as 105-16+, ticks, basis points)
+- [us-equity-market-calendar](https://www.npmjs.com/package/us-equity-market-calendar): NYSE / NASDAQ trading calendar
+- [options-greeks](https://www.npmjs.com/package/options-greeks): Black-Scholes and Black-76 prices, greeks, implied-vol solver
+- [options-expiration](https://www.npmjs.com/package/options-expiration): US listed options expiries, including weekly and 0DTE
+- [GitHub: moshejs](https://github.com/moshejs)
+
+## Projects
+
+- [Shevirah](https://kelipot.vercel.app/): an interactive web series on Kabbalah by Moshe Malka. Two works (Klippot and the Tree of Life) and fourteen classic texts, 258 teachings, each with its own animated artwork.
+- [Quentin Software](https://www.quentin.software/): AI-first software studio led by Moshe Malka.
+
+## Profiles
+
+- [LinkedIn](https://www.linkedin.com/in/moshenyc/)
+- [GitHub](https://github.com/moshejs)
+- [Stack Overflow](https://stackoverflow.com/users/7381252/moshe)
+- [Instagram](https://www.instagram.com/justmoshemalka/)
+
+## Skills
+
+TypeScript, React, Next.js, Node, Python, GraphQL, Tailwind, Bun, WebSockets, REST, MongoDB, Firebase, AWS, GCP, LLMs, Docker, GitHub Actions.
