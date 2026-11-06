@@ -6,14 +6,22 @@
 // configured from the bundle.
 // Image hosts: Spotify album art on the homepage, Open Library covers (which
 // redirect to archive.org) in the Study, and the GA pixel.
+// Vercel injects its comments toolbar into preview deployments only; allow
+// its hosts there (https://vercel.com/docs/vercel-toolbar) and nowhere else.
+const preview = process.env.VERCEL_ENV === 'preview'
+const toolbar = (...hosts) => (preview ? ' ' + hosts.join(' ') : '')
+
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://*.scdn.co https://*.spotifycdn.com https://covers.openlibrary.org https://archive.org https://*.archive.org https://www.googletagmanager.com https://*.google-analytics.com",
-  "font-src 'self'",
-  "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com",
+  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com" + toolbar('https://vercel.live'),
+  "style-src 'self' 'unsafe-inline'" + toolbar('https://vercel.live'),
+  "img-src 'self' data: blob: https://*.scdn.co https://*.spotifycdn.com https://covers.openlibrary.org https://archive.org https://*.archive.org https://www.googletagmanager.com https://*.google-analytics.com" +
+    toolbar('https://vercel.live', 'https://vercel.com'),
+  "font-src 'self'" + toolbar('https://vercel.live', 'https://assets.vercel.com'),
+  "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com" +
+    toolbar('https://vercel.live', 'wss://ws-us3.pusher.com'),
   "worker-src 'self' blob:",
+  ...(preview ? ['frame-src https://vercel.live'] : []),
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

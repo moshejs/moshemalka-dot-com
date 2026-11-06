@@ -18,6 +18,8 @@ function scriptSrc({ buildManifest, __NEXT_DATA__ }: DocumentProps): string | nu
     chunkLoadingGlobal?: string
   }
   const sources = ["'self'", 'https://www.googletagmanager.com']
+  // Vercel's comments toolbar, on preview deployments only (see next.config.js).
+  if (process.env.VERCEL_ENV === 'preview') sources.push('https://vercel.live')
   if (params && chunkLoadingGlobal) {
     const bootstrap = getTurbopackChunkGroupBootstrap(params, chunkLoadingGlobal, ['/_app', __NEXT_DATA__.page])
     if (bootstrap) {
