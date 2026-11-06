@@ -4,6 +4,7 @@
 import type { CSSProperties } from "react";
 import { WEEKDAYS, readinessFactors, weekRhythm, type Factor, type WeekRow } from "@/lib/insights";
 import { useNowSnapshot, useYtd } from "@/components/LiveStats";
+import { NowSlot } from "@/components/NowSlot";
 
 /* ── What moves readiness ───────────────────────────────────── */
 
@@ -169,6 +170,8 @@ function WeekCard({ rows }: { rows: WeekRow[] }) {
 export function NowPatterns() {
   const snap = useNowSnapshot();
   const ytd = useYtd(!!snap?.oura);
+  // Hold the band's space while the snapshot, then the year, loads.
+  if (!snap || (snap.oura && ytd.status === "loading")) return <NowSlot band="patterns" />;
   if (ytd.status !== "ready") return null;
 
   const days = ytd.days;
