@@ -2,21 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { GetStaticProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import type { Book, Library } from "@/lib/library/types";
 import type { BookData } from "@/components/study/Book";
 import BookDetail from "@/components/study/BookDetail";
+import StudyCanvas from "@/components/study/StudyCanvas";
 import { colorFromString } from "@/lib/colorFromString";
 import { garamond, studyFontVars } from "@/lib/studyFonts";
-
-const Room = dynamic(() => import("@/components/study/Room"), {
-  ssr: false,
-  loading: () => (
-    <div className="grid h-full w-full place-items-center">
-      <p className="font-garamond italic text-lg text-[#c9a36a]/80 animate-pulse">lighting the lamp…</p>
-    </div>
-  ),
-});
 
 type Props = { library: Library; source: "library" | "demo" };
 
@@ -103,7 +94,7 @@ export default function StudyPage({ library, source }: Props) {
       </Head>
       <main className={`study ${studyFontVars} relative h-dvh w-screen overflow-hidden`}>
         <div className="absolute inset-0">
-          <Room
+          <StudyCanvas
             shelves={roomShelves}
             pulledId={pulledId}
             onBookClick={setPulledId}

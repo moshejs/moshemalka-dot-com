@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { makeCanvas } from "./host";
 
 // Procedural book surfaces: spine (color + roughness/metalness), a generated
 // front cover, and page edges. Cached by content so remounts are free.
@@ -79,10 +80,7 @@ export function getSpineMaps(opts: {
 
   const W = 96;
   const H = Math.round((opts.height / opts.width) * W);
-  const canvas = document.createElement("canvas");
-  canvas.width = W;
-  canvas.height = H;
-  const ctx = canvas.getContext("2d")!;
+  const { c: canvas, ctx } = makeCanvas(W, H);
   const { ink, soft, gilt } = inkFor(opts.color, opts.binding);
 
   // Cloth/board base with a rounded-spine shading falloff.
@@ -136,10 +134,7 @@ export function getSpineMaps(opts: {
   map.anisotropy = 8;
 
   // Roughness (G) / metalness (B): gilt is polished metal, cloth is matte.
-  const rmC = document.createElement("canvas");
-  rmC.width = 24;
-  rmC.height = Math.max(64, Math.round(H / 4));
-  const r = rmC.getContext("2d")!;
+  const { c: rmC, ctx: r } = makeCanvas(24, Math.max(64, Math.round(H / 4)));
   r.fillStyle = `rgb(0, ${opts.binding === "hard" ? 200 : 170}, 0)`;
   r.fillRect(0, 0, rmC.width, rmC.height);
   if (gilt) {
@@ -171,10 +166,7 @@ export function getGeneratedCover(opts: {
 
   const H = 512;
   const W = Math.round(H * opts.aspect);
-  const canvas = document.createElement("canvas");
-  canvas.width = W;
-  canvas.height = H;
-  const ctx = canvas.getContext("2d")!;
+  const { c: canvas, ctx } = makeCanvas(W, H);
   const { ink, soft } = inkFor(opts.color, opts.binding);
 
   ctx.fillStyle = opts.color;
@@ -241,10 +233,7 @@ export function getLabelTexture(text: string): THREE.Texture {
   const cached = CACHE.get(key);
   if (cached) return cached;
   const W = 512, H = 72;
-  const canvas = document.createElement("canvas");
-  canvas.width = W;
-  canvas.height = H;
-  const ctx = canvas.getContext("2d")!;
+  const { c: canvas, ctx } = makeCanvas(W, H);
   const g = ctx.createLinearGradient(0, 0, 0, H);
   g.addColorStop(0, "#e7c983");
   g.addColorStop(0.45, "#c49a4c");
@@ -288,10 +277,7 @@ export function getLabelTexture(text: string): THREE.Texture {
 export function getPagesTexture(): THREE.Texture {
   const cached = CACHE.get("__pages__");
   if (cached) return cached;
-  const canvas = document.createElement("canvas");
-  canvas.width = 64;
-  canvas.height = 128;
-  const ctx = canvas.getContext("2d")!;
+  const { c: canvas, ctx } = makeCanvas(64, 128);
   ctx.fillStyle = "#ece2c9";
   ctx.fillRect(0, 0, 64, 128);
   for (let i = 0; i < 128; i++) {

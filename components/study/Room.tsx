@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment, Lightformer, OrbitControls } from "@react-three/drei";
 import { Bloom, EffectComposer, N8AO, Noise, Vignette } from "@react-three/postprocessing";
 import Architecture, { ROOM, WINDOW } from "./Architecture";
@@ -9,6 +9,7 @@ import { Armchair, BankersLamp, Desk, FloorGlobe, OpenBook, Painting, Rug, SideT
 import CameraRig, { REST, type CameraTarget } from "./CameraRig";
 import { setTextureFont } from "./spineTexture";
 import type { BookData, PullInfo } from "./Book";
+import { COMPACT_BELOW, dprRange } from "./protocol";
 
 const { W, D } = ROOM;
 
@@ -98,37 +99,55 @@ function BayLight({ x, y, z }: { x: number; y: number; z: number }) {
   );
 }
 
-export default function Room({
-  shelves,
-  pulledId,
-  onBookClick,
-  onBackgroundClick,
-  onBookHover,
-  fontFamily,
-}: {
+/** Renderer settings shared by the main-thread canvas and the worker. */
+export function canvasSettings(compact: boolean) {
+  return {
+    shadows: { type: THREE.PCFShadowMap },
+    dpr: dprRange(compact),
+    camera: { position: REST.position.toArray(), fov: compact ? 54 : 48, near: 0.05, far: 60 },
+    gl: { antialias: !compact, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.05 },
+  };
+}
+
+export type SceneProps = {
   shelves: RoomShelf[];
   pulledId: string | null;
   onBookClick: (id: string) => void;
-  onBackgroundClick: () => void;
   onBookHover: (id: string | null) => void;
-  fontFamily: string;
-}) {
+  /** Phones: no bay spotlights, AO or dust, a wider lens. */
+  compact: boolean;
+  reducedMotion: boolean;
+  /** Garamond is loaded, so spines can be lettered. */
+  fontsReady: boolean;
+  /** Called once, after the first frame is drawn. */
+  onFirstFrame?: () => void;
+};
+
+/** Signals the first rendered frame, so the page can drop its loading line. */
+function FirstFrame({ onFirstFrame }: { onFirstFrame?: () => void }) {
+  const done = useRef(false);
+  useFrame(() => {
+    if (done.current) return;
+    done.current = true;
+    onFirstFrame?.();
+  });
+  return null;
+}
+
+/** Everything inside the canvas. Runs unchanged on the main thread or in the worker. */
+export function Scene({
+  shelves,
+  pulledId,
+  onBookClick,
+  onBookHover,
+  compact,
+  reducedMotion,
+  fontsReady,
+  onFirstFrame,
+}: SceneProps) {
   const controlsRef = useRef<any>(null);
   const [focus, setFocus] = useState<CameraTarget>(null);
-  const [fontsReady, setFontsReady] = useState(false);
-  const compact = useMemo(() => typeof window !== "undefined" && window.innerWidth < 768, []);
   const poses = useRef<Map<string, () => PullInfo>>(new Map());
-
-  // Spines are drawn into canvases — wait for Garamond so they never bake a fallback face.
-  useEffect(() => {
-    setTextureFont(fontFamily);
-    Promise.all([
-      document.fonts.load(`600 40px ${fontFamily}`),
-      document.fonts.load(`italic 500 20px ${fontFamily}`),
-    ])
-      .catch(() => null)
-      .finally(() => setFontsReady(true));
-  }, [fontFamily]);
 
   const caseSlots = useMemo(() => pack(shelves), [shelves]);
   const leftCaseInUse = caseSlots[1].length > 0;
@@ -160,19 +179,7 @@ export default function Room({
   }, []);
 
   return (
-    <Canvas
-      shadows={{ type: THREE.PCFShadowMap }}
-      dpr={compact ? [1, 1.5] : [1, 1.75]}
-      camera={{ position: REST.position.toArray(), fov: compact ? 54 : 48, near: 0.05, far: 60 }}
-      gl={{ antialias: !compact, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.05 }}
-      onPointerMissed={(e) => {
-        if ((e as MouseEvent).type === "click") onBackgroundClick();
-      }}
-      onCreated={(state) => {
-        // Dev hook for the headless verification harness (scripts/study-shot.mjs).
-        (window as unknown as Record<string, unknown>).__studyState = state;
-      }}
-    >
+    <>
       <color attach="background" args={["#0b0704"]} />
       <fog attach="fog" args={["#120b06", 9, 22]} />
 
@@ -257,7 +264,7 @@ export default function Room({
       <FloorGlobe position={[-4.75, 0, 2.7]} />
       {!leftCaseInUse && <Painting position={[-W / 2 + 0.06, 2.15, -0.6]} rotationY={Math.PI / 2} />}
 
-      <CameraRig focus={focus} controlsRef={controlsRef} />
+      <CameraRig focus={focus} controlsRef={controlsRef} reducedMotion={reducedMotion} />
       <OrbitControls
         ref={controlsRef}
         target={REST.lookAt.toArray()}
@@ -274,12 +281,60 @@ export default function Room({
         dampingFactor={0.07}
       />
 
+      <FirstFrame onFirstFrame={onFirstFrame} />
+
       <EffectComposer multisampling={compact ? 0 : 4} enableNormalPass={false}>
         {!compact ? <N8AO aoRadius={0.45} intensity={2.4} distanceFalloff={0.8} quality="medium" /> : <></>}
         <Bloom intensity={0.55} luminanceThreshold={0.86} luminanceSmoothing={0.15} mipmapBlur />
         <Noise opacity={0.028} premultiply />
         <Vignette offset={0.28} darkness={0.62} />
       </EffectComposer>
+    </>
+  );
+}
+
+/**
+ * Main-thread fallback for browsers that can't render WebGL in a worker
+ * (see StudyCanvas). Same scene, same settings.
+ */
+export default function Room({
+  onBackgroundClick,
+  fontFamily,
+  ...scene
+}: Omit<SceneProps, "compact" | "reducedMotion" | "fontsReady"> & {
+  onBackgroundClick: () => void;
+  fontFamily: string;
+}) {
+  const [fontsReady, setFontsReady] = useState(false);
+  const compact = useMemo(() => typeof window !== "undefined" && window.innerWidth < COMPACT_BELOW, []);
+  const reducedMotion = useMemo(
+    () => typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
+    []
+  );
+
+  // Spines are drawn into canvases — wait for Garamond so they never bake a fallback face.
+  useEffect(() => {
+    setTextureFont(fontFamily);
+    Promise.all([
+      document.fonts.load(`600 40px ${fontFamily}`),
+      document.fonts.load(`italic 500 20px ${fontFamily}`),
+    ])
+      .catch(() => null)
+      .finally(() => setFontsReady(true));
+  }, [fontFamily]);
+
+  return (
+    <Canvas
+      {...canvasSettings(compact)}
+      onPointerMissed={(e) => {
+        if ((e as MouseEvent).type === "click") onBackgroundClick();
+      }}
+      onCreated={(state) => {
+        // Dev hook for the headless verification harness (scripts/study-shot.mjs).
+        (window as unknown as Record<string, unknown>).__studyState = state;
+      }}
+    >
+      <Scene {...scene} compact={compact} reducedMotion={reducedMotion} fontsReady={fontsReady} />
     </Canvas>
   );
 }

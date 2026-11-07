@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { makeCanvas } from "./host";
 
 // Procedural surfaces for the study — drawn once into canvases, shared by
 // every mesh. Deterministic (seeded) so the room looks identical each visit.
@@ -8,12 +9,7 @@ function rng(seed: number) {
   return () => (s = (s * 16807) % 2147483647) / 2147483647;
 }
 
-function canvas(w: number, h: number) {
-  const c = document.createElement("canvas");
-  c.width = w;
-  c.height = h;
-  return { c, ctx: c.getContext("2d")! };
-}
+const canvas = makeCanvas;
 
 function tex(c: HTMLCanvasElement, repeat: [number, number] = [1, 1], srgb = true) {
   const t = new THREE.CanvasTexture(c);

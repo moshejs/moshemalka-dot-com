@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import * as THREE from "three";
 import { RoundedBox } from "@react-three/drei";
 import { BookStack } from "./Decor";
+import { makeCanvas } from "./host";
 import { brass, darkWalnut, leather, rugMaterial, walnut } from "./materials";
 
 type V3 = [number, number, number];
@@ -210,10 +211,7 @@ export function FloorGlobe({ position }: { position: V3 }) {
 /** A small dusk landscape in a gilt frame. */
 export function Painting({ position, rotationY = 0, w = 1.0, h = 0.75 }: { position: V3; rotationY?: number; w?: number; h?: number }) {
   const canvasTex = useMemo(() => {
-    const c = document.createElement("canvas");
-    c.width = 400;
-    c.height = 300;
-    const ctx = c.getContext("2d")!;
+    const { c, ctx } = makeCanvas(400, 300);
     const g = ctx.createLinearGradient(0, 0, 0, 300);
     g.addColorStop(0, "#2a3550");
     g.addColorStop(0.55, "#b07a52");

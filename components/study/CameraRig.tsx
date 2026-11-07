@@ -18,9 +18,11 @@ const INTRO_FROM = new THREE.Vector3(4.4, 2.15, 4.25);
 export default function CameraRig({
   focus,
   controlsRef,
+  reducedMotion,
 }: {
   focus: CameraTarget;
   controlsRef: React.MutableRefObject<any>;
+  reducedMotion: boolean;
 }) {
   const { camera } = useThree();
   const wantPos = useRef(REST.position.clone());
@@ -40,15 +42,14 @@ export default function CameraRig({
   // Arrival (declared after the focus effect so its slower speed wins on
   // mount): start at the doorway unless the visitor prefers reduced motion.
   useEffect(() => {
-    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    camera.position.copy(reduce ? REST.position : INTRO_FROM);
+    camera.position.copy(reducedMotion ? REST.position : INTRO_FROM);
     if (controlsRef.current) {
       controlsRef.current.target.copy(REST.lookAt);
       controlsRef.current.enabled = false;
     }
     travelling.current = true;
     speed.current = 1.35;
-  }, [camera, controlsRef]);
+  }, [camera, controlsRef]); // eslint-disable-line react-hooks/exhaustive-deps -- arrival runs once
 
   useFrame((_, delta) => {
     if (!travelling.current) return;
