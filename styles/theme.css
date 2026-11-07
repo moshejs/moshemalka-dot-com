@@ -944,6 +944,22 @@ a:hover > .c-arrow { transform: translate(2px, -2px); }
 .c-dash { display: grid; gap: 36px; }
 .c-dash:empty { display: none; }
 
+/* Held space for a band whose data is still loading (components/NowSlot.tsx).
+   Heights are the bands' rendered heights at each breakpoint. */
+.c-now-slot--live { min-height: 214px; }
+.c-now-slot--trends { min-height: 271px; }
+.c-now-slot--patterns { min-height: 367px; }
+@media (max-width: 960px) {
+  .c-now-slot--live { min-height: 408px; }
+  .c-now-slot--trends { min-height: 465px; }
+  .c-now-slot--patterns { min-height: 406px; }
+}
+@media (max-width: 560px) {
+  .c-now-slot--live { min-height: 536px; }
+  .c-now-slot--trends { min-height: 658px; }
+  .c-now-slot--patterns { min-height: 760px; }
+}
+
 .c-now {
   /* Chart marks: history recedes, the latest reading carries the accent.
      Validated on --surface: both >= 3:1, and ΔE 22.9 apart. */

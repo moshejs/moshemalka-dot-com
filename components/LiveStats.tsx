@@ -7,6 +7,7 @@ import type {
   SpotifyState,
   SpotifyTop,
 } from "@/lib/stats";
+import { NowSlot } from "@/components/NowSlot";
 import {
   BAR_MAX,
   PAD,
@@ -1144,8 +1145,10 @@ export function NowStrip() {
     return () => window.clearInterval(id);
   }, [playing]);
 
+  // Hold the band's space until the first snapshot lands.
+  if (!snap) return <NowSlot band="live" />;
   // Nothing connected (or every provider failed): render nothing at all.
-  if (!snap || (!snap.spotify && !snap.oura)) return null;
+  if (!snap.spotify && !snap.oura) return null;
   const { spotify, oura } = snap;
   const days = oura?.days ?? [];
   const sources = [spotify && "Spotify", oura && "Oura"].filter(Boolean).join(" + ");
@@ -1196,7 +1199,8 @@ export function NowStrip() {
 /** Under the intro: two weeks of movement and recovery. */
 export function NowTrends() {
   const snap = useNowSnapshot();
-  const days = snap?.oura?.days;
+  if (!snap) return <NowSlot band="trends" />;
+  const days = snap.oura?.days;
   if (!days) return null;
 
   return (

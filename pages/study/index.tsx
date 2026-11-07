@@ -87,11 +87,13 @@ export default function StudyPage({ library, source }: Props) {
         <meta property="og:image" content={`${SITE_URL}/og-image.jpg`} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="Moshe Malka — Software Engineer & Engineering Leader" />
         <meta property="og:locale" content="en_US" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={STUDY_TITLE} />
         <meta name="twitter:description" content={STUDY_DESCRIPTION} />
         <meta name="twitter:image" content={`${SITE_URL}/og-image.jpg`} />
+        <meta name="twitter:image:alt" content="Moshe Malka — Software Engineer & Engineering Leader" />
         {source === "library" && (
           <script
             type="application/ld+json"

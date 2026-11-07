@@ -14,11 +14,23 @@ import {
   type Role,
 } from "@/lib/portfolio";
 import { Dial } from "@/components/Dial";
+import { LiveProvidersContext, NowSlot, type LiveProviders } from "@/components/NowSlot";
 
 // Live Spotify + Oura bands under the hero; client-only, since they poll.
-const NowStrip = dynamic(() => import("@/components/LiveStats").then((m) => m.NowStrip), { ssr: false });
-const NowTrends = dynamic(() => import("@/components/LiveStats").then((m) => m.NowTrends), { ssr: false });
-const NowPatterns = dynamic(() => import("@/components/Insights").then((m) => m.NowPatterns), { ssr: false });
+// Until each chunk loads (and on the server) they render an empty slot of
+// their measured height, so the sections below don't shift when data lands.
+const NowStrip = dynamic(() => import("@/components/LiveStats").then((m) => m.NowStrip), {
+  ssr: false,
+  loading: () => <NowSlot band="live" />,
+});
+const NowTrends = dynamic(() => import("@/components/LiveStats").then((m) => m.NowTrends), {
+  ssr: false,
+  loading: () => <NowSlot band="trends" />,
+});
+const NowPatterns = dynamic(() => import("@/components/Insights").then((m) => m.NowPatterns), {
+  ssr: false,
+  loading: () => <NowSlot band="patterns" />,
+});
 
 /**
  * Moshe Malka — product-grade.
@@ -620,11 +632,26 @@ const MOVEMENTS = [
 
 /* ── Page ──────────────────────────────────────────────────────────── */
 
+const GA_ID = "G-L1ETKYXNV4";
+
+// Configures gtag.js once it has loaded. Kept out of an inline <script> so the
+// Content-Security-Policy (next.config.js) needs no 'unsafe-inline' for it.
+function startAnalytics() {
+  const w = window as unknown as { dataLayer?: unknown[] };
+  const dataLayer = (w.dataLayer = w.dataLayer || []);
+  // gtag.js reads the arguments object itself, not an array copy.
+  function gtag(..._args: unknown[]) {
+    dataLayer.push(arguments);
+  }
+  gtag("js", new Date());
+  gtag("config", GA_ID);
+}
+
 const NUMBER_WORDS = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten",
   "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen",
   "Nineteen", "Twenty", "Twenty-one", "Twenty-two", "Twenty-three", "Twenty-four", "Twenty-five"];
 
-type Props = { asOf: number; revision: string | null };
+type Props = { asOf: number; revision: string | null; live: LiveProviders };
 
 // Freeze "now" at build time so server and client render the same tenures,
 // and record the commit the page was built from.
@@ -640,32 +667,35 @@ export async function getStaticProps() {
       revision = null;
     }
   }
-  const props: Props = { asOf: Date.now(), revision };
+  // Which live bands will show, from the same env the API routes read.
+  const env = process.env;
+  const live: LiveProviders = {
+    spotify: !!(env.SPOTIFY_CLIENT_ID && env.SPOTIFY_CLIENT_SECRET && env.SPOTIFY_REFRESH_TOKEN),
+    oura: !!(
+      env.OURA_CLIENT_ID &&
+      env.OURA_CLIENT_SECRET &&
+      (env.KV_REST_API_URL || env.UPSTASH_REDIS_REST_URL) &&
+      (env.KV_REST_API_TOKEN || env.UPSTASH_REDIS_REST_TOKEN)
+    ),
+  };
+  const props: Props = { asOf: Date.now(), revision, live };
   return { props };
 }
 
-export default function Home({ asOf, revision }: Props) {
+export default function Home({ asOf, revision, live }: Props) {
   const years = careerYears(asOf);
   const yearsWord = NUMBER_WORDS[years] ?? String(years);
 
   return (
     <>
       <Script
-        src="https://www.googletagmanager.com/gtag/js?id=G-L1ETKYXNV4"
+        src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
         strategy="lazyOnload"
+        onLoad={startAnalytics}
       />
-      <Script id="google-analytics" strategy="lazyOnload">
-        {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-L1ETKYXNV4');
-        `}
-      </Script>
 
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#070b14" />
         <title>{SEO.title}</title>
         <meta name="description" content={SEO.description} />
         <link rel="canonical" href={`${SITE_URL}/`} />
@@ -674,8 +704,6 @@ export default function Home({ asOf, revision }: Props) {
           content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
         />
         <meta name="author" content="Moshe Malka" />
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
         {/* Open Graph */}
         <meta property="og:type" content="profile" />
@@ -796,9 +824,11 @@ export default function Home({ asOf, revision }: Props) {
             card, then two compact ones). Each band renders nothing until its
             provider is connected. */}
         <div className="c-dash">
-          <NowStrip />
-          <NowTrends />
-          <NowPatterns />
+          <LiveProvidersContext.Provider value={live}>
+            <NowStrip />
+            <NowTrends />
+            <NowPatterns />
+          </LiveProvidersContext.Provider>
         </div>
 
         <Work asOf={asOf} />
