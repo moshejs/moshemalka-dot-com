@@ -7,6 +7,7 @@ import {
   getSpineMaps,
   type Binding,
 } from "./spineTexture";
+import { host } from "./host";
 
 export type BookData = {
   id: string;
@@ -36,23 +37,13 @@ const SPINE = 0.01;
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const clamp01 = (t: number) => Math.max(0, Math.min(1, t));
 
-const coverLoader = new THREE.TextureLoader();
-coverLoader.setCrossOrigin("anonymous");
 const COVERS = new Map<string, Promise<THREE.Texture | null>>();
 
 function loadCover(url: string) {
   let p = COVERS.get(url);
   if (!p) {
     // ?default=false makes Open Library 404 instead of returning a 1×1 blank.
-    const src = url.includes("openlibrary") ? `${url}?default=false` : url;
-    p = coverLoader
-      .loadAsync(src)
-      .then((t) => {
-        t.colorSpace = THREE.SRGBColorSpace;
-        t.anisotropy = 8;
-        return t;
-      })
-      .catch(() => null);
+    p = host.loadCover(url.includes("openlibrary") ? `${url}?default=false` : url);
     COVERS.set(url, p);
   }
   return p;
@@ -190,12 +181,12 @@ export default function Book({
       e.stopPropagation();
       setHovered(true);
       onHover(data.id);
-      document.body.style.cursor = "pointer";
+      host.setCursor("pointer");
     },
     onPointerOut: () => {
       setHovered(false);
       onHover(null);
-      document.body.style.cursor = "";
+      host.setCursor("");
     },
     onClick: (e: ThreeEvent<MouseEvent>) => {
       e.stopPropagation();
