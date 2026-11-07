@@ -33,20 +33,16 @@ type Props = {
 };
 
 let support: boolean | undefined;
-/** WebGL2 on an OffscreenCanvas, i.e. the scene can run in a worker. Checked once. */
+/**
+ * Can the scene run in a worker? Only cheap checks here: creating a probe
+ * WebGL context would cost the main thread the very time we're saving. A
+ * worker that can't get a WebGL2 context reports back and we fall back.
+ */
 function workerWebGL() {
-  return (support ??= detectWorkerWebGL());
-}
-function detectWorkerWebGL() {
-  if (typeof Worker === "undefined" || typeof OffscreenCanvas === "undefined") return false;
-  if (!("transferControlToOffscreen" in HTMLCanvasElement.prototype)) return false;
-  try {
-    const gl = new OffscreenCanvas(1, 1).getContext("webgl2");
-    gl?.getExtension("WEBGL_lose_context")?.loseContext();
-    return !!gl;
-  } catch {
-    return false;
-  }
+  return (support ??=
+    typeof Worker !== "undefined" &&
+    typeof OffscreenCanvas !== "undefined" &&
+    "transferControlToOffscreen" in HTMLCanvasElement.prototype);
 }
 
 const noop = () => () => {};
