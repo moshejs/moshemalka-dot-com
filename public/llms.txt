@@ -8,7 +8,7 @@ This is the official personal site of Moshe Malka, the New York City software en
 
 ## Profile
 
-- [Home: Moshe Malka, Software Engineer & Engineering Leader](https://moshemalka.com/): career history, open-source work, Shevirah, and Quentin.Code
+- [Home: Moshe Malka, Founder & principal engineer at Quentin.Code](https://moshemalka.com/): career history, open-source work, Shevirah, and Quentin.Code
 - [The Study](https://moshemalka.com/study): a 3D library of 121 books Moshe Malka has read, shelved by subject
 
 ## Career

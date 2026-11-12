@@ -16,11 +16,11 @@ Three audiences, all confirmed as primary; a visit is a win for any of them:
 
 ## Product Purpose
 
-moshemalka.com is Moshe Malka's personal site: one page that says who he is, what he has built, and how to reach him. It also anchors the "Moshe Malka" search entity. Success means a visitor quickly understands he is a New York City engineering leader writing software since 2008, can trust that, and can act on it: contact him, hire the studio, or follow a profile.
+moshemalka.com is Moshe Malka's personal site: one page that says who he is, what he has built, and how to reach him. It also anchors the "Moshe Malka" search entity. Success means a visitor quickly understands he is the founder and principal engineer of Quentin.Code, a New York City engineer writing software since 2008, can trust that, and can act on it: contact him, hire the studio, or follow a profile.
 
 ## Positioning
 
-**Software Engineer & Engineering Leader**: writes software since 2008, leads and mentors teams, ships products with AI, based in New York City. (Main retitled to this pairing in PR #19 to win "Moshe Malka" + "Software Engineer" searches; it replaces the earlier "Engineering Leader"-only framing.) Open to software engineering and engineering leadership roles that touch scale, capital, or AI. Site copy, meta tags, and structured data must all say the same thing and match his LinkedIn bio.
+**Founder & principal engineer at Quentin.Code** (owner decision 2026-11-11; replaces the "Software Engineer & Engineering Leader" headline from PR #19): writes software since 2008, leads and mentors teams, ships products with AI, based in New York City. The headline title only; the career history keeps every role as it is. Open to software engineering and engineering leadership roles that touch scale, capital, or AI. Site copy, meta tags, and structured data must all say the same thing and match his LinkedIn bio.
 
 What sets him apart: deep fintech and trading-systems experience combined with consumer-product and studio work. A namesake can't truthfully claim that track record.
 
@@ -41,7 +41,7 @@ What sets him apart: deep fintech and trading-systems experience combined with c
 
 ## Brand Commitments
 
-- **Name and title:** "Moshe Malka — Software Engineer & Engineering Leader", New York City.
+- **Name and title:** "Moshe Malka — Founder & principal engineer, Quentin.Code", New York City.
 - **Studio name:** Quentin.Code (www.quentin.software), the one display name everywhere (owner decision 2026-11-11). "Quentin Software" and "Quentin Code" survive only as `alternateName` in structured data. npm profile ~moshejs.
 - **Structured-data title:** Person `jobTitle` is "Founder & principal engineer" (owner decision 2026-11-11). The Person (`https://moshemalka.com/#person`) and Organization (`https://www.quentin.software/#organization`) nodes are shared with quentin.software; keep their name, description and `sameAs` identical on both sites.
 - **Restraint:** after the July 2026 simplification, the owner's standing direction is one confident idea over gimmicks. Don't bring back ambient animation layers, audio or haptics, or decorative chrome.
