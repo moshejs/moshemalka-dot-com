@@ -61,7 +61,7 @@ export const ROLES: Role[] = [
   },
   {
     id: "quentin",
-    company: "Quentin Software",
+    company: "Quentin.Code",
     role: "My studio · AI-first product development, fractional CTO",
     start: "2023-02",
     end: null,
@@ -209,9 +209,10 @@ export type OssPackage = {
 };
 
 /**
- * The npm package family. Every package is zero-dependency TypeScript with
- * homepage + author pointing back at moshemalka.com; rows render in the
- * Open Source section and feed the SoftwareSourceCode structured data.
+ * The npm package family: every package npm lists for maintainer moshejs
+ * (registry search `maintainer:moshejs`). All are zero-dependency TypeScript;
+ * rows render in the Open Source section and feed the SoftwareSourceCode
+ * structured data.
  */
 export const OSS_PACKAGES: OssPackage[] = [
   { name: "32nds", featured: true,                     group: "Rates & Treasury", desc: "US Treasury price math — 32nds quotes (105-16+), ticks, basis points" },
@@ -243,6 +244,7 @@ export const OSS_PACKAGES: OssPackage[] = [
   { name: "rmd-uniform-lifetime",      group: "Off Desk",         desc: "IRS required-minimum-distribution math — Pub 590-B life tables" },
   { name: "mispar", featured: true,                    group: "Off Desk",         desc: "Hebrew gematria — 13 classical methods, atbash & albam transforms" },
   { name: "dicta-nakdan",              group: "Off Desk",         desc: "Typed client for Dicta's Nakdan API — automatic Hebrew nikud" },
+  { name: "benchmyrepo",               group: "Off Desk",         desc: "Benchmark the coding agents you already have on your own repo's merged PRs" },
 ];
 
 /* ── Formatting ───────────────────────────────────────────── */

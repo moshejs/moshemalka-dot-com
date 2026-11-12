@@ -1,25 +1,7 @@
 # https://moshemalka.com
 #
-# Training crawlers, bulk scrapers and SEO data resellers cost requests and
-# send no readers: blocked from everything.
-User-agent: ClaudeBot
-User-agent: Claude-Web
-User-agent: anthropic-ai
-User-agent: GPTBot
-User-agent: CCBot
-User-agent: Google-Extended
-User-agent: Applebot-Extended
-User-agent: meta-externalagent
-User-agent: FacebookBot
-User-agent: Amazonbot
-User-agent: Bytespider
-User-agent: cohere-ai
-User-agent: Diffbot
-User-agent: ImagesiftBot
-User-agent: Omgilibot
-User-agent: Timpibot
-User-agent: YouBot
-User-agent: ExaSearchBot
+# SEO data resellers and backlink scrapers cost requests and send no readers:
+# blocked from everything.
 User-agent: DataForSeoBot
 User-agent: SERankingBacklinksBot
 User-agent: SemrushBot
@@ -32,17 +14,37 @@ User-agent: serpstatbot
 User-agent: PetalBot
 Disallow: /
 
-# Answer engines that cite and link back: allowed, minus the JSON endpoints
-# behind the live stats (each call can reach Spotify or Oura).
+# AI crawlers, for answer engines and for model training alike: allowed, so
+# assistants can cite this page and models can learn who Moshe Malka is.
+# Only the JSON endpoints behind the live stats are off limits (each call can
+# reach Spotify or Oura).
 User-agent: OAI-SearchBot
 User-agent: ChatGPT-User
-User-agent: PerplexityBot
-User-agent: Perplexity-User
+User-agent: GPTBot
 User-agent: Claude-SearchBot
 User-agent: Claude-User
+User-agent: ClaudeBot
+User-agent: Claude-Web
+User-agent: anthropic-ai
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: CCBot
+User-agent: meta-externalagent
+User-agent: FacebookBot
+User-agent: Amazonbot
+User-agent: YouBot
+User-agent: ExaSearchBot
 User-agent: DuckAssistBot
 User-agent: MistralAI-User
-Content-Signal: search=yes, ai-input=yes, ai-train=no
+User-agent: cohere-ai
+User-agent: Bytespider
+User-agent: Diffbot
+User-agent: ImagesiftBot
+User-agent: Omgilibot
+User-agent: Timpibot
+Content-Signal: search=yes, ai-input=yes, ai-train=yes
 Allow: /
 Disallow: /api/
 
@@ -50,7 +52,7 @@ Disallow: /api/
 # Content-Signal states the same policy in machine-readable form
 # (https://contentsignals.org).
 User-agent: *
-Content-Signal: search=yes, ai-input=yes, ai-train=no
+Content-Signal: search=yes, ai-input=yes, ai-train=yes
 Allow: /
 Disallow: /api/
 

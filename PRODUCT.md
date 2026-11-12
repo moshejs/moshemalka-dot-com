@@ -11,7 +11,7 @@ web
 Three audiences, all confirmed as primary; a visit is a win for any of them:
 
 - **Hiring and leadership evaluators.** Recruiters, VPs, and CTOs sizing Moshe up for engineering-leader roles. Success: they reach out by LinkedIn or email.
-- **Prospective Quentin Software clients.** Founders and business owners who might hire his studio. Success: they click through to quentin.software.
+- **Prospective Quentin.Code clients.** Founders and business owners who might hire his studio. Success: they click through to quentin.software.
 - **Peers and search engines.** Engineers, people who use his npm packages, and Google. Here the site is the canonical "Moshe Malka" entity page that separates him from people with the same name.
 
 ## Product Purpose
@@ -42,7 +42,8 @@ What sets him apart: deep fintech and trading-systems experience combined with c
 ## Brand Commitments
 
 - **Name and title:** "Moshe Malka — Software Engineer & Engineering Leader", New York City.
-- **Studio name:** Quentin Software (www.quentin.software); npm profile ~moshejs.
+- **Studio name:** Quentin.Code (www.quentin.software), the one display name everywhere (owner decision 2026-11-11). "Quentin Software" and "Quentin Code" survive only as `alternateName` in structured data. npm profile ~moshejs.
+- **Structured-data title:** Person `jobTitle` is "Founder & principal engineer" (owner decision 2026-11-11). The Person (`https://moshemalka.com/#person`) and Organization (`https://www.quentin.software/#organization`) nodes are shared with quentin.software; keep their name, description and `sameAs` identical on both sites.
 - **Restraint:** after the July 2026 simplification, the owner's standing direction is one confident idea over gimmicks. Don't bring back ambient animation layers, audio or haptics, or decorative chrome.
 - **The trading-desk metaphor is not binding.** Positions, tape, tear sheets, the ⌘K terminal, and the Milgauss palette are the current execution only. A future redesign may replace them.
 
@@ -50,7 +51,7 @@ What sets him apart: deep fintech and trading-systems experience combined with c
 
 - Headshot: `public/moshe.jpg`. OG image: `public/og-image.jpg`. Favicon and apple-touch icon are in `public/`.
 - Career record with dated roles and shipped work: `EXEC_LOG` and `POSITIONS` in `lib/portfolio.ts`.
-- Public work: 29 zero-dependency TypeScript packages on npm (list in `OSS_PACKAGES`, lib/portfolio.ts), repos under github.com/moshejs. Also a Stack Overflow profile (about 2.7k reputation) and the Quentin Software studio with its client sites.
+- Public work: 30 zero-dependency TypeScript packages on npm (every package the registry lists for maintainer moshejs) (list in `OSS_PACKAGES`, lib/portfolio.ts), repos under github.com/moshejs. Also a Stack Overflow profile (about 2.7k reputation) and the Quentin.Code studio with its client sites.
 - **Absent, so never fabricate:** testimonials, client quotes, press coverage, speaking credits, metrics not already in the career record.
 
 ## Product Principles

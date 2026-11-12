@@ -8,7 +8,7 @@ Welcome to Moshe Malka's personal portfolio, a showcase of his work, experience,
 - **Company Cycle**: A rotating display of companies Moshe has worked for in the past.
 - **Split Testing**: A simple implementation of A/B testing to show different career blocks.
 - **Social Media Links**: Direct links to Moshe's LinkedIn, Stack Overflow, and GitHub profiles.
-- **Founder and CEO**: Moshe introduces his venture, Quentin Code, a firm dedicated to helping non-tech business owners scale their businesses with custom software solutions.
+- **Founder and CEO**: Moshe introduces his venture, Quentin.Code, a firm dedicated to helping non-tech business owners scale their businesses with custom software solutions.
 
 ### Installation and Development
 
