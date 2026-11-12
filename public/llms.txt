@@ -18,9 +18,6 @@ This is the official personal site of Moshe Malka, the New York City software en
 - Peloton (Mar 2020 – Feb 2023): moved the e-commerce store from React to Next.js and GraphQL; cut checkout from 7 steps to 3; led the Guide product launch; ran the Blockchain/Web3 working group.
 - Industrious, formerly CBRE Hana (Apr 2019 – Dec 2019): marketing and operations web; migrated sites from React to Gatsby and GraphQL.
 - ICE Bonds, formerly BondPoint (Oct 2018 – Jan 2019): lead frontend on the institutional bond-trading request-for-quote app; built a clipboard CUSIP parser.
-- CPS Central (Jun 2018 – Oct 2018): tech lead on the CYA warranty and claims platform; page loads under 200 ms.
-- HitBit (Oct 2017 – May 2018): lead full-stack on high-frequency arbitrage trading; trades executed in under 26 milliseconds across more than 40 exchanges.
-- Instant Car Quote (Dec 2016 – Sep 2017): lead full-stack on a car configuration and leasing wizard.
 
 ## Open source
 

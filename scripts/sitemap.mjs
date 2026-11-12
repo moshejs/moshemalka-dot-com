@@ -14,7 +14,7 @@ const PAGES = [
   {
     path: "/",
     priority: "1.0",
-    sources: ["pages/index.tsx", "lib/portfolio.ts", "components/Dial.tsx", "styles/theme.css"],
+    sources: ["pages/index.tsx", "lib/portfolio.ts", "components/watch/scene.ts", "styles/theme.css"],
   },
   {
     path: "/study",

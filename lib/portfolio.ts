@@ -11,7 +11,7 @@
 
 /**
  * Career start. Anchored to first professional work in 2008 (Eastern time).
- * The role list below starts in 2016; earlier work predates it.
+ * The role list below starts in 2018; earlier work predates it.
  */
 export const CAREER_EPOCH = new Date("2008-06-01T00:00:00-04:00").getTime();
 
@@ -121,49 +121,6 @@ export const ROLES: Role[] = [
       "Simplified the quote-request workflow for traders",
     ],
     tools: ["Angular", "TypeScript"],
-  },
-  {
-    id: "cps",
-    company: "CPS Central",
-    role: "Tech lead · CYA warranty and claims platform",
-    start: "2018-06",
-    end: "2018-10",
-    summary:
-      "Tech lead on CYA, the customer-facing warranty and claims platform, built for a CPS Central subsidiary.",
-    highlights: [
-      "Server-side rendering, lazy loading and code splitting brought page loads under 200ms",
-      "Introduced weekly code discussions and an agile workflow to the team",
-      "Built with TypeScript, Angular and Ionic on AWS",
-    ],
-    tools: ["TypeScript", "Angular", "Ionic", "AWS"],
-  },
-  {
-    id: "hitbit",
-    company: "HitBit",
-    role: "Lead full-stack · high-frequency arbitrage trading",
-    start: "2017-10",
-    end: "2018-05",
-    summary:
-      "Lead full-stack engineer on real-time, high-frequency trading and quantitative strategies, where 26 milliseconds mattered.",
-    highlights: [
-      "Arbitrage trades executing in under 26 milliseconds",
-      "Real-time data and BigQuery analysis of volatility across more than 40 exchanges",
-      "Strategy work that made the trading measurably more profitable",
-    ],
-    tools: ["TypeScript", "Node", "GCP", "Kafka", "BigQuery"],
-  },
-  {
-    id: "icq",
-    company: "Instant Car Quote",
-    role: "Lead full-stack · car configuration and leasing",
-    start: "2016-12",
-    end: "2017-09",
-    summary: "Lead full-stack engineer on a car configuration and leasing wizard.",
-    highlights: [
-      "Built the full wizard on TypeScript, Angular, Node and AWS",
-      "Turned the legacy C# leasing engine into a REST API",
-    ],
-    tools: ["TypeScript", "Angular", "Node", "AWS", "C#"],
   },
 ];
 
