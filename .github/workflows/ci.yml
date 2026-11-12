@@ -51,14 +51,15 @@ jobs:
       - name: Unit tests
         run: yarn test
       # Reports stay private: saved to the filesystem and attached to the run.
-      # Mobile Performance is asserted at 0.99, not 1.0 (owner decision,
-      # 2026-11-12). On this runner the median run lands on 99 for two reasons:
-      #   /       ~110 ms blocking time, mostly Google's gtag.js under the
-      #           4x CPU throttle
-      #   /study  Speed Index ~3.2 s: the 3D room paints slowly with no GPU
+      # Mobile Performance is asserted below 1.0 (owner decisions, 2026-11-12):
+      #   /       0.90. Google's gtag.js is a ~190 ms task under the 4x CPU
+      #           throttle, so the median run lands between 94 and 99
+      #           depending on the runner. Raise this if analytics is ever
+      #           deferred.
+      #   /study  0.99. Speed Index of the 3D room varies with no GPU.
       # Production measures 100 from a machine with a GPU. Accessibility,
       # Best Practices and SEO stay at 1.0, as does everything on desktop.
-      - name: Lighthouse, mobile (performance 99, the other three at 100)
+      - name: Lighthouse, mobile (performance 90 on /, 99 on /study; the rest at 100)
         run: npx --yes @lhci/cli@0.16.x autorun --config=lighthouserc.json
       - name: Lighthouse, desktop (all four categories at 100)
         # Runs even if an earlier check failed, so one run reports everything.
