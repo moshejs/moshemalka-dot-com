@@ -45,6 +45,7 @@ jobs:
       # No Spotify or Oura credentials here: the live bands render nothing,
       # the same as a Vercel preview. Also checks the CSP hashes.
       - name: Build
+        id: build
         run: yarn build
       # After the build: lib/robots.test.ts reads the generated sitemap.
       - name: Unit tests
@@ -53,6 +54,8 @@ jobs:
       - name: Lighthouse, mobile (all four categories at 100)
         run: npx --yes @lhci/cli@0.16.x autorun --config=lighthouserc.json
       - name: Lighthouse, desktop (all four categories at 100)
+        # Runs even if an earlier check failed, so one run reports everything.
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: npx --yes @lhci/cli@0.16.x autorun --config=lighthouserc.desktop.json
       - name: Upload Lighthouse reports
         if: always()
@@ -63,12 +66,14 @@ jobs:
           include-hidden-files: true
           if-no-files-found: ignore
       - name: Cache Playwright browsers
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
       # A stalled apt/CDN download once hung this step for 15 minutes: cap each try, retry once.
       - name: Install Chromium
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         timeout-minutes: 12
         run: |
           for try in 1 2; do
@@ -80,6 +85,7 @@ jobs:
           echo "::warning::installing Chromium without system packages"
           timeout 300 yarn playwright install chromium
       - name: Smoke test (desktop + phone)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: |
           yarn next start -p 3000 > /tmp/server.log 2>&1 &
           npx --yes wait-on -t 60000 http://localhost:3000
