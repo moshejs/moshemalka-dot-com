@@ -76,7 +76,7 @@ describe("ROLES", () => {
   });
 
   it("links the studio to quentin.software", () => {
-    const studio = ROLES.find((r) => r.company === "Quentin Software");
+    const studio = ROLES.find((r) => r.company === "Quentin.Code");
     expect(studio?.link?.href).toBe("https://www.quentin.software/");
   });
 

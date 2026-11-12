@@ -47,11 +47,23 @@ const SITE_URL = "https://moshemalka.com";
 const SHEVIRAH = "https://kelipot.vercel.app/";
 
 const SEO = {
-  title: "Moshe Malka — NYC Software Engineer & Engineering Leader",
+  title: "Moshe Malka — Founder & principal engineer, Quentin.Code",
   description:
-    "Moshe Malka is a software engineer and engineering leader in New York City — writing software since 2008, leading teams, and shipping products with AI.",
+    "Moshe Malka is founder & principal engineer at Quentin.Code. A New York City engineer writing software since 2008, leading teams and shipping with AI.",
   ogImage: `${SITE_URL}/og-image.jpg`,
+  imageAlt: "Moshe Malka — Founder & principal engineer, Quentin.Code",
 };
+
+// The studio's one display name and its shared entity id. quentin.software
+// publishes the same Organization @id and the same Person @id, so the two
+// sites describe one person and one studio; keep these words identical there
+// (and in public/llms.txt).
+const STUDIO_NAME = "Quentin.Code";
+const STUDIO_ID = "https://www.quentin.software/#organization";
+const PERSON_DESCRIPTION =
+  "Moshe Malka is a New York City software engineer, writing software since 2008, and the founder and principal engineer of the software studio Quentin.Code (quentin.software); he publishes open-source TypeScript packages on npm as moshejs.";
+const STUDIO_DESCRIPTION =
+  "AI-first software studio — product development, automation, and legacy modernization led by Moshe Malka.";
 
 // schema.org @graph — establishes "Moshe Malka" as a single entity Google can
 // reconcile (Person + WebSite + ProfilePage), with sameAs linking the verified
@@ -65,9 +77,9 @@ const STRUCTURED_DATA = {
       name: "Moshe Malka",
       url: `${SITE_URL}/`,
       image: `${SITE_URL}/moshe.jpg`,
-      jobTitle: "Software Engineer & Engineering Leader",
-      description:
-        "Software engineer and engineering leader in New York City — writing software since 2008, leading teams, and shipping products with AI.",
+      jobTitle: "Founder & principal engineer",
+      description: PERSON_DESCRIPTION,
+      disambiguatingDescription: PERSON_DESCRIPTION,
       email: "hello@moshemalka.com",
       birthPlace: { "@type": "Place", name: "New York City, NY, USA" },
       homeLocation: { "@type": "Place", name: "New York City, NY, USA" },
@@ -95,16 +107,17 @@ const STRUCTURED_DATA = {
       ],
       worksFor: [
         { "@type": "Organization", name: "Goldman Sachs", url: "https://www.goldmansachs.com/" },
-        { "@id": "https://www.quentin.software/#organization" },
+        { "@id": STUDIO_ID },
       ],
     },
     {
       "@type": "Organization",
-      "@id": "https://www.quentin.software/#organization",
-      name: "Quentin Software",
+      "@id": STUDIO_ID,
+      name: STUDIO_NAME,
+      alternateName: ["Quentin Software", "Quentin Code"],
       url: "https://www.quentin.software/",
-      description:
-        "AI-first software studio — product development, prototypes, and fractional CTO work led by Moshe Malka.",
+      logo: "https://www.quentin.software/icons/icon-512.png",
+      description: STUDIO_DESCRIPTION,
       founder: { "@id": `${SITE_URL}/#person` },
     },
     {
@@ -120,7 +133,7 @@ const STRUCTURED_DATA = {
       "@type": "ProfilePage",
       "@id": `${SITE_URL}/#webpage`,
       url: `${SITE_URL}/`,
-      name: "Moshe Malka — NYC Software Engineer & Engineering Leader",
+      name: SEO.title,
       isPartOf: { "@id": `${SITE_URL}/#website` },
       about: { "@id": `${SITE_URL}/#person` },
       mainEntity: { "@id": `${SITE_URL}/#person` },
@@ -165,6 +178,7 @@ const EMAIL = "hello@moshemalka.com";
 const LINKEDIN = "https://www.linkedin.com/in/moshenyc/";
 const GITHUB = "https://github.com/moshejs";
 const STUDIO = "https://www.quentin.software/";
+const STUDIO_WORK = "https://www.quentin.software/work";
 const NPM_PROFILE = "https://www.npmjs.com/~moshejs";
 
 /* ── Icons: authored, one 1.5 stroke ───────────────────────────────── */
@@ -594,11 +608,15 @@ function Studio() {
       <div className="c-panel c-studio">
         <div className="c-studio__copy">
           <h2 id="studio-h" className="c-h2">
-            Quentin Software
+            {STUDIO_NAME}
           </h2>
           <p className="c-studio__text">
             My solo studio: AI-first product development, prototypes that ship, and fractional
-            CTO work for early-stage teams.
+            CTO work for early-stage teams.{" "}
+            <a href={STUDIO_WORK} target="_blank" rel="noopener noreferrer">
+              See the studio&rsquo;s work
+            </a>
+            .
           </p>
           <a className="c-btn c-btn--secondary" href={STUDIO} target="_blank" rel="noopener noreferrer">
             Hire the studio {Icon.arrow}
@@ -714,7 +732,7 @@ export default function Home({ asOf, revision, live }: Props) {
         <meta property="og:image" content={SEO.ogImage} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="Moshe Malka — Software Engineer & Engineering Leader" />
+        <meta property="og:image:alt" content={SEO.imageAlt} />
         <meta property="og:locale" content="en_US" />
         <meta property="profile:first_name" content="Moshe" />
         <meta property="profile:last_name" content="Malka" />
@@ -724,7 +742,7 @@ export default function Home({ asOf, revision, live }: Props) {
         <meta name="twitter:title" content={SEO.title} />
         <meta name="twitter:description" content={SEO.description} />
         <meta name="twitter:image" content={SEO.ogImage} />
-        <meta name="twitter:image:alt" content="Moshe Malka — Software Engineer & Engineering Leader" />
+        <meta name="twitter:image:alt" content={SEO.imageAlt} />
 
         {/* Structured data — Person / WebSite / ProfilePage */}
         <script
@@ -758,13 +776,17 @@ export default function Home({ asOf, revision, live }: Props) {
               Moshe Malka
             </h1>
             <p className="c-tagline">
-              Software engineer and engineering leader in New York City, writing software since 2008.
+              Founder &amp; principal engineer at{" "}
+              <a href={STUDIO} target="_blank" rel="noopener noreferrer">
+                {STUDIO_NAME}
+              </a>
+              . New York City, writing software since 2008.
             </p>
             <p className="c-intro">
               Today I&rsquo;m on Goldman Sachs&rsquo; Private Wealth platform. Before that I led
               Peloton&rsquo;s e&#8209;commerce replatform, built institutional bond trading at ICE,
               and wrote high&#8209;frequency arbitrage that filled in 26&nbsp;milliseconds. I lead
-              teams, mentor engineers, ship with AI, and run Quentin Software, a studio that builds
+              teams, mentor engineers, ship with AI, and run Quentin.Code, a studio that builds
               software for early-stage teams.
             </p>
             <div className="c-ctas">
@@ -791,7 +813,7 @@ export default function Home({ asOf, revision, live }: Props) {
               </li>
               <li>
                 <a href={STUDIO} target="_blank" rel="noopener noreferrer">
-                  Quentin Software {Icon.arrow}
+                  {STUDIO_NAME} {Icon.arrow}
                 </a>
               </li>
             </ul>

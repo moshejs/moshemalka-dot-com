@@ -1,18 +1,20 @@
 # Moshe Malka
 
-> Moshe Malka is a software engineer and engineering leader in New York City, writing software since 2008. He works on Goldman Sachs' Private Wealth Management portfolio platform, runs the software studio Quentin Software, and publishes 29 zero-dependency TypeScript packages on npm for finance and market math.
+> Moshe Malka is a New York City software engineer, writing software since 2008, and the founder and principal engineer of the software studio Quentin.Code (quentin.software); he publishes open-source TypeScript packages on npm as moshejs.
+
+He also works on Goldman Sachs' Private Wealth Management portfolio platform. His npm profile lists 30 zero-dependency TypeScript packages, mostly for finance and market math.
 
 This is the official personal site of Moshe Malka, the New York City software engineer. Contact: hello@moshemalka.com.
 
 ## Profile
 
-- [Home: Moshe Malka, Software Engineer & Engineering Leader](https://moshemalka.com/): career history, open-source work, Shevirah, and Quentin Software
+- [Home: Moshe Malka, Founder & principal engineer at Quentin.Code](https://moshemalka.com/): career history, open-source work, Shevirah, and Quentin.Code
 - [The Study](https://moshemalka.com/study): a 3D library of 121 books Moshe Malka has read, shelved by subject
 
 ## Career
 
 - Goldman Sachs (Sep 2024 – present): frontend on the Private Wealth Management portfolio platform for brokers and high-net-worth clients (React, TypeScript, MobX). Built the reusable Control Bar and Currency Picker used by 12 teams; led the portfolio UX redesign; raised unit-test coverage past 80%.
-- Quentin Software (Feb 2023 – present): his solo studio for AI-first product development, prototypes, and fractional CTO work for early-stage teams.
+- Quentin.Code (Feb 2023 – present): founder and principal engineer of his solo studio for AI-first product development, prototypes, and fractional CTO work for early-stage teams.
 - Peloton (Mar 2020 – Feb 2023): moved the e-commerce store from React to Next.js and GraphQL; cut checkout from 7 steps to 3; led the Guide product launch; ran the Blockchain/Web3 working group.
 - Industrious, formerly CBRE Hana (Apr 2019 – Dec 2019): marketing and operations web; migrated sites from React to Gatsby and GraphQL.
 - ICE Bonds, formerly BondPoint (Oct 2018 – Jan 2019): lead frontend on the institutional bond-trading request-for-quote app; built a clipboard CUSIP parser.
@@ -22,17 +24,18 @@ This is the official personal site of Moshe Malka, the New York City software en
 
 ## Open source
 
-- [npm profile ~moshejs](https://www.npmjs.com/~moshejs): 29 zero-dependency, MIT-licensed TypeScript packages for rates and Treasury math, options, FX and volatility, market structure, startup equity, and more
+- [npm profile ~moshejs](https://www.npmjs.com/~moshejs): 30 zero-dependency, MIT-licensed TypeScript packages for rates and Treasury math, options, FX and volatility, market structure, startup equity, and more
 - [32nds](https://www.npmjs.com/package/32nds): US Treasury price math (32nds quotes such as 105-16+, ticks, basis points)
 - [us-equity-market-calendar](https://www.npmjs.com/package/us-equity-market-calendar): NYSE / NASDAQ trading calendar
 - [options-greeks](https://www.npmjs.com/package/options-greeks): Black-Scholes and Black-76 prices, greeks, implied-vol solver
 - [options-expiration](https://www.npmjs.com/package/options-expiration): US listed options expiries, including weekly and 0DTE
+- [benchmyrepo](https://www.npmjs.com/package/benchmyrepo): benchmark the coding agents you already have on your own repo's merged PRs
 - [GitHub: moshejs](https://github.com/moshejs)
 
 ## Projects
 
 - [Shevirah](https://kelipot.vercel.app/): an interactive web series on Kabbalah by Moshe Malka. Two works (Klippot and the Tree of Life) and fourteen classic texts, 258 teachings, each with its own animated artwork.
-- [Quentin Software](https://www.quentin.software/): AI-first software studio led by Moshe Malka.
+- [Quentin.Code](https://www.quentin.software/): AI-first software studio — product development, automation, and legacy modernization led by Moshe Malka. Studio work: https://www.quentin.software/work
 
 ## Profiles
 

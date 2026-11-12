@@ -771,6 +771,14 @@ a:hover > .c-arrow { transform: translate(2px, -2px); }
   line-height: 1.65;
   color: var(--muted);
 }
+/* Inline links in running text: underlined so they read as links. */
+.c-tagline a,
+.c-studio__text a {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+.c-studio__text a { color: var(--ink); }
 .c-studio__work { margin: 0; padding: 0; list-style: none; align-self: center; }
 .c-studio__work li {
   display: grid;
