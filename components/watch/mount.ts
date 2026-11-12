@@ -33,6 +33,8 @@ export function mountWatch(host: HTMLElement, onLost: () => void): () => void {
     alpha: true,
     powerPreference: "high-performance",
     preserveDrawingBuffer: poster,
+    // never animate on a software renderer (see WatchHost)
+    failIfMajorPerformanceCaveat: !poster,
   });
   renderer.setPixelRatio(poster ? 3 : Math.min(window.devicePixelRatio || 1, 2));
   renderer.outputColorSpace = SRGBColorSpace;

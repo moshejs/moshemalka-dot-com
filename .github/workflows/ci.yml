@@ -1,0 +1,109 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Typecheck, lint, build, test, Lighthouse, smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      # Full history: scripts/sitemap.mjs dates each page from its last commit.
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      # next-env.d.ts is generated, not committed.
+      - name: Generate Next types
+        run: yarn next typegen
+      - name: Typecheck
+        run: yarn tsc --noEmit --incremental false
+      - name: Lint
+        run: yarn lint
+      - name: Cache Next build
+        uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: next-${{ runner.os }}-${{ hashFiles('yarn.lock') }}-${{ hashFiles('pages/**', 'components/**', 'lib/**', 'styles/**', 'public/**', 'next.config.*') }}
+          restore-keys: next-${{ runner.os }}-${{ hashFiles('yarn.lock') }}-
+      # No Spotify or Oura credentials here: the live bands render nothing,
+      # the same as a Vercel preview. Also checks the CSP hashes.
+      - name: Build
+        id: build
+        run: yarn build
+      # After the build: lib/robots.test.ts reads the generated sitemap.
+      - name: Unit tests
+        run: yarn test
+      # Reports stay private: saved to the filesystem and attached to the run.
+      # Mobile Performance is asserted below 1.0 (owner decisions, 2026-11-12):
+      #   /       0.90. Google's gtag.js is a ~190 ms task under the 4x CPU
+      #           throttle, so the median run lands between 94 and 99
+      #           depending on the runner. Raise this if analytics is ever
+      #           deferred.
+      #   /study  0.99. Speed Index of the 3D room varies with no GPU.
+      # Production measures 100 from a machine with a GPU. Accessibility,
+      # Best Practices and SEO stay at 1.0, as does everything on desktop.
+      - name: Lighthouse, mobile (performance 90 on /, 99 on /study; the rest at 100)
+        run: npx --yes @lhci/cli@0.16.x autorun --config=lighthouserc.json
+      - name: Lighthouse, desktop (all four categories at 100)
+        # Runs even if an earlier check failed, so one run reports everything.
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: npx --yes @lhci/cli@0.16.x autorun --config=lighthouserc.desktop.json
+      - name: Upload Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci
+          include-hidden-files: true
+          if-no-files-found: ignore
+      - name: Cache Playwright browsers
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+      # A stalled apt/CDN download once hung this step for 15 minutes: cap each try, retry once.
+      - name: Install Chromium
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        timeout-minutes: 12
+        run: |
+          for try in 1 2; do
+            timeout 300 yarn playwright install --with-deps chromium && exit 0
+            echo "::warning::Chromium install attempt $try failed or timed out"
+          done
+          # apt mirrors fail now and then (exit 100). The runner image already has Chrome's
+          # system libraries, so fetch the browser alone and go on.
+          echo "::warning::installing Chromium without system packages"
+          timeout 300 yarn playwright install chromium
+      - name: Smoke test (desktop + phone)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          yarn next start -p 3000 > /tmp/server.log 2>&1 &
+          npx --yes wait-on -t 60000 http://localhost:3000
+          node scripts/smoke.mjs http://localhost:3000 smoke ${SMOKE_PATHS}
+        env:
+          SMOKE_PATHS: "/study"
+      - name: Upload smoke screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-screenshots
+          path: smoke-*.png
+          if-no-files-found: ignore

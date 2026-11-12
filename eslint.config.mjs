@@ -12,5 +12,6 @@ export default defineConfig([
       'react-hooks/immutability': 'warn',
     },
   },
-  globalIgnores(['.next/**', 'out/**', 'build/**', 'next-env.d.ts']),
+  // .claude/worktrees holds other checkouts of this repo; lint them there.
+  globalIgnores(['.next/**', 'out/**', 'build/**', 'next-env.d.ts', '.claude/**', '.lighthouseci/**']),
 ])
