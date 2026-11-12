@@ -10,12 +10,13 @@ function canWebGL(): boolean {
 }
 
 /**
- * Loads the 3D watch once the page is idle and seats it over the SVG dial.
+ * Loads the 3D watch once the page is idle (on phones: after the first
+ * touch or scroll) and seats it over the poster image.
  * There is one watch and two seats: the hero, and (on wide screens) the rail
  * beside the Work list. It moves to the rail once the hero has scrolled
- * away; whichever seat it leaves shows its SVG dial again.
+ * away; whichever seat it leaves shows its poster again.
  *
- * Renders nothing. Without WebGL, or with data saver on, the SVG stays.
+ * Renders nothing. Without WebGL, or with data saver on, the poster stays.
  */
 export function WatchHost() {
   useEffect(() => {
@@ -80,13 +81,27 @@ export function WatchHost() {
       if (ric) ric(start, { timeout: 2500 });
       else window.setTimeout(start, 300);
     };
-    if (document.readyState === "complete") idle();
-    else window.addEventListener("load", idle, { once: true });
+    // On phones, building the model costs a few hundred ms of main thread.
+    // Hold it until the visitor first touches the page; the poster shows
+    // until then. Wide screens with a mouse load as soon as the page is idle.
+    const phone = window.matchMedia("(max-width: 1099px), (pointer: coarse)").matches;
+    const wakeEvents = ["scroll", "pointerdown", "touchstart", "keydown"] as const;
+    const wake = () => {
+      for (const type of wakeEvents) window.removeEventListener(type, wake);
+      idle();
+    };
+    const begin = () => {
+      if (!phone) idle();
+      else for (const type of wakeEvents) window.addEventListener(type, wake, { passive: true });
+    };
+    if (document.readyState === "complete") begin();
+    else window.addEventListener("load", begin, { once: true });
 
     return () => {
       cancelled = true;
       cancelAnimationFrame(raf);
-      window.removeEventListener("load", idle);
+      window.removeEventListener("load", begin);
+      for (const type of wakeEvents) window.removeEventListener(type, wake);
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
       teardown();
