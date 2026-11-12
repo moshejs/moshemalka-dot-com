@@ -29,6 +29,8 @@ npm run dev
 ```
 You can now access the website at [http://localhost:3000](http://localhost:3000).
 
+Share card: `node scripts/og-card.mjs [--title "…"]` rewrites `public/og-image.jpg` by drawing the title line onto the original card in `scripts/og-card/base.jpg`.
+
 ### Technologies Used
 
 - **Next.js**: A React framework for server-rendered applications.
