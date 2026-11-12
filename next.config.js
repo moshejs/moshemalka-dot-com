@@ -35,6 +35,9 @@ const isProd = process.env.NODE_ENV === 'production'
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['three'],
+  // Inlined into the bundle so pages/_app.tsx can tell a Vercel build from a
+  // local or CI one (Vercel sets VERCEL=1 at build time).
+  env: { ON_VERCEL: process.env.VERCEL ? '1' : '' },
   async headers() {
     return [
       {

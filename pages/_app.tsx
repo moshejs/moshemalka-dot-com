@@ -22,7 +22,8 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <div className={`${sans.variable} ${mono.variable} c-root`}>
       <Component {...pageProps} />
-      <Analytics />
+      {/* Vercel serves /_vercel/insights/script.js; anywhere else it 404s. */}
+      {process.env.ON_VERCEL ? <Analytics /> : null}
     </div>
   )
 }
