@@ -310,72 +310,37 @@ a:hover > .c-arrow { transform: translate(2px, -2px); }
   background: var(--crystal);
 }
 
-/* ── Dial ─────────────────────────────────────────────────── */
+/* ── Watch ────────────────────────────────────────────────── */
 
-.c-dial {
+/* The 3D watch sits over a still of itself in whichever seat it is in; the
+   still fades out beneath it once the first frame is drawn, and stays as
+   the fallback where WebGL is unavailable. */
+[data-watch-slot] { position: relative; overflow: hidden; }
+.c-poster {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
-  height: auto;
-  overflow: visible;
-  filter: drop-shadow(0 0 9px rgba(93, 187, 154, 0.26));
+  height: 100%;
+  object-fit: contain;
+  transition: opacity 500ms var(--ease-out);
 }
-.c-dial__case     { fill: none; stroke: var(--steel); stroke-width: 7; }
-.c-dial__face     { fill: var(--dial); }
-.c-dial__chapter  { fill: none; stroke: rgba(238, 243, 249, 0.2); stroke-width: 0.8; }
-.c-dial__tick     { stroke: #e9eef5; stroke-width: 1.3; }
-.c-dial__tick--major { stroke-width: 3; }
-.c-dial__index    { fill: #f4f7fb; }
-.c-dial__numeral {
-  font-family: var(--f-mono);
-  font-size: 11px;
-  fill: #cdd7e3;
-  text-anchor: middle;
+.c-watch3d {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 600ms var(--ease-out);
 }
-.c-dial__name {
-  font-family: var(--f-sans);
-  font-weight: 650;
-  font-size: 17px;
-  letter-spacing: 3px;
-  fill: #fff;
-  text-anchor: middle;
-}
-.c-dial__small {
-  font-family: var(--f-mono);
-  font-size: 8.5px;
-  letter-spacing: 1.6px;
-  fill: rgba(238, 243, 249, 0.78);
-  text-anchor: middle;
-}
-.c-dial__hand,
-.c-dial__seconds {
-  transform-box: view-box;
-  transform-origin: 0 0;
-}
-.c-dial__sword    { fill: #f4f7fb; stroke: #8fa1b6; stroke-width: 0.8; }
-.c-dial__lume     { fill: #d9efe5; }
-.c-dial__bolt {
-  fill: none;
-  stroke: var(--lightning);
-  stroke-width: 2.4;
-  stroke-linecap: butt;
-  stroke-linejoin: miter;
-  stroke-miterlimit: 4;
-}
-.c-dial__boltcap  { fill: var(--lightning); }
-.c-dial__pin      { fill: var(--bg); }
-.c-dial__crystal  { pointer-events: none; }
-.c-dial__crystal-rim { fill: none; stroke: rgba(127, 224, 187, 0.45); stroke-width: 1.2; }
-.c-dial__glint    { pointer-events: none; }
-
-/* The one continuous motion: the lightning hand at 8 beats a second.
-   Reduced motion holds it at the second the page loaded. */
-.c-dial__seconds { transform: rotate(var(--s0, 0deg)); }
+.c-watch3d canvas { display: block; width: 100%; height: 100%; }
+.c-watch3d[data-ready="true"] { opacity: 1; }
+.c-watch3d[data-ready="true"] ~ .c-poster { opacity: 0; }
 @media (prefers-reduced-motion: no-preference) {
-  .c-dial__seconds { animation: sweep 60s steps(480) infinite; }
+  .c-watch3d--arrive { animation: watchArrive 520ms var(--ease-out) both; }
 }
-@keyframes sweep {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+@keyframes watchArrive {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: none; }
 }
 
 /* ── Sections ─────────────────────────────────────────────── */
@@ -468,6 +433,94 @@ a:hover > .c-arrow { transform: translate(2px, -2px); }
   overflow: hidden;
 }
 .c-role + .c-role { border-top: 1px solid var(--border); }
+.c-role { transition: box-shadow 240ms var(--ease-out); }
+/* the role the watch is wound to */
+.c-role[data-current="true"] { box-shadow: inset 2px 0 0 var(--lightning); }
+
+/* The time machine: the list, and the rail where the watch rides along.
+   Narrow screens get a compact bar pinned under the nav; wide screens a
+   column that stays centred while the list scrolls past. */
+.c-work {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+.c-rail {
+  position: sticky;
+  top: 76px;
+  z-index: 5;
+  order: -1;
+}
+.c-rail__inner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px 10px 12px;
+  border: 1px solid var(--border-2);
+  border-radius: 14px;
+  background: rgba(12, 19, 34, 0.88);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  backdrop-filter: blur(14px) saturate(150%);
+  box-shadow: var(--edge), var(--lift);
+}
+.c-rail__stage {
+  flex: none;
+  width: 56px;
+  aspect-ratio: 1 / 1;
+}
+.c-rail__read { display: flex; flex-direction: column; min-width: 0; }
+.c-rail__date {
+  font-family: var(--f-mono);
+  font-size: 1.0625rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  line-height: 1.3;
+  color: var(--ink);
+}
+.c-rail__who {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.c-rail[data-mode="travel"] .c-rail__date { color: var(--lightning-hi); }
+
+@media (min-width: 1100px) {
+  .c-work {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 32px;
+  }
+  .c-rail { position: static; order: 0; }
+  .c-rail__inner {
+    position: sticky;
+    top: calc(50vh - 180px);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 18px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+  }
+  .c-rail__stage {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border: 1px solid var(--border);
+    border-radius: var(--r-shot);
+    background:
+      radial-gradient(circle at 50% 42%, rgba(46, 111, 187, 0.3), transparent 64%),
+      linear-gradient(180deg, var(--surface-2), var(--surface));
+    box-shadow: var(--edge), var(--lift);
+  }
+  .c-rail__read { align-items: center; text-align: center; }
+  .c-rail__date { font-size: 1.625rem; letter-spacing: 0.08em; }
+  .c-rail__who { font-size: 0.9375rem; }
+}
 .c-role__head { margin: 0; font: inherit; }
 
 .c-role__toggle {

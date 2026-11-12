@@ -13,7 +13,9 @@ import {
   tenureMonths,
   type Role,
 } from "@/lib/portfolio";
-import { Dial } from "@/components/Dial";
+import { TravelRail, WatchPoster, useTimeMachine } from "@/components/watch/TimeMachine";
+import { WatchHost } from "@/components/watch/WatchHost";
+import { useWatch } from "@/components/watch/store";
 import { LiveProvidersContext, NowSlot, type LiveProviders } from "@/components/NowSlot";
 
 // Live Spotify + Oura bands under the hero; client-only, since they poll.
@@ -248,8 +250,11 @@ function RoleRow({
   onToggle,
   months,
   maxMonths,
+  current,
 }: {
   role: Role;
+  /** The watch is wound to this role right now. */
+  current: boolean;
   open: boolean;
   onToggle: () => void;
   months: number;
@@ -257,7 +262,7 @@ function RoleRow({
 }) {
   const panelId = `role-${role.id}`;
   return (
-    <li className="c-role" data-open={open}>
+    <li className="c-role" data-open={open} data-current={current}>
       <h3 className="c-role__head">
         <button
           type="button"
@@ -312,6 +317,9 @@ function Work({ asOf }: { asOf: number }) {
   const tenure = (r: Role) => tenureMonths(r.start, r.end, new Date(asOf));
   const maxMonths = Math.max(...ROLES.map(tenure));
   const [openId, setOpenId] = useState<string | null>(ROLES[0].id);
+  const listRef = useRef<HTMLOListElement>(null);
+  useTimeMachine(listRef);
+  const currentId = useWatch((s) => s.roleId);
   return (
     <section className="c-section" id="work" aria-labelledby="work-h">
       <div className="c-sechead">
@@ -322,18 +330,24 @@ function Work({ asOf }: { asOf: number }) {
           {ROLES.length} roles · {formatRange(ROLES[ROLES.length - 1].start, null)}
         </p>
       </div>
-      <ol className="c-panel c-roles">
-        {ROLES.map((role) => (
-          <RoleRow
-            key={role.id}
-            role={role}
-            open={openId === role.id}
-            onToggle={() => setOpenId((cur) => (cur === role.id ? null : role.id))}
-            months={tenure(role)}
-            maxMonths={maxMonths}
-          />
-        ))}
-      </ol>
+      {/* The list is the watch's crown: scrolling it winds the watch back
+          through each role. The rail is where the watch sits meanwhile. */}
+      <div className="c-work">
+        <ol className="c-panel c-roles" ref={listRef}>
+          {ROLES.map((role) => (
+            <RoleRow
+              key={role.id}
+              role={role}
+              current={currentId === role.id}
+              open={openId === role.id}
+              onToggle={() => setOpenId((cur) => (cur === role.id ? null : role.id))}
+              months={tenure(role)}
+              maxMonths={maxMonths}
+            />
+          ))}
+        </ol>
+        <TravelRail />
+      </div>
     </section>
   );
 }
@@ -798,8 +812,8 @@ export default function Home({ asOf, revision, live }: Props) {
           </div>
 
           <figure className="c-shot">
-            <div className="c-shot__stage">
-              <Dial />
+            <div className="c-shot__stage" data-watch-slot="hero">
+              <WatchPoster eager />
             </div>
             <div className="c-shot__portrait">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -831,6 +845,7 @@ export default function Home({ asOf, revision, live }: Props) {
           </LiveProvidersContext.Provider>
         </div>
 
+        <WatchHost />
         <Work asOf={asOf} />
         <OpenSource />
         <Shevirah />
