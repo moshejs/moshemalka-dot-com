@@ -1,9 +1,23 @@
 import { useEffect } from "react";
 import { setWatch } from "./store";
 
-function canWebGL(): boolean {
+// Software rendering (no GPU, or a blocked driver) draws each frame on the
+// CPU: about a third of a second per frame, which freezes the page. The
+// poster stays instead. Browsers refuse the context when they fall back to
+// software on their own; a renderer that was chosen deliberately (SwiftShader
+// in headless Chromium, llvmpipe on Linux) is caught by name.
+const SOFTWARE_GL = /swiftshader|llvmpipe|softpipe|software|basic render/i;
+
+function canWebGL(allowSoftware: boolean): boolean {
   try {
-    return !!document.createElement("canvas").getContext("webgl2");
+    const gl = document
+      .createElement("canvas")
+      .getContext("webgl2", { failIfMajorPerformanceCaveat: !allowSoftware });
+    if (!gl) return false;
+    if (allowSoftware) return true;
+    const info = gl.getExtension("WEBGL_debug_renderer_info");
+    const renderer = String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER));
+    return !SOFTWARE_GL.test(renderer);
   } catch {
     return false;
   }
@@ -16,14 +30,18 @@ function canWebGL(): boolean {
  * beside the Work list. It moves to the rail once the hero has scrolled
  * away; whichever seat it leaves shows its poster again.
  *
- * Renders nothing. Without WebGL, or with data saver on, the poster stays.
+ * Renders nothing. Without hardware-accelerated WebGL, or with data saver
+ * on, the poster stays.
  */
 export function WatchHost() {
   useEffect(() => {
     const hero = document.querySelector<HTMLElement>('[data-watch-slot="hero"]');
     if (!hero) return;
     const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
-    if (saveData || !canWebGL()) return;
+    // scripts/watch-poster.mjs captures the still in headless Chromium, which
+    // only has software rendering.
+    const capturing = window.location.hash === "#watch-poster";
+    if (saveData || !canWebGL(capturing)) return;
 
     const host = document.createElement("div");
     host.className = "c-watch3d";
