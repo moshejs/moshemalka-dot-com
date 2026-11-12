@@ -12,6 +12,7 @@
  * Oura refresh tokens are single-use, so its token pair lives in Upstash
  * Redis (REST, no SDK). Seed it with `node scripts/connect.mjs oura`.
  */
+import { publishedFrom, summarise, type OuraPublic } from "./ouraPublic";
 
 export type SpotifyState =
   | {
@@ -49,16 +50,12 @@ export type OuraDay = {
   bedtime?: number;
 };
 
-export type OuraState = {
-  /** Continuous calendar days, oldest first, ending at the latest day with data. */
-  days: OuraDay[];
-};
-
-export const OURA_DAYS = 14;
 
 export type NowSnapshot = {
   spotify: SpotifyState | null;
-  oura: OuraState | null;
+  /** Weekly, a week behind, relative: see lib/ouraPublic.ts. Raw days stay
+      on the server. */
+  oura: OuraPublic | null;
   generatedAt: number;
 };
 
@@ -514,57 +511,29 @@ async function loadOuraDays(token: string, from: string): Promise<OuraDay[] | nu
   return days;
 }
 
-export async function fetchOuraNow(): Promise<OuraState | null> {
+/** The only Oura data that leaves the server: a year of weekly summaries
+    ending a week ago. It moves once a week, so an hour's cache is plenty. */
+export async function fetchOuraPublic(): Promise<OuraPublic | null> {
   if (!redisConfig()) return null;
-  return cached("oura:now", 10 * 60_000, () =>
+  return cached("oura:public", 60 * 60_000, () =>
     withOuraAuth(async (token) => {
-      const days = await loadOuraDays(token, addDays(isoDay(new Date()), -(OURA_DAYS + 1)));
-      return days ? { days: days.slice(-OURA_DAYS) } : null;
-    })
-  );
-}
-
-/** Jan 1 through the latest day with data. Changes at most daily, so it's
-    cached for an hour and only requested when a card is opened. */
-export async function fetchOuraYtd(): Promise<OuraState | null> {
-  if (!redisConfig()) return null;
-  return cached("oura:ytd", 60 * 60_000, () =>
-    withOuraAuth(async (token) => {
-      const days = await loadOuraDays(token, `${new Date().getUTCFullYear()}-01-01`);
-      return days ? { days } : null;
+      const today = isoDay(new Date());
+      // One extra day in front: readiness is compared with the day before.
+      const days = await loadOuraDays(token, addDays(publishedFrom(today), -1));
+      return days ? summarise(days, today) : null;
     })
   );
 }
 
 /* ── Demo fixtures (dev only, via /api/now?demo=…) ──────────── */
 
-// Deterministic so screenshots are stable across runs.
-function demoDays(): OuraDay[] {
-  const today = isoDay(new Date());
-  const steps = [9120, 11840, 7430, 13210, 6020, 10450, 15880, 8210, 4970, 12030, 17524, 12289, 5765, 3180];
-  const ready = [81, 84, 77, 86, 79, undefined, 74, 83, 88, 72, 80, undefined, 73, 85];
-  const sleep = [76, 82, 71, 85, 74, undefined, 66, 79, 88, 63, 69, undefined, 56, 81];
-  const hrv = [52, 57, 49, 61, 55, undefined, 47, 58, 66, 51, 58, undefined, 63, 64];
-  const rhr = [51, 49, 53, 48, 50, undefined, 54, 49, 46, 52, 51, undefined, 47, 48];
-  const hours = [7.1, 7.8, 6.4, 8.2, 6.9, undefined, 5.9, 7.4, 8.6, 5.7, 6.6, undefined, 4.7, 7.6];
-  return steps.map((s, i) => ({
-    day: addDays(today, i - (steps.length - 1)),
-    steps: s,
-    readiness: ready[i],
-    sleepScore: sleep[i],
-    hrv: hrv[i],
-    restingHr: rhr[i],
-    sleepHours: hours[i],
-  }));
-}
-
 // A plausible year: seasonal drift plus weekly rhythm, with a few unworn days.
-export function demoYtd(): OuraState {
-  const today = isoDay(new Date());
+// Deterministic so screenshots are stable across runs.
+function demoYear(today: string): OuraDay[] {
   const days: OuraDay[] = [];
   let seed = 7;
   const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-  for (let day = `${today.slice(0, 4)}-01-01`, i = 0; day <= today; day = addDays(day, 1), i++) {
+  for (let day = addDays(today, -400), i = 0; day <= today; day = addDays(day, 1), i++) {
     if (rand() < 0.04) {
       days.push({ day });
       continue;
@@ -582,7 +551,7 @@ export function demoYtd(): OuraState {
       bedtime: Math.round(-20 + (weekend ? 70 : 0) + (rand() - 0.5) * 90),
     });
   }
-  return { days };
+  return days;
 }
 
 export function demoSnapshot(state: string): NowSnapshot {
@@ -599,6 +568,7 @@ export function demoSnapshot(state: string): NowSnapshot {
       : state === "recent"
         ? { kind: "recent", ...track, playedAt: new Date(now - 47 * 60_000).toISOString() }
         : { kind: state === "paused" ? "paused" : "playing", ...track, progressMs: 118_000, durationMs: 330_000 };
-  const oura: OuraState | null = state === "spotify" ? null : { days: demoDays() };
+  const today = isoDay(new Date(now));
+  const oura = state === "spotify" ? null : summarise(demoYear(today), today);
   return { spotify, oura, generatedAt: now };
 }

@@ -1,14 +1,19 @@
-/* Patterns: cards that read across metrics for the whole year so far.
+/* Patterns: cards that read across metrics for the last year of weeks.
    Every figure is an association between Oura's own measurements, not a
-   cause, and each card says how many days stand behind it. */
+   cause, and each card says how many days stand behind it. The maths runs
+   on the server (lib/ouraPublic.ts); only the results arrive here, with no
+   sleep hours or clock times in them. */
 import type { CSSProperties } from "react";
-import { WEEKDAYS, readinessFactors, weekRhythm, type Factor, type WeekRow } from "@/lib/insights";
-import { useNowSnapshot, useYtd } from "@/components/LiveStats";
+import { WEEKDAYS, type Factor, type WeekRow } from "@/lib/insights";
+import { useNowSnapshot } from "@/components/LiveStats";
 import { NowSlot } from "@/components/NowSlot";
 
 /* ── What moves readiness ───────────────────────────────────── */
 
-const signed = (n: number) => `${n > 0 ? "+" : n < 0 ? "−" : "±"}${Math.abs(Math.round(n))}`;
+const signed = (n: number) => {
+  const r = Math.round(n);
+  return `${r > 0 ? "+" : r < 0 ? "−" : "±"}${Math.abs(r)}`;
+};
 
 function FactorsCard({ factors }: { factors: Factor[] }) {
   // Symmetric scale, at least ±5 points so small effects don't look huge.
@@ -59,10 +64,8 @@ function FactorsCard({ factors }: { factors: Factor[] }) {
 
 function cellText(row: WeekRow, v: number): string {
   if (row.id === "steps") return `${(v / 1000).toFixed(1)}K`;
-  if (row.id === "bedtime") {
-    const m = ((Math.round(v) % 1440) + 1440) % 1440;
-    return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, "0")}`;
-  }
+  // Minutes later (+) or earlier (−) than the usual bedtime.
+  if (row.id === "bedtime") return signed(v);
   return String(Math.round(v));
 }
 
@@ -108,7 +111,7 @@ function WeekCard({ rows }: { rows: WeekRow[] }) {
       <table className="c-heat">
         <caption className="c-sr">
           Average by weekday. Steps and readiness by day; sleep score and bedtime by the night that
-          starts that evening.
+          starts that evening. Bedtime is in minutes later or earlier than usual.
         </caption>
         <thead>
           <tr>
@@ -146,7 +149,7 @@ function WeekCard({ rows }: { rows: WeekRow[] }) {
                       title={
                         v == null
                           ? "No data"
-                          : `${WEEKDAYS[i]}: ${cellText(row, v)} (${row.n[i]} days)`
+                          : `${WEEKDAYS[i]}: ${cellText(row, v)}${row.id === "bedtime" ? " min vs usual" : ""} (${row.n[i]} days)`
                       }
                     >
                       {v == null ? "—" : cellText(row, v)}
@@ -158,36 +161,36 @@ function WeekCard({ rows }: { rows: WeekRow[] }) {
           })}
         </tbody>
       </table>
-      <p className="c-now__detail">Stronger = higher within its row · sleep and bedtime by night</p>
+      <p className="c-now__detail">
+        Stronger = higher within its row · bedtime in minutes vs usual
+      </p>
     </li>
   );
 }
 
 /* ── Section ────────────────────────────────────────────────── */
 
-/** Full-width row under both hero columns. Loads the year once Oura is
-    known to be connected; renders nothing until there's enough to say. */
+/** Full-width row under both hero columns. Renders nothing until there's
+    enough to say. */
 export function NowPatterns() {
   const snap = useNowSnapshot();
-  const ytd = useYtd(!!snap?.oura);
-  // Hold the band's space while the snapshot, then the year, loads.
-  if (!snap || (snap.oura && ytd.status === "loading")) return <NowSlot band="patterns" />;
-  if (ytd.status !== "ready") return null;
+  // Hold the band's space while the snapshot loads.
+  if (!snap) return <NowSlot band="patterns" />;
+  const oura = snap.oura;
+  if (!oura) return null;
 
-  const days = ytd.days;
-  const factors = readinessFactors(days);
-  const rows = weekRhythm(days);
-  const hasWeek = rows.every((r) => r.values.some((v) => v != null));
+  const { factors, rhythm } = oura;
+  const hasWeek = rhythm.every((r) => r.values.some((v) => v != null));
   if (!factors.length && !hasWeek) return null;
 
   return (
     <div className="c-now c-now--patterns" role="group" aria-labelledby="patterns-h">
       <p className="c-now__head">
-        <span id="patterns-h">Patterns · {days[0].day.slice(0, 4)} so far</span>
+        <span id="patterns-h">Patterns · last {oura.weeks.length} weeks</span>
       </p>
       <ul className="c-now__grid">
         {factors.length ? <FactorsCard factors={factors} /> : null}
-        {hasWeek ? <WeekCard rows={rows} /> : null}
+        {hasWeek ? <WeekCard rows={rhythm} /> : null}
       </ul>
     </div>
   );
