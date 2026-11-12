@@ -29,14 +29,30 @@ const groups = parseRobots(read("robots.txt"));
 const groupFor = (agent: string) => groups.find((g) => g.agents.includes(agent));
 
 describe("robots.txt", () => {
-  it.each(["ClaudeBot", "GPTBot", "CCBot", "Google-Extended", "SemrushBot", "AhrefsBot", "ExaSearchBot"])(
+  it.each(["SemrushBot", "AhrefsBot", "DataForSeoBot", "MJ12bot", "SERankingBacklinksBot"])(
     "blocks %s from everything",
     (agent) => {
       expect(groupFor(agent)?.disallow).toEqual(["/"]);
     },
   );
 
-  it.each(["OAI-SearchBot", "ChatGPT-User", "PerplexityBot", "Claude-SearchBot", "Claude-User", "*"])(
+  it.each([
+    "OAI-SearchBot",
+    "ChatGPT-User",
+    "PerplexityBot",
+    "Claude-SearchBot",
+    "Claude-User",
+    // Training crawlers and the answer bots that used to be blocked.
+    "ClaudeBot",
+    "GPTBot",
+    "CCBot",
+    "Google-Extended",
+    "Applebot-Extended",
+    "YouBot",
+    "ExaSearchBot",
+    "Amazonbot",
+    "*",
+  ])(
     "allows %s, minus /api/",
     (agent) => {
       const g = groupFor(agent);
@@ -44,6 +60,12 @@ describe("robots.txt", () => {
       expect(g?.disallow).toEqual(["/api/"]);
     },
   );
+
+  it("signals that AI training is allowed in every Content-Signal line", () => {
+    const signals = [...read("robots.txt").matchAll(/^Content-Signal:\s*(.*)$/gm)].map((m) => m[1]);
+    expect(signals.length).toBeGreaterThan(0);
+    for (const s of signals) expect(s).toContain("ai-train=yes");
+  });
 
   it("does not block any URL in the sitemap for ordinary crawlers", () => {
     const disallow = groupFor("*")!.disallow;
