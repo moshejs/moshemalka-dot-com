@@ -1,12 +1,6 @@
 import { useEffect, useId, useState } from "react";
-import type {
-  NowSnapshot,
-  OuraDay,
-  OuraState,
-  SpotifyRange,
-  SpotifyState,
-  SpotifyTop,
-} from "@/lib/stats";
+import type { OuraPublic, OuraWeek } from "@/lib/ouraPublic";
+import type { NowSnapshot, SpotifyRange, SpotifyState, SpotifyTop } from "@/lib/stats";
 import { NowSlot } from "@/components/NowSlot";
 import {
   BAR_MAX,
@@ -14,7 +8,6 @@ import {
   barPath,
   dayLabel,
   fmt,
-  localIso,
   mean,
   useScrub,
   useSize,
@@ -46,10 +39,13 @@ function demoParam(): string | null {
 
 /* ── Formatting ─────────────────────────────────────────────── */
 
-type Metric = "readiness" | "sleepScore" | "hrv" | "restingHr" | "steps";
+/* Oura figures are weekly averages that end a week ago; HRV and resting
+   heart rate arrive only as a percentage of the 12-month average. The rules
+   live in lib/ouraPublic.ts: nothing daily ever reaches the browser. */
+type Metric = "readiness" | "sleepScore" | "steps" | "hrvRel" | "restingHrRel";
 
-function series(days: OuraDay[], key: Metric): (number | undefined)[] {
-  return days.map((d) => d[key]);
+function series(weeks: OuraWeek[], key: Metric): (number | undefined)[] {
+  return weeks.map((w) => w[key]);
 }
 
 function lastIndex(values: (number | undefined)[]): number {
@@ -57,12 +53,11 @@ function lastIndex(values: (number | undefined)[]): number {
   return -1;
 }
 
-// Mean of the defined values before `upTo`: the baseline the latest reading is
-// compared against.
-function baseline(values: (number | undefined)[], upTo: number): number | null {
-  const prior = values.slice(0, upTo).filter((v): v is number => v != null);
-  return prior.length ? prior.reduce((a, b) => a + b, 0) / prior.length : null;
-}
+const weekOf = (start: string) => `Week of ${dayLabel(start, "short")}`;
+// The chart spans a year, so its end labels need one.
+const monthYear = (day: string) =>
+  new Date(`${day}T12:00:00`).toLocaleDateString("en-US", { month: "short", year: "numeric" });
+const signedPct = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : "±"}${Math.abs(v)}%`;
 
 function Delta({
   value,
@@ -71,18 +66,18 @@ function Delta({
   format,
 }: {
   value: number;
-  base: number | null;
+  base: number | undefined;
   upIsGood: boolean;
   format: (diff: number, base: number) => string;
 }) {
   if (base == null) return <span className="c-delta">&nbsp;</span>;
   const diff = value - base;
-  if (Math.abs(diff) < 0.5) return <span className="c-delta">level with 14-day avg</span>;
+  if (Math.abs(diff) < 0.5) return <span className="c-delta">level with 12-month avg</span>;
   const up = diff > 0;
   return (
     <span className={`c-delta${up === upIsGood ? " is-good" : ""}`}>
       <span aria-hidden="true">{up ? "▲" : "▼"}</span>
-      <span className="c-sr">{up ? "up" : "down"}</span> {format(Math.abs(diff), base)} vs 14-day
+      <span className="c-sr">{up ? "up" : "down"}</span> {format(Math.abs(diff), base)} vs 12-month
       avg
     </span>
   );
@@ -101,6 +96,8 @@ function Sparkline({
   active,
   label,
   handlers,
+  base,
+  minSpan,
 }: {
   values: (number | undefined)[];
   width: number;
@@ -108,15 +105,19 @@ function Sparkline({
   active: number | null;
   label: string;
   handlers: ScrubHandlers;
+  /** The average the weeks are read against, drawn as a hairline. */
+  base?: number;
+  /** Smallest value range the chart will zoom in to. */
+  minSpan?: number;
 }) {
   const defined = values.filter((v): v is number => v != null);
   if (!width || defined.length < 2) return null;
   const SPARK_H = Math.round(Math.min(SPARK_MAX, Math.max(height, 34)));
-  // Never zoom in tighter than ±10% of the average, so a 47–52 bpm wobble
+  // Never zoom in tighter than ±10% of the average, so a small wobble
   // doesn't read as a dramatic swing when the chart is tall.
-  const lo = Math.min(...defined);
-  const hi = Math.max(...defined);
-  const floor = Math.abs(mean(defined)) * 0.2;
+  const lo = Math.min(...defined, base ?? Infinity);
+  const hi = Math.max(...defined, base ?? -Infinity);
+  const floor = minSpan ?? Math.abs(mean(defined)) * 0.2;
   const pad = Math.max(0, floor - (hi - lo)) / 2;
   const min = lo - pad;
   const span = hi - lo + pad * 2 || 1;
@@ -124,7 +125,7 @@ function Sparkline({
   const x = (i: number) => PAD + i * step;
   const y = (v: number) => PAD + (1 - (v - min) / span) * (SPARK_H - PAD * 2);
 
-  // Break the line at missing days instead of bridging them.
+  // Break the line at missing weeks instead of bridging them.
   const runs: string[] = [];
   let run = "";
   values.forEach((v, i) => {
@@ -142,10 +143,13 @@ function Sparkline({
 
   return (
     <svg className="c-spark" width={width} height={SPARK_H} aria-label={label} {...handlers}>
+      {base != null ? (
+        <line className="c-steps__avgline" x1={0} x2={width} y1={y(base)} y2={y(base)} />
+      ) : null}
       {runs.map((d) => (
         <path key={d} d={d} className="c-spark__line" />
       ))}
-      {/* A reading isolated between two gaps still gets a mark. */}
+      {/* A week isolated between two gaps still gets a mark. */}
       {values.map((v, i) =>
         v != null && values[i - 1] == null && values[i + 1] == null ? (
           <circle key={i} cx={x(i)} cy={y(v)} r={2} className="c-spark__lone" />
@@ -157,44 +161,6 @@ function Sparkline({
       <circle cx={x(marker)} cy={y(values[marker] as number)} r={4} className="c-spark__end" />
     </svg>
   );
-}
-
-/* ── Year to date ───────────────────────────────────────────── */
-
-// Fetched once, on the first card opened, and shared by every card after.
-let ytdRequest: Promise<OuraDay[] | null> | null = null;
-
-function loadYtd(): Promise<OuraDay[] | null> {
-  if (!ytdRequest) {
-    const url = demoParam() ? "/api/oura-ytd?demo" : "/api/oura-ytd";
-    ytdRequest = fetch(url)
-      .then((r) => (r.ok ? (r.json() as Promise<OuraState | null>) : null))
-      .then((state) => state?.days ?? null)
-      .catch(() => null);
-    // A failure shouldn't stick: the next open tries again.
-    ytdRequest.then((days) => {
-      if (!days) ytdRequest = null;
-    });
-  }
-  return ytdRequest;
-}
-
-export type YtdState =
-  { status: "loading" } | { status: "ready"; days: OuraDay[] } | { status: "error" };
-
-export function useYtd(enabled: boolean): YtdState {
-  const [state, setState] = useState<YtdState>({ status: "loading" });
-  useEffect(() => {
-    if (!enabled) return;
-    let live = true;
-    loadYtd().then((days) => {
-      if (live) setState(days ? { status: "ready", days } : { status: "error" });
-    });
-    return () => {
-      live = false;
-    };
-  }, [enabled]);
-  return state;
 }
 
 function useToggle() {
@@ -239,461 +205,57 @@ function YtdToggle({
   );
 }
 
-// Trailing 7-day mean; a window with fewer than 3 readings is a gap.
-function rolling(values: (number | undefined)[], window = 7): (number | undefined)[] {
-  return values.map((_, i) => {
-    const w = values
-      .slice(Math.max(0, i - window + 1), i + 1)
-      .filter((v): v is number => v != null);
-    return w.length >= 3 ? mean(w) : undefined;
-  });
-}
-
-// The last 30 calendar days against the year: is the recent stretch above or
-// below the norm?
-function recent30(values: (number | undefined)[], ytdAvg: number, suffix: string): Fact | null {
-  const v = values.slice(-30).filter((x): x is number => x != null);
-  if (!v.length) return null;
-  const avg = mean(v);
-  const diff = Math.round(avg - ytdAvg);
-  const rel =
-    Math.abs(ytdAvg) >= 1000
-      ? `${Math.round((Math.abs(avg - ytdAvg) / ytdAvg) * 100)}%`
-      : `${Math.abs(diff)}${suffix}`;
-  return {
-    k: "Last 30 days",
-    v: `${fmt(Math.round(avg))}${suffix}`,
-    sub: diff === 0 ? "level with YTD" : `${diff > 0 ? "▲" : "▼"} ${rel} vs YTD`,
-  };
-}
-
-function extreme(days: OuraDay[], metric: Metric, highest: boolean) {
-  let best: { v: number; day: string } | null = null;
-  for (const d of days) {
-    const v = d[metric];
-    if (v == null) continue;
-    if (!best || (highest ? v > best.v : v < best.v)) best = { v, day: d.day };
-  }
-  return best;
-}
-
-type Fact = { k: string; v: string; sub?: string };
-
-function Facts({ facts }: { facts: Fact[] }) {
-  return (
-    <dl className="c-ytd__facts">
-      {facts.map((f) => (
-        <div key={f.k}>
-          <dt>{f.k}</dt>
-          <dd>
-            {f.v}
-            {f.sub ? <span>{f.sub}</span> : null}
-          </dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
-
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-// Month starts within the series, for axis ticks and the summary table.
-function monthStarts(days: OuraDay[]): { i: number; label: string }[] {
-  return days.flatMap((d, i) =>
-    d.day.endsWith("-01") || i === 0 ? [{ i, label: MONTHS[Number(d.day.slice(5, 7)) - 1] }] : [],
-  );
-}
-
-function MonthTable({
-  days,
-  metric,
-  caption,
-  unit,
-}: {
-  days: OuraDay[];
-  metric: Metric;
-  caption: string;
-  unit: string;
-}) {
-  const rows = monthStarts(days).map(({ i, label }, n, all) => {
-    const slice = days.slice(i, all[n + 1]?.i ?? days.length);
-    const v = slice.map((d) => d[metric]).filter((x): x is number => x != null);
-    return { label, avg: v.length ? Math.round(mean(v)) : null, n: v.length };
-  });
-  return (
-    <div className="c-sr">
-      <table>
-        <caption>{caption}</caption>
-        <thead>
-          <tr>
-            <th scope="col">Month</th>
-            <th scope="col">Average{unit ? ` (${unit})` : ""}</th>
-            <th scope="col">Days logged</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr key={r.label}>
-              <th scope="row">{r.label}</th>
-              <td>{r.avg == null ? "—" : fmt(r.avg)}</td>
-              <td>{r.n}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-const YTD_H = 112;
-const AXIS_H = 18;
-
-function MonthAxis({
-  ticks,
-  x,
-  width,
-}: {
-  ticks: { i: number; label: string }[];
-  x: (i: number) => number;
-  width: number;
-}) {
-  // Thin the labels when months are packed tighter than a label is wide.
-  const every = width / Math.max(ticks.length, 1) < 34 ? 2 : 1;
-  return (
-    <g className="c-ytd__axis" aria-hidden="true">
-      {ticks.map((t, n) =>
-        n % every === 0 ? (
-          <text key={t.i} x={Math.min(x(t.i), width - 22)} y={YTD_H + 13}>
-            {t.label}
-          </text>
-        ) : null,
-      )}
-    </g>
-  );
-}
-
-function YtdPanel({
-  id,
-  label,
-  metric,
-  unit,
-  upIsGood,
-}: {
-  id: string;
-  label: string;
-  metric: Metric;
-  unit: string;
-  upIsGood: boolean;
-}) {
-  const ytd = useYtd(true);
-  const [ref, width] = useWidth<HTMLDivElement>();
-  const days = ytd.status === "ready" ? ytd.days : [];
-  const values = series(days, metric);
-  const smooth = rolling(values);
-  const { active, handlers } = useScrub(values.length);
-  const suffix = unit === "/100" ? "" : ` ${unit}`;
-
-  if (ytd.status !== "ready") {
-    return (
-      <div id={id} className="c-ytd">
-        <p className="c-now__detail">
-          {ytd.status === "loading" ? "Loading year to date…" : "Couldn’t load year to date."}
-        </p>
-      </div>
-    );
-  }
-
-  const logged = values.filter((v): v is number => v != null);
-  if (logged.length < 3) {
-    return (
-      <div id={id} className="c-ytd">
-        <p className="c-now__detail">Not enough readings this year yet.</p>
-      </div>
-    );
-  }
-  const avg = mean(logged);
-  const best = extreme(days, metric, upIsGood);
-  const worst = extreme(days, metric, !upIsGood);
-  const year = days[0].day.slice(0, 4);
-
-  const defined = smooth.filter((v): v is number => v != null);
-  const lo = Math.min(...defined, avg);
-  const hi = Math.max(...defined, avg);
-  const span = hi - lo || 1;
-  const x = (i: number) => PAD + (i / (values.length - 1)) * (width - PAD * 2);
-  const y = (v: number) => PAD + (1 - (v - lo) / span) * (YTD_H - PAD * 2);
-
-  const runs: string[] = [];
-  let run = "";
-  smooth.forEach((v, i) => {
-    if (v == null) {
-      if (run.includes("L")) runs.push(run);
-      run = "";
-      return;
-    }
-    run += `${run ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`;
-  });
-  if (run.includes("L")) runs.push(run);
-  const last = lastIndex(smooth);
-  const marker = active != null && smooth[active] != null ? active : last;
-
-  const shown = active ?? lastIndex(values);
-  const sv = smooth[shown];
-  const dv = values[shown];
-  const readout = [
-    dayLabel(days[shown].day, active == null ? "relative" : "short"),
-    sv != null ? `7-day avg ${fmt(Math.round(sv))}${suffix}` : "no 7-day avg",
-    dv != null ? `day ${fmt(dv)}` : "no reading",
-  ].join(" · ");
-
-  return (
-    <div id={id} className="c-ytd">
-      <div className="c-ytd__head">
-        <p className="c-ytd__title">{year} to date · 7-day average</p>
-        <p className="c-steps__avg">
-          <span className="c-steps__key" aria-hidden="true" />
-          YTD avg {fmt(Math.round(avg))}
-          {suffix}
-        </p>
-      </div>
-      <Facts
-        facts={[
-          recent30(values, avg, suffix) ?? { k: "YTD avg", v: `${fmt(Math.round(avg))}${suffix}` },
-          {
-            k: upIsGood ? "Best" : "Lowest",
-            v: `${fmt(best!.v)}${suffix}`,
-            sub: dayLabel(best!.day, "short"),
-          },
-          {
-            k: upIsGood ? "Worst" : "Highest",
-            v: `${fmt(worst!.v)}${suffix}`,
-            sub: dayLabel(worst!.day, "short"),
-          },
-          { k: "Days logged", v: fmt(logged.length), sub: `of ${values.length}` },
-        ]}
-      />
-      <div ref={ref} className="c-now__plot">
-        {width ? (
-          <svg
-            className="c-spark c-ytd__chart"
-            width={width}
-            height={YTD_H + AXIS_H}
-            aria-label={`${label}, 7-day average, ${year} to date`}
-            {...handlers}
-          >
-            <line className="c-steps__avgline" x1={0} x2={width} y1={y(avg)} y2={y(avg)} />
-            {runs.map((d) => (
-              <path key={d} d={d} className="c-ytd__line" />
-            ))}
-            {active != null ? (
-              <line className="c-spark__cross" x1={x(active)} x2={x(active)} y1={0} y2={YTD_H} />
-            ) : null}
-            {marker >= 0 ? (
-              <circle
-                cx={x(marker)}
-                cy={y(smooth[marker] as number)}
-                r={4}
-                className="c-spark__end"
-              />
-            ) : null}
-            <MonthAxis ticks={monthStarts(days)} x={x} width={width} />
-          </svg>
-        ) : (
-          <div style={{ height: YTD_H + AXIS_H }} />
-        )}
-      </div>
-      <p className="c-now__detail" aria-live="polite">
-        {readout}
-      </p>
-      <MonthTable
-        days={days}
-        metric={metric}
-        caption={`${label}, monthly average, ${year}`}
-        unit={unit === "/100" ? "" : unit}
-      />
-    </div>
-  );
-}
-
-// Monday-start weeks; the first and current weeks may be partial.
-function weeks(days: OuraDay[]) {
-  const out: { start: string; days: OuraDay[] }[] = [];
-  for (const d of days) {
-    const dow = (new Date(`${d.day}T12:00:00Z`).getUTCDay() + 6) % 7;
-    if (dow === 0 || out.length === 0) out.push({ start: d.day, days: [] });
-    out[out.length - 1].days.push(d);
-  }
-  return out.map((w) => {
-    const v = w.days.map((d) => d.steps).filter((x): x is number => x != null);
-    return {
-      start: w.start,
-      perDay: v.length ? mean(v) : undefined,
-      total: v.reduce((a, b) => a + b, 0),
-      n: v.length,
-    };
-  });
-}
-
-function YtdStepsPanel({ id }: { id: string }) {
-  const ytd = useYtd(true);
-  const [ref, width] = useWidth<HTMLDivElement>();
-  const days = ytd.status === "ready" ? ytd.days : [];
-  const wk = weeks(days);
-  const { active, handlers } = useScrub(wk.length);
-
-  if (ytd.status !== "ready") {
-    return (
-      <div id={id} className="c-ytd">
-        <p className="c-now__detail">
-          {ytd.status === "loading" ? "Loading year to date…" : "Couldn’t load year to date."}
-        </p>
-      </div>
-    );
-  }
-
-  const logged = series(days, "steps").filter((v): v is number => v != null);
-  if (!logged.length) {
-    return (
-      <div id={id} className="c-ytd">
-        <p className="c-now__detail">No steps logged this year yet.</p>
-      </div>
-    );
-  }
-  const total = logged.reduce((a, b) => a + b, 0);
-  const avg = total / logged.length;
-  const best = extreme(days, "steps", true)!;
-  const tenK = logged.filter((v) => v >= 10_000).length;
-  const year = days[0].day.slice(0, 4);
-
-  const perDay = wk.map((w) => w.perDay).filter((v): v is number => v != null);
-  const max = Math.max(...perDay, avg) * 1.08;
-  const slot = width / wk.length;
-  const bar = Math.max(2, Math.min(BAR_MAX, slot - 2));
-  const top = (v: number) => YTD_H - (v / max) * YTD_H;
-  // Place each month's tick under the week containing its first day.
-  const ticks = monthStarts(days).map((t) => ({
-    i: wk.findIndex(
-      (w, n) => w.start <= days[t.i].day && (wk[n + 1]?.start ?? "9999") > days[t.i].day,
-    ),
-    label: t.label,
-  }));
-
-  const shown = active ?? wk.length - 1;
-  const w = wk[shown];
-  const readout =
-    w.perDay == null
-      ? `Week of ${dayLabel(w.start, "short")} · no reading`
-      : `Week of ${dayLabel(w.start, "short")} · ${fmt(Math.round(w.perDay))}/day · ${fmt(w.total)} total`;
-
-  return (
-    <div id={id} className="c-ytd">
-      <div className="c-ytd__head">
-        <p className="c-ytd__title">{year} to date · daily average by week</p>
-        <p className="c-steps__avg">
-          <span className="c-steps__key" aria-hidden="true" />
-          YTD avg {fmt(Math.round(avg))}/day
-        </p>
-      </div>
-      <Facts
-        facts={[
-          { k: "Total", v: total >= 1e6 ? `${(total / 1e6).toFixed(2)}M` : fmt(total) },
-          recent30(series(days, "steps"), avg, "") ?? { k: "Avg / day", v: fmt(Math.round(avg)) },
-          { k: "Best day", v: fmt(best.v), sub: dayLabel(best.day, "short") },
-          { k: "10K+ days", v: fmt(tenK), sub: `of ${logged.length}` },
-        ]}
-      />
-      <div ref={ref} className="c-now__plot">
-        {width ? (
-          <svg
-            className="c-steps c-ytd__chart"
-            width={width}
-            height={YTD_H + AXIS_H}
-            aria-label={`Steps, daily average by week, ${year} to date`}
-            {...handlers}
-          >
-            {wk.map((wkx, i) =>
-              wkx.perDay == null ? null : (
-                <path
-                  key={wkx.start}
-                  d={barPath(i * slot + (slot - bar) / 2, top(wkx.perDay), bar, YTD_H)}
-                  className={`c-steps__bar${i === wk.length - 1 ? " is-latest" : ""}${i === active ? " is-active" : ""}`}
-                />
-              ),
-            )}
-            <line className="c-steps__avgline" x1={0} x2={width} y1={top(avg)} y2={top(avg)} />
-            <MonthAxis ticks={ticks} x={(i) => i * slot + (slot - bar) / 2} width={width} />
-          </svg>
-        ) : (
-          <div style={{ height: YTD_H + AXIS_H }} />
-        )}
-      </div>
-      <p className="c-now__detail" aria-live="polite">
-        {readout}
-      </p>
-      <MonthTable
-        days={days}
-        metric="steps"
-        caption={`Steps, monthly daily average, ${year}`}
-        unit=""
-      />
-    </div>
-  );
-}
-
 /* ── Oura tiles ─────────────────────────────────────────────── */
 
+/** One weekly metric: the latest published week, how it sits against the
+    12-month average, and the year of weeks behind it. `relative` metrics are
+    already a percentage of that average, so the figure is the comparison. */
 function TrendTile({
   label,
-  days,
+  weeks,
   metric,
-  unit,
+  unit = "",
   upIsGood,
-  deltaFormat,
-  context,
+  average,
+  relative = false,
 }: {
   label: string;
-  days: OuraDay[];
+  weeks: OuraWeek[];
   metric: Metric;
-  unit: string;
+  unit?: string;
   upIsGood: boolean;
-  deltaFormat: (diff: number, base: number) => string;
-  context?: (d: OuraDay) => string;
+  average?: number;
+  relative?: boolean;
 }) {
-  const values = series(days, metric);
+  const values = series(weeks, metric);
   const last = lastIndex(values);
   const [ref, { width, height }] = useSize<HTMLDivElement>();
   const { active, handlers } = useScrub(values.length);
-  const { open, panelId, toggle } = useToggle();
   if (last < 0) return null;
 
   const shown = active ?? last;
-  const day = days[shown];
   const v = values[shown];
-  const when = dayLabel(day.day, active == null ? "relative" : "short");
-  const readout =
-    v == null ? `${when} · no reading` : [when, context?.(day)].filter(Boolean).join(" · ");
+  const latest = values[last] as number;
 
   return (
-    <li className={`c-panel c-now__card${open ? " is-open" : ""}`}>
+    <li className="c-panel c-now__card">
       <div className="c-now__top">
         <p className="c-now__label">{label}</p>
-        <YtdToggle open={open} panelId={panelId} label={label} onClick={toggle} />
       </div>
       <p className="c-now__score">
-        {v != null ? fmt(v) : "—"}
+        {v == null ? "—" : relative ? signedPct(v) : fmt(v)}
         <span className="c-now__of">{unit}</span>
       </p>
-      {active == null ? (
-        <Delta
-          value={values[last] as number}
-          base={baseline(values, last)}
-          upIsGood={upIsGood}
-          format={deltaFormat}
-        />
-      ) : (
+      {active != null ? (
         <span className="c-delta" aria-hidden="true">
           &nbsp;
         </span>
+      ) : relative ? (
+        <span className={`c-delta${latest !== 0 && latest > 0 === upIsGood ? " is-good" : ""}`}>
+          {latest === 0 ? "level with" : latest > 0 ? "above" : "below"} my 12-month avg
+        </span>
+      ) : (
+        <Delta value={latest} base={average} upIsGood={upIsGood} format={(d) => `${Math.round(d)}`} />
       )}
       <div ref={ref} className="c-now__plot c-now__plot--fill">
         <Sparkline
@@ -701,72 +263,62 @@ function TrendTile({
           width={width}
           height={height}
           active={active}
-          label={`${label}, last ${days.length} days`}
+          label={`${label}, weekly average, last ${weeks.length} weeks`}
           handlers={handlers}
+          base={relative ? 0 : average}
+          minSpan={relative ? 20 : 10}
         />
       </div>
       <p className="c-now__detail" aria-live="polite">
-        {readout}
+        {weekOf(weeks[shown].start)}
+        {v == null ? " · not enough readings" : ""}
       </p>
-      {open ? (
-        <YtdPanel id={panelId} label={label} metric={metric} unit={unit} upIsGood={upIsGood} />
-      ) : null}
     </li>
   );
 }
 
 const STEPS_H = 92;
 
-function StepsCard({ days }: { days: OuraDay[] }) {
-  const values = series(days, "steps");
+function StepsCard({ oura }: { oura: OuraPublic }) {
+  const { weeks } = oura;
+  const values = series(weeks, "steps");
   const last = lastIndex(values);
   const [ref, width] = useWidth<HTMLDivElement>();
   const { active, handlers } = useScrub(values.length);
-  const { open, panelId, toggle } = useToggle();
   if (last < 0) return null;
 
   const defined = values.filter((v): v is number => v != null);
-  const avg = defined.reduce((a, b) => a + b, 0) / defined.length;
+  const avg = oura.average.steps ?? mean(defined);
   const max = Math.max(...defined, avg) * 1.08;
   const slot = width / values.length;
-  const bar = Math.max(4, Math.min(BAR_MAX, slot - 2));
+  const bar = Math.max(2, Math.min(BAR_MAX, slot - 2));
   const top = (v: number) => STEPS_H - (v / max) * STEPS_H;
 
-  const latestIsToday = days[last].day === localIso(new Date());
   const shown = active ?? last;
-  const when = dayLabel(days[shown].day, active == null ? "relative" : "short");
-  const readout =
-    values[shown] == null
-      ? `${when} · no reading`
-      : `${when} · ${fmt(values[shown] as number)} steps`;
+  const sv = values[shown];
+  const total = oura.stepsTotal;
 
   return (
-    <li className={`c-panel c-now__card c-now__card--wide${open ? " is-open" : ""}`}>
+    <li className="c-panel c-now__card c-now__card--wide">
       <div className="c-now__top">
         <p className="c-now__label">Steps</p>
-        <YtdToggle open={open} panelId={panelId} label="Steps" onClick={toggle} />
       </div>
       <div className="c-steps__head">
         <div className="c-steps__figure">
           <p className="c-now__score">
             {fmt(values[last] as number)}
-            <span className="c-now__of">
-              {latestIsToday ? "so far today" : dayLabel(days[last].day)}
-            </span>
+            <span className="c-now__of">a day</span>
           </p>
-          {/* A partial day against full days would always read as "down". */}
-          {latestIsToday ? null : (
-            <Delta
-              value={values[last] as number}
-              base={baseline(values, last)}
-              upIsGood
-              format={(d, base) => `${Math.round((d / base) * 100)}%`}
-            />
-          )}
+          <Delta
+            value={values[last] as number}
+            base={avg}
+            upIsGood
+            format={(d, base) => `${Math.round((d / base) * 100)}%`}
+          />
         </div>
         <p className="c-steps__avg">
           <span className="c-steps__key" aria-hidden="true" />
-          {days.length}-day avg {fmt(Math.round(avg))}
+          12-month avg {fmt(avg)}/day
         </p>
       </div>
       <div ref={ref} className="c-now__plot">
@@ -775,13 +327,13 @@ function StepsCard({ days }: { days: OuraDay[] }) {
             className="c-steps"
             width={width}
             height={STEPS_H}
-            aria-label={`Daily steps, last ${days.length} days`}
+            aria-label={`Steps, daily average by week, last ${weeks.length} weeks`}
             {...handlers}
           >
             {values.map((v, i) =>
               v == null ? null : (
                 <path
-                  key={days[i].day}
+                  key={weeks[i].start}
                   d={barPath(i * slot + (slot - bar) / 2, top(v), bar, STEPS_H)}
                   className={`c-steps__bar${i === last ? " is-latest" : ""}${i === active ? " is-active" : ""}`}
                 />
@@ -794,45 +346,47 @@ function StepsCard({ days }: { days: OuraDay[] }) {
         )}
       </div>
       <div className="c-steps__axis" aria-hidden="true">
-        <span>{dayLabel(days[0].day, "short")}</span>
-        <span>{dayLabel(days[days.length - 1].day, "short")}</span>
+        <span>{monthYear(weeks[0].start)}</span>
+        {total ? <span>about {(total / 1e6).toFixed(2)}M steps</span> : null}
+        <span>{monthYear(weeks[weeks.length - 1].start)}</span>
       </div>
       <p className="c-now__detail" aria-live="polite">
-        {readout}
+        {weekOf(weeks[shown].start)} ·{" "}
+        {sv == null ? "not enough readings" : `${fmt(sv)} steps a day`}
       </p>
-      {open ? <YtdStepsPanel id={panelId} /> : null}
     </li>
   );
 }
 
 // Every plotted value, reachable without hovering.
-function OuraTable({ days }: { days: OuraDay[] }) {
+function OuraTable({ weeks }: { weeks: OuraWeek[] }) {
   const cell = (v: number | undefined) => (v == null ? "—" : fmt(v));
+  const pct = (v: number | undefined) => (v == null ? "—" : signedPct(v));
   // .c-sr on the table itself doesn't clip its rows (tables ignore the 1px
   // box), so the wrapper does the hiding.
   return (
     <div className="c-sr">
       <table>
-        <caption>Oura readings by day</caption>
+        <caption>Oura weekly averages, published a week behind</caption>
         <thead>
           <tr>
-            <th scope="col">Day</th>
-            <th scope="col">Steps</th>
+            <th scope="col">Week of</th>
+            <th scope="col">Steps a day</th>
             <th scope="col">Readiness</th>
             <th scope="col">Sleep score</th>
-            <th scope="col">HRV (ms)</th>
-            <th scope="col">Resting heart rate (bpm)</th>
+            <th scope="col">HRV vs 12-month average</th>
+            <th scope="col">Resting heart rate vs 12-month average</th>
           </tr>
         </thead>
         <tbody>
-          {days.map((d) => (
-            <tr key={d.day}>
-              <th scope="row">{dayLabel(d.day, "short")}</th>
-              <td>{cell(d.steps)}</td>
-              <td>{cell(d.readiness)}</td>
-              <td>{cell(d.sleepScore)}</td>
-              <td>{cell(d.hrv)}</td>
-              <td>{cell(d.restingHr)}</td>
+          {weeks.map((w) => (
+            <tr key={w.start}>
+              <th scope="row">{dayLabel(w.start, "short")}</th>
+              <td>{cell(w.steps)}</td>
+              <td>{cell(w.readiness)}</td>
+              <td>{cell(w.sleepScore)}</td>
+              <td>{pct(w.hrvRel)}</td>
+              <td>{pct(w.restingHrRel)}</td>
             </tr>
           ))}
         </tbody>
@@ -1132,7 +686,7 @@ export function useNowSnapshot(): NowSnapshot | null {
 
 /* ── Sections ───────────────────────────────────────────────── */
 
-/** Under the dial: what's playing, plus last night's scores. */
+/** Under the dial: what's playing, plus the latest published week's scores. */
 export function NowStrip() {
   const snap = useNowSnapshot();
   const [now, setNow] = useState(() => Date.now());
@@ -1150,16 +704,14 @@ export function NowStrip() {
   // Nothing connected (or every provider failed): render nothing at all.
   if (!snap.spotify && !snap.oura) return null;
   const { spotify, oura } = snap;
-  const days = oura?.days ?? [];
-  const sources = [spotify && "Spotify", oura && "Oura"].filter(Boolean).join(" + ");
 
   return (
     <div className="c-now c-now--live" role="group" aria-labelledby="now-h">
       <p className="c-now__head">
-        <span id="now-h">Right now</span>
+        <span id="now-h">{spotify ? "Right now" : "Lately"}</span>
         <span className="c-now__source">
-          <span className="c-live" aria-hidden="true" />
-          Live from {sources}
+          {spotify ? <span className="c-live" aria-hidden="true" /> : null}
+          {[spotify && "Live from Spotify", oura && "Oura a week behind"].filter(Boolean).join(" · ")}
         </span>
       </p>
       <ul className="c-now__grid">
@@ -1174,20 +726,19 @@ export function NowStrip() {
           <>
             <TrendTile
               label="Readiness"
-              days={days}
+              weeks={oura.weeks}
               metric="readiness"
               unit="/100"
               upIsGood
-              deltaFormat={(d) => `${Math.round(d)}`}
+              average={oura.average.readiness}
             />
             <TrendTile
               label="Sleep score"
-              days={days}
+              weeks={oura.weeks}
               metric="sleepScore"
               unit="/100"
               upIsGood
-              deltaFormat={(d) => `${Math.round(d)}`}
-              context={(d) => (d.sleepHours != null ? `${d.sleepHours}h asleep` : "")}
+              average={oura.average.sleepScore}
             />
           </>
         ) : null}
@@ -1196,41 +747,34 @@ export function NowStrip() {
   );
 }
 
-/** Under the intro: two weeks of movement and recovery. */
+/** Under the intro: a year of movement and recovery, week by week. */
 export function NowTrends() {
   const snap = useNowSnapshot();
   if (!snap) return <NowSlot band="trends" />;
-  const days = snap.oura?.days;
-  if (!days) return null;
+  const oura = snap.oura;
+  if (!oura) return null;
+  const { weeks } = oura;
 
   return (
     <div className="c-now c-now--trends" role="group" aria-labelledby="trends-h">
       <p className="c-now__head">
-        <span id="trends-h">Last {days.length} days</span>
+        <span id="trends-h">Last {weeks.length} weeks</span>
         <span className="c-now__source">
-          {dayLabel(days[0].day, "short")} – {dayLabel(days[days.length - 1].day, "short")}
+          Weekly averages · through {dayLabel(oura.through, "short")}
         </span>
       </p>
       <ul className="c-now__grid">
-        <StepsCard days={days} />
-        <TrendTile
-          label="HRV"
-          days={days}
-          metric="hrv"
-          unit="ms"
-          upIsGood
-          deltaFormat={(d) => `${Math.round(d)} ms`}
-        />
+        <StepsCard oura={oura} />
+        <TrendTile label="HRV" weeks={weeks} metric="hrvRel" upIsGood relative />
         <TrendTile
           label="Resting heart rate"
-          days={days}
-          metric="restingHr"
-          unit="bpm"
+          weeks={weeks}
+          metric="restingHrRel"
           upIsGood={false}
-          deltaFormat={(d) => `${Math.round(d)} bpm`}
+          relative
         />
       </ul>
-      <OuraTable days={days} />
+      <OuraTable weeks={weeks} />
     </div>
   );
 }

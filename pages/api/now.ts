@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import {
   demoSnapshot,
-  fetchOuraNow,
+  fetchOuraPublic,
   fetchSpotifyNow,
   type NowSnapshot,
 } from "@/lib/stats";
@@ -18,7 +18,7 @@ export default async function handler(
 
   const [spotify, oura] = await Promise.all([
     fetchSpotifyNow(),
-    fetchOuraNow(),
+    fetchOuraPublic(),
   ]);
 
   // Edge cache: serve fresh up to 20s, allow stale-while-revalidate beyond.

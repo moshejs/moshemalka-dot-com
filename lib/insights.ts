@@ -57,14 +57,6 @@ function quartileSplit(pairs: Pair[]) {
   return { q1, q3, low, high };
 }
 
-export function formatClock(minutesFromMidnight: number): string {
-  const m = ((Math.round(minutesFromMidnight) % 1440) + 1440) % 1440;
-  const h = Math.floor(m / 60);
-  const mm = String(m % 60).padStart(2, "0");
-  const h12 = h % 12 === 0 ? 12 : h % 12;
-  return `${h12}:${mm}${h < 12 ? "am" : "pm"}`;
-}
-
 export function readinessFactors(days: OuraDay[]): Factor[] {
   const out: Factor[] = [];
   const withReadiness = days
@@ -79,8 +71,9 @@ export function readinessFactors(days: OuraDay[]): Factor[] {
       id: "sleep",
       label: "Sleep length",
       diff: mean(sleep.high) - mean(sleep.low),
-      a: { label: `${sleep.q3.toFixed(1)}h+ asleep`, n: sleep.high.length, avg: mean(sleep.high) },
-      b: { label: `under ${sleep.q1.toFixed(1)}h`, n: sleep.low.length, avg: mean(sleep.low) },
+      // No hours: how long the nights are stays private.
+      a: { label: "longest nights", n: sleep.high.length, avg: mean(sleep.high) },
+      b: { label: "shortest nights", n: sleep.low.length, avg: mean(sleep.low) },
     });
   }
 
@@ -93,8 +86,9 @@ export function readinessFactors(days: OuraDay[]): Factor[] {
       id: "bedtime",
       label: "Bedtime",
       diff: mean(bed.low) - mean(bed.high),
-      a: { label: `in bed by ${formatClock(bed.q1)}`, n: bed.low.length, avg: mean(bed.low) },
-      b: { label: `after ${formatClock(bed.q3)}`, n: bed.high.length, avg: mean(bed.high) },
+      // No clock times, for the same reason.
+      a: { label: "earliest nights", n: bed.low.length, avg: mean(bed.low) },
+      b: { label: "latest nights", n: bed.high.length, avg: mean(bed.high) },
     });
   }
 
@@ -135,7 +129,9 @@ export function readinessFactors(days: OuraDay[]): Factor[] {
 export type WeekRow = {
   id: "steps" | "readiness" | "sleepScore" | "bedtime";
   label: string;
-  /** Mean per weekday, Monday first; undefined where there's no data. */
+  /** Mean per weekday, Monday first; undefined where there's no data.
+      Bedtime is minutes later (+) or earlier (−) than the overall average,
+      never a clock time. */
   values: (number | undefined)[];
   n: number[];
 };
@@ -151,12 +147,14 @@ export function weekRhythm(days: OuraDay[]): WeekRow[] {
     { id: "sleepScore", label: "Sleep score", night: true },
     { id: "bedtime", label: "Bedtime", night: true },
   ];
+  const bedtimes = days.flatMap((d) => (d.bedtime != null ? [d.bedtime] : []));
+  const usualBedtime = bedtimes.length ? mean(bedtimes) : 0;
   return rows.map(({ id, label, night }) => {
     const buckets: number[][] = WEEKDAYS.map(() => []);
     for (const d of days) {
       const v = d[id];
       if (v == null) continue;
-      buckets[(weekday(d.day) + (night ? 6 : 0)) % 7].push(v);
+      buckets[(weekday(d.day) + (night ? 6 : 0)) % 7].push(id === "bedtime" ? v - usualBedtime : v);
     }
     return {
       id,

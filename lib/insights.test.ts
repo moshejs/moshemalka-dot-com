@@ -1,4 +1,4 @@
-import { MIN_GROUP, formatClock, readinessFactors, weekRhythm } from "./insights";
+import { MIN_GROUP, readinessFactors, weekRhythm } from "./insights";
 import { bedtimeMinutes, type OuraDay } from "./stats";
 
 // Consecutive days from a Monday.
@@ -23,16 +23,6 @@ describe("bedtimeMinutes", () => {
   });
 });
 
-describe("formatClock", () => {
-  it("formats minutes from midnight on a 12-hour clock", () => {
-    expect(formatClock(-30)).toBe("11:30pm");
-    expect(formatClock(75)).toBe("1:15am");
-    expect(formatClock(0)).toBe("12:00am");
-  });
-});
-
-
-
 describe("readinessFactors", () => {
   // Readiness tracks sleep length exactly; steps are noise around it.
   const days = daysFrom("2026-01-05", 120, (i) => {
@@ -45,7 +35,9 @@ describe("readinessFactors", () => {
     expect(factors[0].id).toBe("sleep");
     // Quartile cuts land at 6h and 8h: {8h, 9h} average 84, {5h, 6h} average 72.
     expect(factors[0].diff).toBeCloseTo(12);
-    expect(factors[0].a.label).toBe("8.0h+ asleep");
+    expect(factors[0].a.label).toBe("longest nights");
+    // Neither side says how many hours, or what time.
+    for (const f of factors) expect(`${f.a.label} ${f.b.label}`).not.toMatch(/\d+(\.\d+)?h|\d(am|pm)/);
     expect(factors[0].a.n).toBeGreaterThanOrEqual(MIN_GROUP);
   });
 
@@ -81,6 +73,14 @@ describe("weekRhythm", () => {
     // Monday-morning sleep belongs to Sunday night.
     expect(sleep.values[6]).toBe(90);
     expect(sleep.values[0]).toBe(60);
+  });
+  it("reports bedtime as minutes from the usual, never a clock time", () => {
+    // In bed at 23:00 on weeknights, 01:00 after Friday and Saturday.
+    const days = daysFrom("2026-01-05", 28, (i) => ({ bedtime: i % 7 >= 5 ? 60 : -60 }));
+    const bed = weekRhythm(days).find((r) => r.id === "bedtime")!;
+    const usual = (5 * -60 + 2 * 60) / 7;
+    expect(bed.values[4]).toBeCloseTo(60 - usual); // Friday night
+    expect(bed.values[0]).toBeCloseTo(-60 - usual); // Monday night
   });
   it("leaves weekdays with no readings empty", () => {
     const rows = weekRhythm(daysFrom("2026-01-05", 1, () => ({ steps: 100 })));
