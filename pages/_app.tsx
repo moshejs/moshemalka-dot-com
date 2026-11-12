@@ -3,6 +3,7 @@ import '@/styles/theme.css'
 import type { AppProps } from 'next/app'
 import { Hanken_Grotesk, JetBrains_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/react'
+import { GoogleAnalytics } from '@/components/GoogleAnalytics'
 
 // Hanken Grotesk for display and UI; JetBrains Mono only for package names,
 // commands and code.
@@ -22,6 +23,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <div className={`${sans.variable} ${mono.variable} c-root`}>
       <Component {...pageProps} />
+      <GoogleAnalytics />
       {/* Vercel serves /_vercel/insights/script.js; anywhere else it 404s. */}
       {process.env.ON_VERCEL ? <Analytics /> : null}
     </div>

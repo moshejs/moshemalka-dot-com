@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
-import Script from "next/script";
 import dynamic from "next/dynamic";
 import {
   OSS_PACKAGES,
@@ -664,21 +663,6 @@ const MOVEMENTS = [
 
 /* ── Page ──────────────────────────────────────────────────────────── */
 
-const GA_ID = "G-L1ETKYXNV4";
-
-// Configures gtag.js once it has loaded. Kept out of an inline <script> so the
-// Content-Security-Policy (next.config.js) needs no 'unsafe-inline' for it.
-function startAnalytics() {
-  const w = window as unknown as { dataLayer?: unknown[] };
-  const dataLayer = (w.dataLayer = w.dataLayer || []);
-  // gtag.js reads the arguments object itself, not an array copy.
-  function gtag(..._args: unknown[]) {
-    dataLayer.push(arguments);
-  }
-  gtag("js", new Date());
-  gtag("config", GA_ID);
-}
-
 const NUMBER_WORDS = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten",
   "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen",
   "Nineteen", "Twenty", "Twenty-one", "Twenty-two", "Twenty-three", "Twenty-four", "Twenty-five"];
@@ -720,12 +704,6 @@ export default function Home({ asOf, revision, live }: Props) {
 
   return (
     <>
-      <Script
-        src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-        strategy="lazyOnload"
-        onLoad={startAnalytics}
-      />
-
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>{SEO.title}</title>
