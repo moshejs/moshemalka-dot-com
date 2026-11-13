@@ -22,16 +22,16 @@ This is the official personal site of Moshe Malka, the New York City software en
 ## Open source
 
 - [npm profile ~moshejs](https://www.npmjs.com/~moshejs): 30 zero-dependency, MIT-licensed TypeScript packages for rates and Treasury math, options, FX and volatility, market structure, startup equity, and more
-- [32nds](https://www.npmjs.com/package/32nds): US Treasury price math (32nds quotes such as 105-16+, ticks, basis points)
 - [us-equity-market-calendar](https://www.npmjs.com/package/us-equity-market-calendar): NYSE / NASDAQ trading calendar
 - [options-greeks](https://www.npmjs.com/package/options-greeks): Black-Scholes and Black-76 prices, greeks, implied-vol solver
-- [options-expiration](https://www.npmjs.com/package/options-expiration): US listed options expiries, including weekly and 0DTE
 - [benchmyrepo](https://www.npmjs.com/package/benchmyrepo): benchmark the coding agents you already have on your own repo's merged PRs
+- [options-expiration](https://www.npmjs.com/package/options-expiration): US listed options expiries, including weekly and 0DTE
+- [32nds](https://www.npmjs.com/package/32nds): US Treasury price math (32nds quotes such as 105-16+, ticks, basis points)
 - [GitHub: moshejs](https://github.com/moshejs)
 
 ## Projects
 
-- [Shevirah](https://kelipot.vercel.app/): an interactive web series on Kabbalah by Moshe Malka. Two works (Klippot and the Tree of Life) and fourteen classic texts, 258 teachings, each with its own animated artwork.
+- [Shevirah](https://kelipot.quentin.software/): an interactive web series on Kabbalah by Moshe Malka. Eleven works, each drawn on one canvas (among them The Four Shells, The Ten Sefirot, Taryag and the 231 Gates), and twenty-two classic texts read teaching by teaching: 463 teachings, each with its own animated artwork.
 - [Quentin.Code](https://www.quentin.software/): AI-first software studio — product development, automation, and legacy modernization led by Moshe Malka. Studio work: https://www.quentin.software/work
 
 ## Profiles
