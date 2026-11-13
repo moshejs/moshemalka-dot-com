@@ -354,70 +354,73 @@ function Work({ asOf }: { asOf: number }) {
 
 /* ── Open source ───────────────────────────────────────────────────── */
 
-// Verbatim from the 32nds README.
+// Copy and example from the us-equity-market-calendar README, as published on
+// npm (v2.0.0). Every return value below was checked against that release.
 function FeaturedPackage() {
   return (
     <figure className="c-panel c-feature">
       <div className="c-feature__copy">
-        <p className="c-feature__name">32nds</p>
+        <p className="c-feature__name">us-equity-market-calendar</p>
         <p className="c-feature__text">
-          Treasuries don&rsquo;t trade in decimals. A 10-year note is quoted like{" "}
-          <code>105-16+</code>, and npm had nothing that could read a price the way the market
-          writes it. So I wrote it: exact, because Treasury fractions are powers of two.
+          Stocks keep their own calendar: closed on Good Friday, out at 1&nbsp;p.m. on Christmas
+          Eve, shut for unscheduled closures like the day of mourning for President Carter. Python
+          has <code>pandas_market_calendars</code>; JavaScript had no maintained equivalent. So I
+          wrote one from the NYSE&rsquo;s rules: accurate from 1971, with DST-aware session times.
         </p>
         <CopyButton
           className="c-install"
-          text="npm install 32nds"
+          text="npm install us-equity-market-calendar"
           srDone="Install command copied"
           label={
             <>
               <span className="c-install__prompt" aria-hidden="true">
                 $
               </span>{" "}
-              npm install 32nds
+              npm install us-equity-market-calendar
             </>
           }
         />
       </div>
-      <pre className="c-code" aria-label="Example usage of 32nds">
+      <pre className="c-code" aria-label="Example usage of us-equity-market-calendar">
         <code>
           <span className="tok-k">import</span> <span className="tok-p">{"{"}</span>
-          {"\n  "}parsePrice<span className="tok-p">,</span> formatPrice<span className="tok-p">,</span>{" "}
-          tickValue<span className="tok-p">,</span>
+          {"\n  "}isTradingDay<span className="tok-p">,</span> sessionClose
+          <span className="tok-p">,</span> isMarketOpen<span className="tok-p">,</span>
           {"\n"}
           <span className="tok-p">{"}"}</span> <span className="tok-k">from</span>{" "}
-          <span className="tok-s">&quot;32nds&quot;</span>
+          <span className="tok-s">&quot;us-equity-market-calendar&quot;</span>
           <span className="tok-p">;</span>
           {"\n\n"}
-          <span className="tok-f">parsePrice</span>
+          <span className="tok-f">isTradingDay</span>
           <span className="tok-p">(</span>
-          <span className="tok-s">&quot;105-16+&quot;</span>
+          <span className="tok-s">&quot;2026-04-03&quot;</span>
           <span className="tok-p">);</span>
-          {"       "}
-          <span className="tok-c">{"// 105.515625"}</span>
+          {" "}
+          <span className="tok-c">{"// false"}</span>
           {"\n"}
-          <span className="tok-f">formatPrice</span>
+          <span className="tok-f">sessionClose</span>
           <span className="tok-p">(</span>
-          <span className="tok-n">99.109375</span>
+          <span className="tok-s">&quot;2026-12-24&quot;</span>
           <span className="tok-p">);</span>
-          {"     "}
-          <span className="tok-c">{'// "99-03+"'}</span>
+          {" "}
+          <span className="tok-c">{'// "13:00"'}</span>
           {"\n"}
-          <span className="tok-f">tickValue</span>
+          <span className="tok-f">isMarketOpen</span>
           <span className="tok-p">(</span>
-          <span className="tok-n">1_000_000</span>
-          <span className="tok-p">);</span>
-          {"     "}
-          <span className="tok-c">{"// 312.50"}</span>
+          <span className="tok-k">new</span> <span className="tok-f">Date</span>
+          <span className="tok-p">());</span>
+          {"   "}
+          <span className="tok-c">{"// true / false"}</span>
         </code>
       </pre>
     </figure>
   );
 }
 
-// Only the three most-downloaded packages are promoted; the rest are one
-// click away on npm.
-const TOP_PACKAGES = ["us-equity-market-calendar", "options-greeks", "options-expiration"];
+// Packages are ranked by npm downloads (last month, checked 2026-11-13).
+// The top one is the hero above; the next three fill the grid, and the rest
+// are one click away on npm.
+const TOP_PACKAGES = ["options-greeks", "benchmyrepo", "futures-calendar"];
 const FEATURED = TOP_PACKAGES.map((name) => {
   const pkg = OSS_PACKAGES.find((p) => p.name === name);
   if (!pkg) throw new Error(`TOP_PACKAGES lists unknown package ${name}`);
