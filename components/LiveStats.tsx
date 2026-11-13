@@ -1,35 +1,19 @@
-import { useEffect, useId, useState } from "react";
+import { useContext, useEffect, useId, useRef, useState, useSyncExternalStore, type KeyboardEvent, type PointerEvent } from "react";
 import type { OuraPublic, OuraWeek } from "@/lib/ouraPublic";
 import type { NowSnapshot, SpotifyRange, SpotifyState, SpotifyTop } from "@/lib/stats";
-import { NowSlot } from "@/components/NowSlot";
 import {
-  BAR_MAX,
-  PAD,
-  barPath,
-  dayLabel,
-  fmt,
-  mean,
-  useScrub,
-  useSize,
-  useWidth,
-  type ScrubHandlers,
-} from "@/components/viz";
+  METRICS,
+  latestWeekIndex,
+  metricSpec,
+  notableStanding,
+  standing,
+  type Standing,
+  type WeekMetric,
+} from "@/lib/insights";
+import { LiveProvidersContext, NowSlot } from "@/components/NowSlot";
+import { BAR_MAX, RADIUS, barPath, dayLabel, fmt, useWidth } from "@/components/viz";
 
 const POLL_MS = 30_000;
-
-function timeAgo(ms: number): string {
-  const m = Math.floor(ms / 60_000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-}
-
-function clock(ms: number): string {
-  const s = Math.max(0, Math.floor(ms / 1000));
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-}
 
 // Dev-only: ?signal=playing|paused|recent|oura|spotify renders fixtures.
 function demoParam(): string | null {
@@ -39,321 +23,835 @@ function demoParam(): string | null {
 
 /* ── Formatting ─────────────────────────────────────────────── */
 
-/* Oura figures are weekly averages that end a week ago; HRV and resting
-   heart rate arrive only as a percentage of the 12-month average. The rules
-   live in lib/ouraPublic.ts: nothing daily ever reaches the browser. */
-type Metric = "readiness" | "sleepScore" | "steps" | "hrvRel" | "restingHrRel";
-
-function series(weeks: OuraWeek[], key: Metric): (number | undefined)[] {
-  return weeks.map((w) => w[key]);
+function timeAgo(ms: number): string {
+  const m = Math.floor(ms / 60_000);
+  if (m < 1) return "just now";
+  const unit = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"} ago`;
+  if (m < 60) return unit(m, "minute");
+  const h = Math.floor(m / 60);
+  if (h < 24) return unit(h, "hour");
+  return unit(Math.floor(h / 24), "day");
 }
 
-function lastIndex(values: (number | undefined)[]): number {
-  for (let i = values.length - 1; i >= 0; i--) if (values[i] != null) return i;
-  return -1;
+function clock(ms: number): string {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
-const weekOf = (start: string) => `Week of ${dayLabel(start, "short")}`;
+function addDays(day: string, n: number): string {
+  const d = new Date(`${day}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+/** "Oct 26 – Nov 1": a published week, Monday to Sunday. */
+const weekRange = (start: string) => `${dayLabel(start, "short")} – ${dayLabel(addDays(start, 6), "short")}`;
 // The chart spans a year, so its end labels need one.
 const monthYear = (day: string) =>
   new Date(`${day}T12:00:00`).toLocaleDateString("en-US", { month: "short", year: "numeric" });
 const signedPct = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : "±"}${Math.abs(v)}%`;
 
-function Delta({
-  value,
-  base,
-  upIsGood,
-  format,
-}: {
-  value: number;
-  base: number | undefined;
-  upIsGood: boolean;
-  format: (diff: number, base: number) => string;
-}) {
-  if (base == null) return <span className="c-delta">&nbsp;</span>;
-  const diff = value - base;
-  if (Math.abs(diff) < 0.5) return <span className="c-delta">level with 12-month avg</span>;
-  const up = diff > 0;
-  return (
-    <span className={`c-delta${up === upIsGood ? " is-good" : ""}`}>
-      <span aria-hidden="true">{up ? "▲" : "▼"}</span>
-      <span className="c-sr">{up ? "up" : "down"}</span> {format(Math.abs(diff), base)} vs 12-month
-      avg
-    </span>
-  );
+/** The figure as it's published: steps a day, a score, or ± percent. */
+function valueText(metric: WeekMetric, v: number): string {
+  return metricSpec(metric).relative ? signedPct(v) : fmt(v);
 }
 
-/* ── Chart plumbing ─────────────────────────────────────────── */
+const UNIT: Record<WeekMetric, string> = {
+  steps: "steps a day",
+  readiness: "/100",
+  sleepScore: "/100",
+  hrvRel: "vs my avg",
+  restingHrRel: "vs my avg",
+};
 
-// Fills its container's height when the card has room (a tile stretched to
-// match a taller neighbour), never less than SPARK_H.
-const SPARK_MAX = 96;
+/** How a week sits against the 12-month average, in words. */
+function deltaText(metric: WeekMetric, diff: number, base: number, short = false): string {
+  return short ? longDelta(metric, diff, base).replace("my average", "avg") : longDelta(metric, diff, base);
+}
 
-function Sparkline({
-  values,
-  width,
-  height,
-  active,
-  label,
-  handlers,
-  base,
-  minSpan,
-}: {
-  values: (number | undefined)[];
-  width: number;
-  height: number;
-  active: number | null;
-  label: string;
-  handlers: ScrubHandlers;
-  /** The average the weeks are read against, drawn as a hairline. */
-  base?: number;
-  /** Smallest value range the chart will zoom in to. */
-  minSpan?: number;
-}) {
-  const defined = values.filter((v): v is number => v != null);
-  if (!width || defined.length < 2) return null;
-  const SPARK_H = Math.round(Math.min(SPARK_MAX, Math.max(height, 34)));
-  // Never zoom in tighter than ±10% of the average, so a small wobble
-  // doesn't read as a dramatic swing when the chart is tall.
-  const lo = Math.min(...defined, base ?? Infinity);
-  const hi = Math.max(...defined, base ?? -Infinity);
-  const floor = minSpan ?? Math.abs(mean(defined)) * 0.2;
-  const pad = Math.max(0, floor - (hi - lo)) / 2;
-  const min = lo - pad;
-  const span = hi - lo + pad * 2 || 1;
-  const step = (width - PAD * 2) / (values.length - 1);
-  const x = (i: number) => PAD + i * step;
-  const y = (v: number) => PAD + (1 - (v - min) / span) * (SPARK_H - PAD * 2);
+function longDelta(metric: WeekMetric, diff: number, base: number): string {
+  const spec = metricSpec(metric);
+  const side = diff > 0 ? "above" : "below";
+  if (metric === "steps") {
+    const pct = Math.round((Math.abs(diff) / base) * 100);
+    return pct < 3 ? "about my average" : `${pct}% ${side} my average`;
+  }
+  if (spec.relative) return Math.abs(diff) < 1 ? "level with my average" : `${Math.abs(diff)}% ${side} my average`;
+  const pts = Math.round(Math.abs(diff));
+  return pts < 1 ? "level with my average" : `${pts} point${pts === 1 ? "" : "s"} ${side} my average`;
+}
 
-  // Break the line at missing weeks instead of bridging them.
-  const runs: string[] = [];
-  let run = "";
-  values.forEach((v, i) => {
-    if (v == null) {
-      if (run.includes("L")) runs.push(run);
-      run = "";
-      return;
+function sinceText(s: Standing, weeks: OuraWeek[]): string | null {
+  const word = s.dir === "up" ? "highest" : "lowest";
+  if (s.since === "year") return `${word} in ${s.count} weeks`;
+  // "Highest since the week before" says nothing.
+  if (s.since && s.at - s.since.at >= 4) return `${word} since the week of ${dayLabel(weeks[s.since.at].start, "short")}`;
+  return null;
+}
+
+/** The standout figure as a phrase: "13,400 steps a day, 37% above my average". */
+function standoutPhrase(s: Standing): string {
+  const delta = deltaText(s.metric, s.diff, s.base);
+  switch (s.metric) {
+    case "steps":
+      return `${fmt(s.value)} steps a day, ${delta}`;
+    case "readiness":
+      return `a readiness of ${s.value}, ${delta}`;
+    case "sleepScore":
+      return `a sleep score of ${s.value}, ${delta}`;
+    case "hrvRel":
+      return `HRV ${delta}`;
+    case "restingHrRel":
+      return `resting heart rate ${delta}`;
+  }
+}
+
+/* ── Shared state ───────────────────────────────────────────── */
+
+// The page renders three bands from one snapshot and one poll. The selected
+// metric is shared too: a row in "Last full week" opens it on the year chart.
+type NowState = { snap: NowSnapshot | null; failed: boolean };
+let state: NowState = { snap: null, failed: false };
+const listeners = new Set<() => void>();
+const SERVER_STATE: NowState = { snap: null, failed: false };
+let poller: { stop: () => void; poll: () => void } | null = null;
+
+function publish(next: NowState) {
+  state = next;
+  listeners.forEach((l) => l());
+}
+
+function startPolling() {
+  let ctl: AbortController | null = null;
+  const demo = demoParam();
+  const url = demo ? `/api/now?demo=${encodeURIComponent(demo)}` : "/api/now";
+
+  async function poll() {
+    ctl?.abort();
+    ctl = new AbortController();
+    try {
+      const res = await fetch(url, { signal: ctl.signal });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      publish({ snap: (await res.json()) as NowSnapshot, failed: false });
+    } catch (err) {
+      if ((err as { name?: string }).name === "AbortError") return;
+      console.warn("[live-stats] poll failed", err);
+      // Keep showing the last good snapshot; only an empty page says so.
+      if (!state.snap) publish({ snap: null, failed: true });
     }
-    run += `${run ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`;
-  });
-  if (run.includes("L")) runs.push(run);
+  }
 
-  const last = lastIndex(values);
-  const marker = active != null && values[active] != null ? active : last;
+  poll();
+  let interval = window.setInterval(poll, POLL_MS);
+  const onVis = () => {
+    window.clearInterval(interval);
+    if (!document.hidden) {
+      poll();
+      interval = window.setInterval(poll, POLL_MS);
+    }
+  };
+  document.addEventListener("visibilitychange", onVis);
+  return {
+    poll,
+    stop() {
+      ctl?.abort();
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVis);
+    },
+  };
+}
 
-  return (
-    <svg className="c-spark" width={width} height={SPARK_H} aria-label={label} {...handlers}>
-      {base != null ? (
-        <line className="c-steps__avgline" x1={0} x2={width} y1={y(base)} y2={y(base)} />
-      ) : null}
-      {runs.map((d) => (
-        <path key={d} d={d} className="c-spark__line" />
-      ))}
-      {/* A week isolated between two gaps still gets a mark. */}
-      {values.map((v, i) =>
-        v != null && values[i - 1] == null && values[i + 1] == null ? (
-          <circle key={i} cx={x(i)} cy={y(v)} r={2} className="c-spark__lone" />
-        ) : null,
-      )}
-      {active != null ? (
-        <line className="c-spark__cross" x1={x(active)} x2={x(active)} y1={0} y2={SPARK_H} />
-      ) : null}
-      <circle cx={x(marker)} cy={y(values[marker] as number)} r={4} className="c-spark__end" />
-    </svg>
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  if (!poller) poller = startPolling();
+  return () => {
+    listeners.delete(listener);
+    if (listeners.size === 0 && poller) {
+      poller.stop();
+      poller = null;
+    }
+  };
+}
+
+export function useNowState(): NowState {
+  return useSyncExternalStore(
+    subscribe,
+    () => state,
+    () => SERVER_STATE,
   );
 }
 
-function useToggle() {
-  const [open, setOpen] = useState(false);
-  const id = useId();
-  return { open, panelId: `ytd-${id.replace(/:/g, "")}`, toggle: () => setOpen((o) => !o) };
+export function useNowSnapshot(): NowSnapshot | null {
+  return useNowState().snap;
 }
 
-function YtdToggle({
-  open,
-  panelId,
-  label,
-  onClick,
-  text = "YTD",
-}: {
-  open: boolean;
-  panelId: string;
-  label: string;
-  onClick: () => void;
-  text?: string;
-}) {
-  return (
-    <button
-      type="button"
-      className="c-ytd-toggle"
-      aria-expanded={open}
-      aria-controls={panelId}
-      onClick={onClick}
-    >
-      {text}
-      <span className="c-sr"> {label}</span>
-      <svg className="c-chevron" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
-        <path
-          d="m6 9 6 6 6-6"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-      </svg>
-    </button>
+let selected: WeekMetric = "steps";
+const metricListeners = new Set<() => void>();
+function selectMetric(m: WeekMetric) {
+  selected = m;
+  metricListeners.forEach((l) => l());
+}
+function subscribeMetric(listener: () => void) {
+  metricListeners.add(listener);
+  return () => {
+    metricListeners.delete(listener);
+  };
+}
+function useSelectedMetric(): WeekMetric {
+  return useSyncExternalStore(
+    subscribeMetric,
+    () => selected,
+    () => "steps" as WeekMetric,
   );
 }
 
-/* ── Oura tiles ─────────────────────────────────────────────── */
+const YEAR_ID = "now-year";
+const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/** One weekly metric: the latest published week, how it sits against the
-    12-month average, and the year of weeks behind it. `relative` metrics are
-    already a percentage of that average, so the figure is the comparison. */
-function TrendTile({
-  label,
-  weeks,
-  metric,
-  unit = "",
-  upIsGood,
-  average,
-  relative = false,
-}: {
-  label: string;
-  weeks: OuraWeek[];
-  metric: Metric;
-  unit?: string;
-  upIsGood: boolean;
-  average?: number;
-  relative?: boolean;
-}) {
-  const values = series(weeks, metric);
-  const last = lastIndex(values);
-  const [ref, { width, height }] = useSize<HTMLDivElement>();
-  const { active, handlers } = useScrub(values.length);
-  if (last < 0) return null;
+/** Open a metric on the year chart and take keyboard focus there. */
+function showOnYearChart(m: WeekMetric) {
+  selectMetric(m);
+  const card = document.getElementById(YEAR_ID);
+  if (!card) return;
+  card.scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth", block: "center" });
+  card.querySelector<SVGElement>("[role='slider']")?.focus({ preventScroll: true });
+}
 
-  const shown = active ?? last;
-  const v = values[shown];
-  const latest = values[last] as number;
+/* ── Spotify ────────────────────────────────────────────────── */
+
+const RANGES: { id: SpotifyRange; label: string }[] = [
+  { id: "short_term", label: "4 weeks" },
+  { id: "medium_term", label: "6 months" },
+  { id: "long_term", label: "12 months" },
+];
+
+const topRequests = new Map<SpotifyRange, Promise<SpotifyTop | null>>();
+
+function loadTop(range: SpotifyRange): Promise<SpotifyTop | null> {
+  let req = topRequests.get(range);
+  if (!req) {
+    const url = `/api/spotify-top?range=${range}${demoParam() ? "&demo" : ""}`;
+    req = fetch(url)
+      .then((r) => (r.ok ? (r.json() as Promise<SpotifyTop | null>) : null))
+      .catch(() => null);
+    topRequests.set(range, req);
+    req.then((top) => {
+      if (!top) topRequests.delete(range);
+    });
+  }
+  return req;
+}
+
+const NoteIcon = ({ size = 22 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.6"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M9 18V5l12-2v13" />
+    <circle cx="6" cy="18" r="3" />
+    <circle cx="18" cy="16" r="3" />
+  </svg>
+);
+
+// Spotify only offers its own rolling windows; there is no calendar-year view.
+function OnRepeat() {
+  const [range, setRange] = useState<SpotifyRange>("short_term");
+  const [top, setTop] = useState<SpotifyTop | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const headId = useId();
+
+  useEffect(() => {
+    let live = true;
+    loadTop(range).then((t) => {
+      if (!live) return;
+      setFailed(!t);
+      if (t) setTop(t);
+    });
+    return () => {
+      live = false;
+    };
+  }, [range, attempt]);
+
+  // Keep the previous range on screen, dimmed, while the next one loads.
+  const stale = top != null && top.range !== range;
+  const rangeLabel = RANGES.find((r) => r.id === range)?.label;
 
   return (
-    <li className="c-panel c-now__card">
-      <div className="c-now__top">
-        <p className="c-now__label">{label}</p>
+    <div className="c-repeat" role="group" aria-labelledby={headId}>
+      <div className="c-repeat__head">
+        <p className="c-now__label" id={headId}>
+          Most played · last {rangeLabel}
+        </p>
+        <div className="c-seg" role="group" aria-label="Time range">
+          {RANGES.map((r) => (
+            <button key={r.id} type="button" aria-pressed={r.id === range} onClick={() => setRange(r.id)}>
+              {r.label}
+            </button>
+          ))}
+        </div>
       </div>
-      <p className="c-now__score">
-        {v == null ? "—" : relative ? signedPct(v) : fmt(v)}
-        <span className="c-now__of">{unit}</span>
-      </p>
-      {active != null ? (
-        <span className="c-delta" aria-hidden="true">
-          &nbsp;
-        </span>
-      ) : relative ? (
-        <span className={`c-delta${latest !== 0 && latest > 0 === upIsGood ? " is-good" : ""}`}>
-          {latest === 0 ? "level with" : latest > 0 ? "above" : "below"} my 12-month avg
-        </span>
+      {top ? (
+        <div className={`c-repeat__body${stale ? " is-stale" : ""}`} aria-busy={stale}>
+          <ol className="c-repeat__list">
+            {top.tracks.map((t, i) => {
+              const body = (
+                <>
+                  {t.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      className="c-repeat__cover"
+                      src={t.image}
+                      alt=""
+                      width="96"
+                      height="96"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ) : (
+                    <span className="c-repeat__cover">
+                      <NoteIcon size={18} />
+                    </span>
+                  )}
+                  <span className="c-repeat__text">
+                    <span className="c-repeat__name">
+                      <span className="c-repeat__rank">{i + 1}</span> <span dir="auto">{t.name}</span>
+                    </span>
+                    <span className="c-repeat__artist" dir="auto">
+                      {t.artist}
+                    </span>
+                  </span>
+                </>
+              );
+              return (
+                <li key={`${t.name}-${t.artist}`}>
+                  {t.url ? (
+                    <a className="c-repeat__item" href={t.url} target="_blank" rel="noopener noreferrer">
+                      {body}
+                      <span className="c-sr"> (opens Spotify)</span>
+                    </a>
+                  ) : (
+                    <span className="c-repeat__item">{body}</span>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+          {top.artists.length ? (
+            <p className="c-repeat__artists">
+              <span className="c-repeat__artists-k">Top artists</span>{" "}
+              {top.artists.map((a, i) => (
+                <span key={a.name}>
+                  {i ? <span aria-hidden="true"> · </span> : null}
+                  {i ? <span className="c-sr">, </span> : null}
+                  <span dir="auto">{a.name}</span>
+                </span>
+              ))}
+            </p>
+          ) : null}
+        </div>
+      ) : failed ? (
+        <div className="c-repeat__msg">
+          <p>Spotify didn’t send the most-played list this time.</p>
+          <button type="button" className="c-retry" onClick={() => setAttempt((n) => n + 1)}>
+            Try again
+          </button>
+        </div>
       ) : (
-        <Delta value={latest} base={average} upIsGood={upIsGood} format={(d) => `${Math.round(d)}`} />
+        <div className="c-repeat__body" aria-busy="true">
+          <p className="c-sr">Loading most played…</p>
+          <ol className="c-repeat__list" aria-hidden="true">
+            {RANGES.concat(RANGES.slice(0, 2)).map((_, i) => (
+              <li key={i}>
+                <span className="c-repeat__item">
+                  <span className="c-repeat__cover" />
+                  <span className="c-repeat__text">
+                    <span className="c-repeat__ghost" />
+                    <span className="c-repeat__ghost c-repeat__ghost--short" />
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
       )}
-      <div ref={ref} className="c-now__plot c-now__plot--fill">
-        <Sparkline
-          values={values}
-          width={width}
-          height={height}
-          active={active}
-          label={`${label}, weekly average, last ${weeks.length} weeks`}
-          handlers={handlers}
-          base={relative ? 0 : average}
-          minSpan={relative ? 20 : 10}
-        />
-      </div>
-      <p className="c-now__detail" aria-live="polite">
-        {weekOf(weeks[shown].start)}
-        {v == null ? " · not enough readings" : ""}
+    </div>
+  );
+}
+
+function Listening({
+  s,
+  fetchedAt,
+  now,
+  solo,
+}: {
+  s: SpotifyState;
+  fetchedAt: number;
+  now: number;
+  solo: boolean;
+}) {
+  const playing = s.kind === "playing";
+  const progress =
+    s.kind === "recent" ? 0 : Math.min(s.durationMs, s.progressMs + (playing ? now - fetchedAt : 0));
+  const status =
+    s.kind === "recent" ? `Last played · ${timeAgo(now - Date.parse(s.playedAt))}` : playing ? "Listening now" : "Paused";
+
+  const song = (
+    <>
+      {s.albumArt ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img className="c-listen__art" src={s.albumArt} alt="" width="112" height="112" decoding="async" />
+      ) : (
+        <span className="c-listen__art">
+          <NoteIcon />
+        </span>
+      )}
+      <span className="c-listen__text">
+        <span className="c-listen__track" dir="auto">
+          {s.track}
+        </span>
+        <span className="c-listen__artist" dir="auto">
+          {s.artist}
+        </span>
+        {s.album && s.album !== s.track && s.album !== s.artist ? (
+          <span className="c-listen__album" dir="auto">
+            {s.album}
+          </span>
+        ) : null}
+      </span>
+    </>
+  );
+
+  return (
+    <li className={`c-panel c-now__card c-listen${solo ? " c-listen--solo" : ""}`}>
+      {s.albumArt ? (
+        // The cover, blurred, lights the card. Decorative.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img className="c-listen__glow" src={s.albumArt} alt="" aria-hidden="true" width="64" height="64" />
+      ) : null}
+      <p className="c-now__label c-listen__status">
+        <span className={`c-live${playing ? "" : " c-live--idle"}`} aria-hidden="true" />
+        {status}
       </p>
+      {s.url ? (
+        <a className="c-listen__song" href={s.url} target="_blank" rel="noopener noreferrer">
+          {song}
+          <span className="c-sr"> (opens Spotify)</span>
+        </a>
+      ) : (
+        <div className="c-listen__song">{song}</div>
+      )}
+      {s.kind !== "recent" ? (
+        <div className="c-now__progress">
+          <span>{clock(progress)}</span>
+          <span
+            className="c-now__bar"
+            role="progressbar"
+            aria-label="Song progress"
+            aria-valuemin={0}
+            aria-valuemax={Math.round(s.durationMs / 1000)}
+            aria-valuenow={Math.round(progress / 1000)}
+            aria-valuetext={`${clock(progress)} of ${clock(s.durationMs)}`}
+          >
+            <span style={{ transform: `scaleX(${progress / s.durationMs})` }} />
+          </span>
+          <span>{clock(s.durationMs)}</span>
+        </div>
+      ) : null}
+      <OnRepeat />
     </li>
   );
 }
 
-const STEPS_H = 92;
+/* ── The state of the week, in a sentence ───────────────────── */
 
-function StepsCard({ oura }: { oura: OuraPublic }) {
-  const { weeks } = oura;
-  const values = series(weeks, "steps");
-  const last = lastIndex(values);
-  const [ref, width] = useWidth<HTMLDivElement>();
-  const { active, handlers } = useScrub(values.length);
-  if (last < 0) return null;
+function Story({ spotify, oura, now }: { spotify: SpotifyState | null; oura: OuraPublic | null; now: number }) {
+  let music = null;
+  if (spotify) {
+    const t = <strong dir="auto">{spotify.track}</strong>;
+    const a = <strong dir="auto">{spotify.artist}</strong>;
+    music =
+      spotify.kind === "recent" ? (
+        <>
+          The last thing I played was {t} by {a}, {timeAgo(now - Date.parse(spotify.playedAt))}.
+        </>
+      ) : spotify.kind === "playing" ? (
+        <>
+          Right now I’m listening to {t} by {a}.
+        </>
+      ) : (
+        <>
+          I’ve paused {t} by {a}.
+        </>
+      );
+  }
 
-  const defined = values.filter((v): v is number => v != null);
-  const avg = oura.average.steps ?? mean(defined);
-  const max = Math.max(...defined, avg) * 1.08;
-  const slot = width / values.length;
-  const bar = Math.max(2, Math.min(BAR_MAX, slot - 2));
-  const top = (v: number) => STEPS_H - (v / max) * STEPS_H;
+  let body = null;
+  const at = oura ? latestWeekIndex(oura.weeks) : -1;
+  if (oura && at >= 0) {
+    const range = weekRange(oura.weeks[at].start);
+    const n = notableStanding(oura);
+    if (n) {
+      const since = sinceText(n, oura.weeks);
+      body = (
+        <>
+          My last full week ({range}) stood out for <strong>{standoutPhrase(n)}</strong>
+          {since ? `, my ${since}` : ""}.
+        </>
+      );
+    } else {
+      const parts = (["readiness", "sleepScore", "steps"] as const).flatMap((m) => {
+        const v = oura.weeks[at][m];
+        if (v == null) return [];
+        return [m === "steps" ? `${fmt(v)} steps a day` : `${metricSpec(m).label.toLowerCase()} ${v}`];
+      });
+      body = (
+        <>
+          My last full week ({range}) was close to my usual
+          {parts.length ? (
+            <>
+              : <strong>{parts.join(", ")}</strong>
+            </>
+          ) : null}
+          .
+        </>
+      );
+    }
+  }
 
-  const shown = active ?? last;
-  const sv = values[shown];
-  const total = oura.stepsTotal;
+  if (!music && !body) return null;
+  return (
+    <p className="c-story">
+      {music}
+      {music && body ? " " : null}
+      {body}
+    </p>
+  );
+}
+
+/* ── Last full week, against the year ───────────────────────── */
+
+/** One line per metric: every published week as a faint tick on the year's
+    own range, the 12-month average as a taller tick, last week as the dot. */
+function Strip({ values, s }: { values: (number | undefined)[]; s: Standing }) {
+  const lo = Math.min(s.lo.value, s.base);
+  const hi = Math.max(s.hi.value, s.base);
+  const span = hi - lo || 1;
+  const pos = (v: number) => `${(((v - lo) / span) * 100).toFixed(2)}%`;
+  return (
+    <span className="c-strip" aria-hidden="true" dir="ltr">
+      {values.map((v, i) => (v == null ? null : <span key={i} className="c-strip__tick" style={{ left: pos(v) }} />))}
+      <span className="c-strip__avg" style={{ left: pos(s.base) }} />
+      <span className="c-strip__dot" style={{ left: pos(s.value) }} />
+    </span>
+  );
+}
+
+function WeekCard({ oura, solo }: { oura: OuraPublic; solo: boolean }) {
+  const at = latestWeekIndex(oura.weeks);
+  if (at < 0) return null;
+  const rows = METRICS.flatMap((m) => {
+    const s = standing(oura, m.id, at);
+    return s ? [{ m, s }] : [];
+  });
+  if (!rows.length) return null;
 
   return (
-    <li className="c-panel c-now__card c-now__card--wide">
-      <div className="c-now__top">
-        <p className="c-now__label">Steps</p>
+    <li className={`c-panel c-now__card c-weekcard${solo ? " c-weekcard--solo" : ""}`}>
+      <div className="c-weekcard__head">
+        <p className="c-now__label">Last full week</p>
+        <p className="c-weekcard__range">{weekRange(oura.weeks[at].start)}</p>
       </div>
-      <div className="c-steps__head">
-        <div className="c-steps__figure">
-          <p className="c-now__score">
-            {fmt(values[last] as number)}
-            <span className="c-now__of">a day</span>
+      <p className="c-weekcard__key">
+        <span className="c-weekcard__k">
+          <span className="c-strip__dot c-strip__dot--key" aria-hidden="true" /> that week
+        </span>
+        <span className="c-weekcard__k">
+          <span className="c-strip__avg c-strip__avg--key" aria-hidden="true" /> my 12-month avg
+        </span>
+        <span className="c-weekcard__k">
+          <span className="c-strip__tick c-strip__tick--key" aria-hidden="true" /> my other weeks
+        </span>
+      </p>
+      <ul className="c-weekcard__rows">
+        {rows.map(({ m, s }) => {
+          const good = s.dir !== "level" && (s.dir === "up") === m.upIsGood;
+          return (
+            <li key={m.id}>
+              <button type="button" className="c-weekcard__row" onClick={() => showOnYearChart(m.id)}>
+                <span className="c-weekcard__name">{m.label}</span>
+                <span className="c-weekcard__value">
+                  {valueText(m.id, s.value)}
+                  {m.relative ? null : <span className="c-now__of">{m.id === "steps" ? "/day" : "/100"}</span>}
+                </span>
+                <Strip values={oura.weeks.map((w) => w[m.id])} s={s} />
+                <span className={`c-weekcard__delta${good ? " is-good" : ""}`}>
+                  {s.dir === "level" ? null : <span aria-hidden="true">{s.dir === "up" ? "▲ " : "▼ "}</span>}
+                  {deltaText(m.id, s.diff, s.base, true)}
+                </span>
+                <span className="c-sr">
+                  . Weekly range this year {valueText(m.id, s.lo.value)} to {valueText(m.id, s.hi.value)}. Show on
+                  the 52-week chart.
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="c-weekcard__hint">Pick a row to see all {oura.weeks.length} weeks of it below.</p>
+    </li>
+  );
+}
+
+/* ── The year, one metric at a time ─────────────────────────── */
+
+// The smallest half-range the chart zooms to, so an ordinary wobble never
+// looks like a cliff.
+const MIN_HALF: Record<WeekMetric, (base: number) => number> = {
+  steps: (b) => b * 0.25,
+  readiness: () => 6,
+  sleepScore: () => 6,
+  hrvRel: () => 10,
+  restingHrRel: () => 10,
+};
+
+/** A bar from the average line to the value, rounded only at the data end. */
+function devBar(x0: number, yv: number, bar: number, yb: number): string {
+  if (yv <= yb) return barPath(x0, yv, bar, yb);
+  const r = Math.min(RADIUS, yv - yb, bar / 2);
+  return (
+    `M${x0},${yb}V${yv - r}Q${x0},${yv} ${x0 + r},${yv}` +
+    `H${x0 + bar - r}Q${x0 + bar},${yv} ${x0 + bar},${yv - r}V${yb}Z`
+  );
+}
+
+function YearCard({ oura }: { oura: OuraPublic }) {
+  const metric = useSelectedMetric();
+  const spec = metricSpec(metric);
+  const { weeks } = oura;
+  const latest = latestWeekIndex(weeks);
+  const s = standing(oura, metric, latest);
+  const values = weeks.map((w) => w[metric]);
+  const [ref, width] = useWidth<HTMLDivElement>();
+  const [hover, setHover] = useState<number | null>(null);
+  const [pinned, setPinned] = useState<number | null>(null);
+  const descId = useId();
+  const n = weeks.length;
+
+  const options = METRICS.filter((m) => weeks.some((w) => w[m.id] != null));
+  // The chosen metric has no figures (a provider gap): fall back quietly.
+  const fallback = s ? null : (options[0]?.id ?? null);
+  useEffect(() => {
+    if (fallback) selectMetric(fallback);
+  }, [fallback]);
+  if (!s) return null;
+
+  const active = hover ?? pinned;
+  const shown = active ?? s.at;
+  const sv = values[shown];
+
+  const H = width && width < 520 ? 156 : 196;
+  const TOP = 8;
+  const BOTTOM = 8;
+  const half = MIN_HALF[metric](s.base);
+  let lo = Math.min(s.lo.value, s.base);
+  let hi = Math.max(s.hi.value, s.base);
+  const pad = Math.max(0, half * 2 - (hi - lo)) / 2;
+  lo -= pad;
+  hi += pad;
+  const span = (hi - lo) * 1.06 || 1;
+  const min = lo - (hi - lo) * 0.03;
+  const y = (v: number) => TOP + (1 - (v - min) / span) * (H - TOP - BOTTOM);
+  const slot = width / n;
+  const bar = Math.max(2, Math.min(BAR_MAX, slot - 2));
+  const yb = y(s.base);
+
+  const readout =
+    sv == null
+      ? `Week of ${weekRange(weeks[shown].start)}: not enough readings`
+      : spec.relative
+        ? `Week of ${weekRange(weeks[shown].start)}: ${spec.label} ${deltaText(metric, sv, 0)}`
+        : `Week of ${weekRange(weeks[shown].start)}: ${valueText(metric, sv)}${
+            metric === "steps" ? " steps a day" : " out of 100"
+          }, ${deltaText(metric, sv - s.base, s.base)}`;
+
+  const at = (e: PointerEvent<SVGSVGElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    return Math.max(0, Math.min(n - 1, Math.floor(((e.clientX - rect.left) / rect.width) * n)));
+  };
+  const onKeyDown = (e: KeyboardEvent<SVGSVGElement>) => {
+    const from = pinned ?? s.at;
+    const next =
+      e.key === "ArrowLeft" || e.key === "ArrowDown"
+        ? from - 1
+        : e.key === "ArrowRight" || e.key === "ArrowUp"
+          ? from + 1
+          : e.key === "Home"
+            ? 0
+            : e.key === "End"
+              ? n - 1
+              : e.key === "Escape"
+                ? null
+                : undefined;
+    if (next === undefined) return;
+    e.preventDefault();
+    setHover(null);
+    setPinned(next == null ? null : Math.max(0, Math.min(n - 1, next)));
+  };
+
+  // The tip sits beside the crosshair, on whichever side has room, so it
+  // never covers the week it describes.
+  const crossX = shown * slot + slot / 2;
+  const tipRight = crossX < width / 2;
+  const pick = (i: number) => setPinned((p) => (p === i ? null : i));
+
+  return (
+    <li className="c-panel c-now__card c-year" id={YEAR_ID}>
+      <div className="c-year__head">
+        <div className="c-year__title">
+          <p className="c-now__label">{spec.label}, week by week</p>
+          <p className="c-year__sub">
+            {spec.relative
+              ? `Each bar is a week’s ${spec.label} as a percentage above or below my 12-month average. Absolute figures stay private.`
+              : `Each bar is a week’s daily average, measured from my 12-month average of ${fmt(s.base)}${
+                  metric === "steps" ? " steps" : ""
+                }.`}
           </p>
-          <Delta
-            value={values[last] as number}
-            base={avg}
-            upIsGood
-            format={(d, base) => `${Math.round((d / base) * 100)}%`}
-          />
         </div>
-        <p className="c-steps__avg">
-          <span className="c-steps__key" aria-hidden="true" />
-          12-month avg {fmt(avg)}/day
-        </p>
+        <div className="c-seg c-seg--wrap" role="group" aria-label="Metric">
+          {options.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              aria-pressed={m.id === metric}
+              onClick={() => {
+                setHover(null);
+                selectMetric(m.id);
+              }}
+            >
+              {m.short}
+            </button>
+          ))}
+        </div>
       </div>
-      <div ref={ref} className="c-now__plot">
+
+      <div ref={ref} className="c-year__plot" dir="ltr">
         {width ? (
-          <svg
-            className="c-steps"
-            width={width}
-            height={STEPS_H}
-            aria-label={`Steps, daily average by week, last ${weeks.length} weeks`}
-            {...handlers}
-          >
-            {values.map((v, i) =>
-              v == null ? null : (
-                <path
-                  key={weeks[i].start}
-                  d={barPath(i * slot + (slot - bar) / 2, top(v), bar, STEPS_H)}
-                  className={`c-steps__bar${i === last ? " is-latest" : ""}${i === active ? " is-active" : ""}`}
-                />
-              ),
-            )}
-            <line className="c-steps__avgline" x1={0} x2={width} y1={top(avg)} y2={top(avg)} />
-          </svg>
+          <>
+            <svg
+              className="c-year__svg"
+              width={width}
+              height={H}
+              role="slider"
+              tabIndex={0}
+              aria-label={`${spec.label}, ${n} weeks`}
+              aria-describedby={descId}
+              aria-valuemin={1}
+              aria-valuemax={n}
+              aria-valuenow={shown + 1}
+              aria-valuetext={readout}
+              onPointerMove={(e) => setHover(at(e))}
+              onPointerLeave={() => setHover(null)}
+              onPointerDown={(e) => pick(at(e))}
+              onKeyDown={onKeyDown}
+              onBlur={() => setHover(null)}
+            >
+              <g key={metric} className="c-year__bars">
+                {values.map((v, i) =>
+                  v == null ? null : (
+                    <path
+                      key={weeks[i].start}
+                      d={devBar(i * slot + (slot - bar) / 2, Math.abs(y(v) - yb) < 1 ? yb - 1 : y(v), bar, yb)}
+                      className={`c-year__bar${v < s.base ? " is-below" : ""}${i === s.at ? " is-latest" : ""}${
+                        i === active ? " is-active" : ""
+                      }`}
+                      style={{ animationDelay: `${Math.round(i * 6)}ms` }}
+                    />
+                  ),
+                )}
+              </g>
+              <line className="c-year__avg" x1={0} x2={width} y1={yb} y2={yb} />
+              {active != null ? (
+                <line className="c-year__cross" x1={shown * slot + slot / 2} x2={shown * slot + slot / 2} y1={0} y2={H} />
+              ) : null}
+            </svg>
+            {active != null ? (
+              <div
+                className={`c-tip${tipRight ? "" : " c-tip--left"}`}
+                style={{ left: tipRight ? crossX + 10 : crossX - 10 }}
+                aria-hidden="true"
+              >
+                <span className="c-tip__value">
+                  {sv == null ? "No data" : valueText(metric, sv)}
+                  {sv != null && !spec.relative ? (
+                    <span className="c-now__of">{metric === "steps" ? "/day" : "/100"}</span>
+                  ) : null}
+                </span>
+                <span className="c-tip__when">Week of {dayLabel(weeks[shown].start, "short")}</span>
+                {sv != null && !spec.relative ? (
+                  <span className="c-tip__delta">{deltaText(metric, sv - s.base, s.base, true)}</span>
+                ) : null}
+              </div>
+            ) : null}
+          </>
         ) : (
-          <div style={{ height: STEPS_H }} />
+          <div style={{ height: H }} />
         )}
       </div>
-      <div className="c-steps__axis" aria-hidden="true">
+      <div className="c-year__axis" aria-hidden="true" dir="ltr">
         <span>{monthYear(weeks[0].start)}</span>
-        {total ? <span>about {(total / 1e6).toFixed(2)}M steps</span> : null}
-        <span>{monthYear(weeks[weeks.length - 1].start)}</span>
+        <span className="c-year__avgkey">
+          <span className="c-year__avgline" /> my 12-month avg
+        </span>
+        <span>{monthYear(weeks[n - 1].start)}</span>
       </div>
-      <p className="c-now__detail" aria-live="polite">
-        {weekOf(weeks[shown].start)} ·{" "}
-        {sv == null ? "not enough readings" : `${fmt(sv)} steps a day`}
+      <p className="c-year__readout">{readout}</p>
+      <p className="c-sr" id={descId}>
+        Arrow keys step through the weeks; Home and End jump to the first and last; Escape returns to the latest.
       </p>
+
+      <dl className="c-year__facts">
+        <div>
+          <dt>Highest week</dt>
+          <dd>
+            <button type="button" className="c-fact" aria-pressed={pinned === s.hi.at} onClick={() => pick(s.hi.at)}>
+              {valueText(metric, s.hi.value)}
+              <span>week of {dayLabel(weeks[s.hi.at].start, "short")}</span>
+            </button>
+          </dd>
+        </div>
+        <div>
+          <dt>Lowest week</dt>
+          <dd>
+            <button type="button" className="c-fact" aria-pressed={pinned === s.lo.at} onClick={() => pick(s.lo.at)}>
+              {valueText(metric, s.lo.value)}
+              <span>week of {dayLabel(weeks[s.lo.at].start, "short")}</span>
+            </button>
+          </dd>
+        </div>
+        <div>
+          <dt>Above my average</dt>
+          <dd className="c-fact c-fact--static">
+            {s.above} of {s.count}
+            <span>weeks with readings</span>
+          </dd>
+        </div>
+        {metric === "steps" && oura.stepsTotal ? (
+          <div>
+            <dt>In {n} weeks</dt>
+            <dd className="c-fact c-fact--static">
+              {(oura.stepsTotal / 1e6).toFixed(2)}M<span>steps in all</span>
+            </dd>
+          </div>
+        ) : null}
+      </dl>
     </li>
   );
 }
@@ -395,384 +893,86 @@ function OuraTable({ weeks }: { weeks: OuraWeek[] }) {
   );
 }
 
-/* ── Spotify ────────────────────────────────────────────────── */
-
-const RANGES: { id: SpotifyRange; label: string }[] = [
-  { id: "short_term", label: "4 weeks" },
-  { id: "medium_term", label: "6 months" },
-  { id: "long_term", label: "12 months" },
-];
-
-const topRequests = new Map<SpotifyRange, Promise<SpotifyTop | null>>();
-
-function loadTop(range: SpotifyRange): Promise<SpotifyTop | null> {
-  let req = topRequests.get(range);
-  if (!req) {
-    const url = `/api/spotify-top?range=${range}${demoParam() ? "&demo" : ""}`;
-    req = fetch(url)
-      .then((r) => (r.ok ? (r.json() as Promise<SpotifyTop | null>) : null))
-      .catch(() => null);
-    topRequests.set(range, req);
-    req.then((top) => {
-      if (!top) topRequests.delete(range);
-    });
-  }
-  return req;
-}
-
-// Spotify only offers its own rolling windows; there is no calendar-year view.
-function SpotifyTopPanel({ id }: { id: string }) {
-  const [range, setRange] = useState<SpotifyRange>("long_term");
-  const [top, setTop] = useState<SpotifyTop | null>(null);
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    let live = true;
-    loadTop(range).then((t) => {
-      if (!live) return;
-      setFailed(!t);
-      if (t) setTop(t);
-    });
-    return () => {
-      live = false;
-    };
-  }, [range]);
-
-  // Keep the previous range on screen, dimmed, while the next one loads.
-  const stale = top != null && top.range !== range;
-  return (
-    <div id={id} className="c-ytd">
-      <div className="c-ytd__head">
-        <p className="c-ytd__title">Most played</p>
-        <div className="c-seg" role="group" aria-label="Time range">
-          {RANGES.map((r) => (
-            <button
-              key={r.id}
-              type="button"
-              aria-pressed={r.id === range}
-              onClick={() => setRange(r.id)}
-            >
-              {r.label}
-            </button>
-          ))}
-        </div>
-      </div>
-      {top ? (
-        <div className={`c-top${stale ? " is-stale" : ""}`} aria-busy={stale}>
-          <div>
-            <p className="c-now__label">Artists</p>
-            <ol className="c-top__list">
-              {top.artists.map((a, i) => (
-                <li key={a.name}>
-                  <span className="c-top__rank">{i + 1}</span>
-                  {a.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      className="c-top__img c-top__img--round"
-                      src={a.image}
-                      alt=""
-                      width="36"
-                      height="36"
-                    />
-                  ) : (
-                    <span className="c-top__img c-top__img--round" aria-hidden="true" />
-                  )}
-                  <span className="c-top__text">
-                    {a.url ? (
-                      <a href={a.url} target="_blank" rel="noopener noreferrer" dir="auto">
-                        {a.name}
-                      </a>
-                    ) : (
-                      <span dir="auto">{a.name}</span>
-                    )}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          </div>
-          <div>
-            <p className="c-now__label">Tracks</p>
-            <ol className="c-top__list">
-              {top.tracks.map((t, i) => (
-                <li key={`${t.name}-${t.artist}`}>
-                  <span className="c-top__rank">{i + 1}</span>
-                  {t.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img className="c-top__img" src={t.image} alt="" width="36" height="36" />
-                  ) : (
-                    <span className="c-top__img" aria-hidden="true" />
-                  )}
-                  <span className="c-top__text">
-                    {t.url ? (
-                      <a href={t.url} target="_blank" rel="noopener noreferrer" dir="auto">
-                        {t.name}
-                      </a>
-                    ) : (
-                      <span dir="auto">{t.name}</span>
-                    )}
-                    <span className="c-top__sub" dir="auto">
-                      {t.artist}
-                    </span>
-                  </span>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </div>
-      ) : (
-        <p className="c-now__detail">{failed ? "Couldn’t load top artists." : "Loading…"}</p>
-      )}
-      <p className="c-now__detail">Spotify’s rolling windows; it has no calendar-year view.</p>
-    </div>
-  );
-}
-
-function Listening({ s, fetchedAt, now }: { s: SpotifyState; fetchedAt: number; now: number }) {
-  const playing = s.kind === "playing";
-  const { open, panelId, toggle } = useToggle();
-  const progress =
-    s.kind === "recent"
-      ? 0
-      : Math.min(s.durationMs, s.progressMs + (playing ? now - fetchedAt : 0));
-  const status =
-    s.kind === "recent"
-      ? `Played ${timeAgo(now - Date.parse(s.playedAt))}`
-      : s.kind === "paused"
-        ? "Paused"
-        : "Listening";
-
-  return (
-    <li
-      className={`c-panel c-now__card c-now__card--wide c-now__card--listen${open ? " is-open" : ""}`}
-    >
-      <div className="c-now__top">
-        <p className="c-now__label">
-          {playing ? <span className="c-live c-live--pulse" aria-hidden="true" /> : null}
-          {status}
-        </p>
-        <YtdToggle
-          open={open}
-          panelId={panelId}
-          label="most played on Spotify"
-          text="Top"
-          onClick={toggle}
-        />
-      </div>
-      <div className="c-now__song">
-        {s.albumArt ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            className="c-now__art"
-            src={s.albumArt}
-            alt=""
-            width="52"
-            height="52"
-            decoding="async"
-          />
-        ) : (
-          <span className="c-now__art" aria-hidden="true">
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M9 18V5l12-2v13" />
-              <circle cx="6" cy="18" r="3" />
-              <circle cx="18" cy="16" r="3" />
-            </svg>
-          </span>
-        )}
-        <div className="c-now__song-text">
-          {s.url ? (
-            <a
-              className="c-now__track"
-              dir="auto"
-              href={s.url}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {s.track}
-            </a>
-          ) : (
-            <span className="c-now__track" dir="auto">
-              {s.track}
-            </span>
-          )}
-          <span className="c-now__artist" dir="auto">
-            {s.artist}
-          </span>
-        </div>
-      </div>
-      {s.kind !== "recent" ? (
-        <div className="c-now__progress">
-          <span>{clock(progress)}</span>
-          <span className="c-now__bar" aria-hidden="true">
-            <span style={{ width: `${(progress / s.durationMs) * 100}%` }} />
-          </span>
-          <span>{clock(s.durationMs)}</span>
-        </div>
-      ) : null}
-      {open ? <SpotifyTopPanel id={panelId} /> : null}
-    </li>
-  );
-}
-
-/* ── Shared snapshot ────────────────────────────────────────── */
-
-// The hero renders two halves of this section (one per column); both read the
-// same snapshot from a single poll instead of polling twice.
-type Listener = (snap: NowSnapshot) => void;
-const listeners = new Set<Listener>();
-let latest: NowSnapshot | null = null;
-let stopPolling: (() => void) | null = null;
-
-function startPolling() {
-  let ctl: AbortController | null = null;
-  const demo = demoParam();
-  const url = demo ? `/api/now?demo=${encodeURIComponent(demo)}` : "/api/now";
-
-  async function poll() {
-    ctl?.abort();
-    ctl = new AbortController();
-    try {
-      const res = await fetch(url, { signal: ctl.signal });
-      if (!res.ok) return;
-      latest = (await res.json()) as NowSnapshot;
-      listeners.forEach((l) => l(latest as NowSnapshot));
-    } catch (err) {
-      if ((err as { name?: string }).name !== "AbortError") {
-        console.warn("[live-stats] poll failed", err);
-      }
-    }
-  }
-
-  poll();
-  let interval = window.setInterval(poll, POLL_MS);
-  const onVis = () => {
-    window.clearInterval(interval);
-    if (!document.hidden) {
-      poll();
-      interval = window.setInterval(poll, POLL_MS);
-    }
-  };
-  document.addEventListener("visibilitychange", onVis);
-  return () => {
-    ctl?.abort();
-    window.clearInterval(interval);
-    document.removeEventListener("visibilitychange", onVis);
-  };
-}
-
-export function useNowSnapshot(): NowSnapshot | null {
-  const [snap, setSnap] = useState<NowSnapshot | null>(latest);
-  useEffect(() => {
-    listeners.add(setSnap);
-    if (latest) setSnap(latest);
-    if (!stopPolling) stopPolling = startPolling();
-    return () => {
-      listeners.delete(setSnap);
-      if (listeners.size === 0 && stopPolling) {
-        stopPolling();
-        stopPolling = null;
-      }
-    };
-  }, []);
-  return snap;
-}
-
 /* ── Sections ───────────────────────────────────────────────── */
 
-/** Under the dial: what's playing, plus the latest published week's scores. */
+/** Under the hero: a sentence on the state of things, what's playing, and
+    the latest published week against the year. */
 export function NowStrip() {
-  const snap = useNowSnapshot();
+  const { snap, failed } = useNowState();
+  const providers = useContext(LiveProvidersContext);
   const [now, setNow] = useState(() => Date.now());
 
-  // Advance the song's progress bar between polls.
-  const playing = snap?.spotify?.kind === "playing";
+  // Fetch most-played alongside the first poll rather than after it.
+  const warmed = useRef(false);
   useEffect(() => {
-    if (!playing) return;
-    const id = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(id);
-  }, [playing]);
+    if (warmed.current || !(providers.spotify || demoParam())) return;
+    warmed.current = true;
+    loadTop("short_term");
+  }, [providers.spotify]);
 
-  // Hold the band's space until the first snapshot lands.
-  if (!snap) return <NowSlot band="live" />;
-  // Nothing connected (or every provider failed): render nothing at all.
+  // Advance the song's progress between polls, and keep "x minutes ago" true.
+  const kind = snap?.spotify?.kind;
+  useEffect(() => {
+    if (!kind) return;
+    const id = window.setInterval(() => setNow(Date.now()), kind === "playing" ? 1000 : 30_000);
+    return () => window.clearInterval(id);
+  }, [kind]);
+
+  if (!snap) {
+    if (!failed) return <NowSlot band="live" />;
+    return (
+      <div className="c-now c-now--live" role="group" aria-labelledby="now-h">
+        <p className="c-now__head">
+          <span id="now-h">Right now</span>
+        </p>
+        <div className="c-panel c-now__error" role="status">
+          <p>Spotify and Oura aren’t answering at the moment, so there’s nothing live to show. It’ll try again shortly.</p>
+          <button type="button" className="c-retry" onClick={() => poller?.poll()}>
+            Try again now
+          </button>
+        </div>
+      </div>
+    );
+  }
+  // Nothing connected (or every provider came back empty): render nothing.
   if (!snap.spotify && !snap.oura) return null;
   const { spotify, oura } = snap;
+  const clockNow = Math.max(now, snap.generatedAt);
+  const hasWeek = !!oura && latestWeekIndex(oura.weeks) >= 0;
 
   return (
     <div className="c-now c-now--live" role="group" aria-labelledby="now-h">
       <p className="c-now__head">
-        <span id="now-h">{spotify ? "Right now" : "Lately"}</span>
+        <span id="now-h">Right now</span>
         <span className="c-now__source">
-          {spotify ? <span className="c-live" aria-hidden="true" /> : null}
-          {[spotify && "Live from Spotify", oura && "Oura a week behind"].filter(Boolean).join(" · ")}
+          {[spotify && "Live from Spotify", oura && "Oura weekly averages, a week behind"].filter(Boolean).join(" · ")}
         </span>
       </p>
+      <Story spotify={spotify} oura={oura} now={clockNow} />
       <ul className="c-now__grid">
-        {spotify ? (
-          <Listening
-            s={spotify}
-            fetchedAt={snap.generatedAt}
-            now={Math.max(now, snap.generatedAt)}
-          />
-        ) : null}
-        {oura ? (
-          <>
-            <TrendTile
-              label="Readiness"
-              weeks={oura.weeks}
-              metric="readiness"
-              unit="/100"
-              upIsGood
-              average={oura.average.readiness}
-            />
-            <TrendTile
-              label="Sleep score"
-              weeks={oura.weeks}
-              metric="sleepScore"
-              unit="/100"
-              upIsGood
-              average={oura.average.sleepScore}
-            />
-          </>
-        ) : null}
+        {spotify ? <Listening s={spotify} fetchedAt={snap.generatedAt} now={clockNow} solo={!hasWeek} /> : null}
+        {oura && hasWeek ? <WeekCard oura={oura} solo={!spotify} /> : null}
       </ul>
     </div>
   );
 }
 
-/** Under the intro: a year of movement and recovery, week by week. */
+/** Under the strip: the last 52 weeks, one metric at a time. */
 export function NowTrends() {
-  const snap = useNowSnapshot();
-  if (!snap) return <NowSlot band="trends" />;
+  const { snap, failed } = useNowState();
+  if (!snap) return failed ? null : <NowSlot band="trends" />;
   const oura = snap.oura;
-  if (!oura) return null;
+  if (!oura || latestWeekIndex(oura.weeks) < 0) return null;
   const { weeks } = oura;
 
   return (
     <div className="c-now c-now--trends" role="group" aria-labelledby="trends-h">
       <p className="c-now__head">
-        <span id="trends-h">Last {weeks.length} weeks</span>
-        <span className="c-now__source">
-          Weekly averages · through {dayLabel(oura.through, "short")}
-        </span>
+        <span id="trends-h">The last {weeks.length} weeks</span>
+        <span className="c-now__source">Oura · weekly averages through {dayLabel(oura.through, "short")}</span>
       </p>
       <ul className="c-now__grid">
-        <StepsCard oura={oura} />
-        <TrendTile label="HRV" weeks={weeks} metric="hrvRel" upIsGood relative />
-        <TrendTile
-          label="Resting heart rate"
-          weeks={weeks}
-          metric="restingHrRel"
-          upIsGood={false}
-          relative
-        />
+        <YearCard oura={oura} />
       </ul>
       <OuraTable weeks={weeks} />
     </div>

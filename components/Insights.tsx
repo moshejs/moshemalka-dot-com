@@ -5,7 +5,7 @@
    sleep hours or clock times in them. */
 import type { CSSProperties } from "react";
 import { WEEKDAYS, type Factor, type WeekRow } from "@/lib/insights";
-import { useNowSnapshot } from "@/components/LiveStats";
+import { useNowState } from "@/components/LiveStats";
 import { NowSlot } from "@/components/NowSlot";
 
 /* ── What moves readiness ───────────────────────────────────── */
@@ -15,19 +15,25 @@ const signed = (n: number) => {
   return `${r > 0 ? "+" : r < 0 ? "−" : "±"}${Math.abs(r)}`;
 };
 
+// "…averaged 80 after my longest nights": each comparison's own preposition.
+const LEAD_IN: Record<Factor["id"], string> = {
+  sleep: "after my",
+  bedtime: "after my",
+  steps: "after days of",
+  weekend: "on",
+};
+
 function FactorsCard({ factors }: { factors: Factor[] }) {
   // Symmetric scale, at least ±5 points so small effects don't look huge.
   const max = Math.max(5, ...factors.map((f) => Math.ceil(Math.abs(f.diff))));
   const lead = factors[0];
   return (
     <li className="c-panel c-now__card c-now__card--wide c-pattern">
-      <p className="c-now__label">What moves your readiness</p>
+      <p className="c-now__label">What moves my readiness</p>
       <p className="c-pattern__lede">
-        <strong>{lead.label}</strong> matters most:{" "}
-        <strong>
-          {Math.round(lead.a.avg)} vs {Math.round(lead.b.avg)}
-        </strong>{" "}
-        readiness ({lead.a.label} vs {lead.b.label}).
+        <strong>{lead.label}</strong> goes with the biggest swing: my readiness averaged{" "}
+        <strong>{Math.round(lead.a.avg)}</strong> {LEAD_IN[lead.id]} {lead.a.label} and{" "}
+        <strong>{Math.round(lead.b.avg)}</strong> {LEAD_IN[lead.id]} {lead.b.label}.
       </p>
       <ul className="c-factors" aria-label="Readiness difference by factor, in points">
         {factors.map((f) => {
@@ -47,14 +53,16 @@ function FactorsCard({ factors }: { factors: Factor[] }) {
               </span>
               <span className="c-factors__val">{signed(f.diff)}</span>
               <span className="c-factors__sub">
-                {f.a.label} ({f.a.n}) vs {f.b.label} ({f.b.n})
+                {f.a.label} {Math.round(f.a.avg)} · {f.b.label} {Math.round(f.b.avg)} ·{" "}
+                {f.a.n === f.b.n ? `${f.a.n} days each` : `${f.a.n} and ${f.b.n} days`}
               </span>
             </li>
           );
         })}
       </ul>
       <p className="c-now__detail">
-        Readiness points · your top quarter of days vs your bottom quarter
+        Readiness points, my top quarter of days vs my bottom quarter. These go together; they
+        don’t prove a cause.
       </p>
     </li>
   );
@@ -99,7 +107,7 @@ function WeekCard({ rows }: { rows: WeekRow[] }) {
 
   return (
     <li className="c-panel c-now__card c-now__card--wide c-pattern">
-      <p className="c-now__label">Your week</p>
+      <p className="c-now__label">My week</p>
       <p className="c-pattern__lede">
         {summary.map(([k, d], i) => (
           <span key={k}>
@@ -173,9 +181,9 @@ function WeekCard({ rows }: { rows: WeekRow[] }) {
 /** Full-width row under both hero columns. Renders nothing until there's
     enough to say. */
 export function NowPatterns() {
-  const snap = useNowSnapshot();
+  const { snap, failed } = useNowState();
   // Hold the band's space while the snapshot loads.
-  if (!snap) return <NowSlot band="patterns" />;
+  if (!snap) return failed ? null : <NowSlot band="patterns" />;
   const oura = snap.oura;
   if (!oura) return null;
 

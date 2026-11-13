@@ -8,6 +8,7 @@
  * Day semantics (Oura's): a day's readiness and sleep belong to the night
  * that ended that morning; steps belong to that calendar day.
  */
+import type { OuraPublic, OuraWeek } from "@/lib/ouraPublic";
 import type { OuraDay } from "@/lib/stats";
 
 /* ── Basics ─────────────────────────────────────────────────── */
@@ -163,4 +164,136 @@ export function weekRhythm(days: OuraDay[]): WeekRow[] {
       n: buckets.map((b) => b.length),
     };
   });
+}
+
+/* ── The latest published week, read against the year ─────────
+   Everything below works on the public summary (lib/ouraPublic.ts), never
+   on raw days: it only re-reads figures the page already publishes. */
+
+
+export type WeekMetric = "steps" | "readiness" | "sleepScore" | "hrvRel" | "restingHrRel";
+
+export type MetricSpec = {
+  id: WeekMetric;
+  label: string;
+  /** For tight controls. */
+  short: string;
+  /** Published as a percentage of the 12-month average, so the base is 0. */
+  relative: boolean;
+  upIsGood: boolean;
+};
+
+export const METRICS: MetricSpec[] = [
+  { id: "steps", label: "Steps", short: "Steps", relative: false, upIsGood: true },
+  { id: "readiness", label: "Readiness", short: "Readiness", relative: false, upIsGood: true },
+  { id: "sleepScore", label: "Sleep score", short: "Sleep", relative: false, upIsGood: true },
+  { id: "hrvRel", label: "HRV", short: "HRV", relative: true, upIsGood: true },
+  { id: "restingHrRel", label: "Resting heart rate", short: "Resting HR", relative: true, upIsGood: false },
+];
+
+export const metricSpec = (id: WeekMetric) => METRICS.find((m) => m.id === id) as MetricSpec;
+
+/** The newest week with any published figure, or -1. */
+export function latestWeekIndex(weeks: OuraWeek[]): number {
+  for (let i = weeks.length - 1; i >= 0; i--) {
+    const w = weeks[i];
+    if (METRICS.some((m) => w[m.id] != null)) return i;
+  }
+  return -1;
+}
+
+export type Standing = {
+  metric: WeekMetric;
+  /** Index into weeks. */
+  at: number;
+  value: number;
+  /** The 12-month average (0 for relative metrics). */
+  base: number;
+  /** value − base: points, steps, or percent for relative metrics. */
+  diff: number;
+  /** Steps only: diff as a whole percentage of base. */
+  pct?: number;
+  /** "up" / "down" against the base, or "level" when the gap is noise. */
+  dir: "up" | "down" | "level";
+  /** Standard deviations from the mean of the weekly series. */
+  z: number;
+  lo: { at: number; value: number };
+  hi: { at: number; value: number };
+  /** Weeks with a figure, and how many of them sat above the base. */
+  count: number;
+  above: number;
+  /** The most recent earlier week that went at least as far in the same
+      direction, or "year" when none did. Null when level. */
+  since: { at: number } | "year" | null;
+};
+
+// Below these gaps a week reads as "about usual".
+const LEVEL = { points: 1, pct: 3 };
+
+export function standing(oura: OuraPublic, metric: WeekMetric, at = latestWeekIndex(oura.weeks)): Standing | null {
+  const spec = metricSpec(metric);
+  const values = oura.weeks.map((w) => w[metric]);
+  const value = values[at];
+  if (at < 0 || value == null) return null;
+  const base = spec.relative ? 0 : (oura.average[metric as "steps" | "readiness" | "sleepScore"] ?? undefined);
+  if (base == null) return null;
+
+  const defined = values.flatMap((v, i) => (v == null ? [] : [{ v, i }]));
+  const avg = mean(defined.map((d) => d.v));
+  const sd = Math.sqrt(mean(defined.map((d) => (d.v - avg) ** 2))) || 1;
+  const diff = value - base;
+  const pct = metric === "steps" && base ? Math.round((diff / base) * 100) : undefined;
+  const level = pct != null ? Math.abs(pct) < LEVEL.pct : Math.abs(diff) < LEVEL.points;
+  const dir = level ? "level" : diff > 0 ? "up" : "down";
+
+  let lo = defined[0];
+  let hi = defined[0];
+  for (const d of defined) {
+    if (d.v < lo.v) lo = d;
+    if (d.v >= hi.v) hi = d;
+  }
+
+  let since: Standing["since"] = null;
+  if (dir !== "level") {
+    since = "year";
+    for (let i = at - 1; i >= 0; i--) {
+      const v = values[i];
+      if (v != null && (dir === "up" ? v >= value : v <= value)) {
+        since = { at: i };
+        break;
+      }
+    }
+  }
+
+  return {
+    metric,
+    at,
+    value,
+    base,
+    diff,
+    pct,
+    dir,
+    z: (value - avg) / sd,
+    lo: { at: lo.i, value: lo.v },
+    hi: { at: hi.i, value: hi.v },
+    count: defined.length,
+    above: defined.filter((d) => d.v > base).length,
+    since,
+  };
+}
+
+/** The figure that stands out most in the latest week, if any does: the
+    largest move against the year's own spread, at least NOTABLE_Z standard
+    deviations from it and clear of the 12-month average. */
+export const NOTABLE_Z = 0.75;
+
+export function notableStanding(oura: OuraPublic): Standing | null {
+  const at = latestWeekIndex(oura.weeks);
+  let best: Standing | null = null;
+  for (const m of METRICS) {
+    const s = standing(oura, m.id, at);
+    if (!s || s.dir === "level" || Math.abs(s.z) < NOTABLE_Z) continue;
+    if (!best || Math.abs(s.z) > Math.abs(best.z)) best = s;
+  }
+  return best;
 }
