@@ -21,3 +21,11 @@ export function handAngles(t: Time): { hour: number; minute: number; second: num
     second: t.s * 6,
   };
 }
+
+/**
+ * The angle equal to `target` (mod 360) that is closest to `current`, so a
+ * hand that has gone round many times takes the short way to its next mark.
+ */
+export function nearestEquivalent(target: number, current: number): number {
+  return target + 360 * Math.round((current - target) / 360);
+}

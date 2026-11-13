@@ -9,15 +9,13 @@ import {
   WebGLRenderer,
 } from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import { handAngles, nyTime } from "@/lib/nyTime";
-import { calendarHourDeg, mod360, nearestEquivalent } from "@/lib/timeTravel";
+import { handAngles, nearestEquivalent, nyTime } from "@/lib/nyTime";
 import { buildWatch } from "./scene";
-import { getWatch, setWatch } from "./store";
 
 /**
  * Draws the 3D watch into `host` and keeps it running. Plain three.js with
- * its own loop: a frame is rendered only when something moved (a hand, the
- * tilt, the crown), and nothing runs while the watch is off screen or the
+ * its own loop: a frame is rendered only when something moved (a hand or
+ * the tilt), and nothing runs while the watch is off screen or the
  * tab is hidden.
  *
  * Returns a function that tears everything down.
@@ -113,17 +111,12 @@ export function mountWatch(host: HTMLElement, onLost: () => void): () => void {
   let h = first.hour;
   let m = first.minute;
   let s = first.second;
-  let baseH = 0;
-  let baseM = 0;
-  let mode: "live" | "travel" = "live";
-  let pull = 0;
   // start turned away, then settle into the product pose: the one entrance
   const settled = reduced.matches || poster;
   let rx = settled ? -0.16 : -0.5;
   let ry = settled ? -0.3 : -1.25;
   let scale = settled ? 1 : 0.86;
 
-  const calNow = calendarHourDeg(Date.now());
   let last = performance.now();
   let raf = 0;
   let firstFrame = true;
@@ -140,7 +133,6 @@ export function mountWatch(host: HTMLElement, onLost: () => void): () => void {
     last = now;
     const still = reduced.matches || poster;
     const ease = (k: number) => (still ? 1 : 1 - Math.exp(-dt * k));
-    const st = getWatch();
 
     // re-read the New York clock once a second; interpolate between reads
     if (now - liveAt > 1000) {
@@ -149,24 +141,12 @@ export function mountWatch(host: HTMLElement, onLost: () => void): () => void {
     }
     const sec = liveBase.second + ((now - liveAt) / 1000) * 6;
 
-    let th: number;
-    let tm: number;
-    let ts: number;
-    if (st.mode === "travel") {
-      if (mode !== "travel") {
-        baseH = nearestEquivalent(mod360(calNow), h);
-        baseM = nearestEquivalent(mod360(calNow * 12), m);
-      }
-      th = baseH + st.wind;
-      tm = baseM + st.wind * 12;
-      ts = nearestEquivalent(0, s); // crown out: the seconds hand stops at twelve
-    } else {
-      th = nearestEquivalent(liveBase.hour, h);
-      tm = nearestEquivalent(liveBase.minute, m);
-      // eight beats a second, like the movement; held still under reduced motion
-      ts = still ? nearestEquivalent(first.second, s) : nearestEquivalent(Math.floor((sec / 6) * 8) * 0.75, s);
-    }
-    mode = st.mode;
+    let th = nearestEquivalent(liveBase.hour, h);
+    let tm = nearestEquivalent(liveBase.minute, m);
+    // eight beats a second, like the movement; held still under reduced motion
+    let ts = still
+      ? nearestEquivalent(first.second, s)
+      : nearestEquivalent(Math.floor((sec / 6) * 8) * 0.75, s);
     if (poster) {
       th = 305;
       tm = 61;
@@ -175,14 +155,12 @@ export function mountWatch(host: HTMLElement, onLost: () => void): () => void {
 
     const nh = h + (th - h) * ease(7);
     const nm = m + (tm - m) * ease(7);
-    const ns = st.mode === "travel" && !poster ? s + (ts - s) * ease(9) : ts;
-    const np = pull + ((st.mode === "travel" && !poster ? 1 : 0) - pull) * ease(10);
+    const ns = ts;
 
     // pose: a three-quarter product view that leans toward the pointer
-    const inRail = st.slot === "work";
-    const scrollLean = inRail || poster ? 0 : Math.min(1, Math.max(0, window.scrollY / 700));
-    const trx = (inRail ? -0.1 : -0.16) + (still ? 0 : py * 0.16) - scrollLean * 0.42;
-    const tryy = (inRail ? -0.2 : -0.3) + (still ? 0 : px * 0.3) + scrollLean * 0.25;
+    const scrollLean = poster ? 0 : Math.min(1, Math.max(0, window.scrollY / 700));
+    const trx = -0.16 + (still ? 0 : py * 0.16) - scrollLean * 0.42;
+    const tryy = -0.3 + (still ? 0 : px * 0.3) + scrollLean * 0.25;
     const nrx = rx + (trx - rx) * ease(4);
     const nry = ry + (tryy - ry) * ease(4);
     const nsc = scale + (1 - scale) * ease(4);
@@ -191,14 +169,12 @@ export function mountWatch(host: HTMLElement, onLost: () => void): () => void {
       Math.abs(nh - h) > 1e-3 ||
       Math.abs(nm - m) > 1e-3 ||
       Math.abs(ns - s) > 1e-3 ||
-      Math.abs(np - pull) > 1e-4 ||
       Math.abs(nrx - rx) > 1e-4 ||
       Math.abs(nry - ry) > 1e-4 ||
       Math.abs(nsc - scale) > 1e-4;
     h = nh;
     m = nm;
     s = ns;
-    pull = np;
     rx = nrx;
     ry = nry;
     scale = nsc;
@@ -206,7 +182,7 @@ export function mountWatch(host: HTMLElement, onLost: () => void): () => void {
     dirty = false;
 
     watch.setHands(h, m, s);
-    watch.setCrown(pull, m * 0.5);
+    watch.setCrown(0, m * 0.5);
     watch.group.rotation.set(rx, ry, 0);
     watch.group.scale.setScalar(scale);
     renderer.render(scene, camera);
@@ -214,7 +190,6 @@ export function mountWatch(host: HTMLElement, onLost: () => void): () => void {
     if (firstFrame) {
       firstFrame = false;
       host.dataset.ready = "true";
-      setWatch({ ready: true });
     }
   };
   raf = requestAnimationFrame(frame);
@@ -240,7 +215,6 @@ export function mountWatch(host: HTMLElement, onLost: () => void): () => void {
     window.removeEventListener("pointermove", onPointer);
     document.removeEventListener("visibilitychange", onVisibility);
     canvas.removeEventListener("webglcontextlost", onContextLost);
-    setWatch({ ready: false });
     delete host.dataset.ready;
     watch.dispose();
     env.dispose();
