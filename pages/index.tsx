@@ -44,7 +44,7 @@ const NowPatterns = dynamic(() => import("@/components/Insights").then((m) => m.
 
 // ── SEO ───────────────────────────────────────────────────────────────────
 const SITE_URL = "https://moshemalka.com";
-const SHEVIRAH = "https://kelipot.vercel.app/";
+const SHEVIRAH = "https://kelipot.quentin.software/";
 
 const SEO = {
   title: "Moshe Malka — Founder & principal engineer, Quentin.Code",
@@ -149,10 +149,10 @@ const STRUCTURED_DATA = {
       "@type": "CreativeWork",
       "@id": `${SHEVIRAH}#work`,
       name: "Shevirah",
-      alternateName: "Shevirah — Sixteen Inquiries",
+      alternateName: "Shevirah — Thirty-three Inquiries",
       url: SHEVIRAH,
       description:
-        "An interactive web series on Kabbalah: two works, Klippot and the Tree of Life, and fourteen classic texts read teaching by teaching, each with its own animated artwork.",
+        "An interactive web series on Kabbalah: eleven works, among them The Four Shells, The Ten Sefirot and Taryag, each drawn on one canvas, and twenty-two classic texts read teaching by teaching, each teaching with its own animated artwork.",
       about: "Kabbalah",
       inLanguage: "en",
       author: { "@id": `${SITE_URL}/#person` },
@@ -467,42 +467,43 @@ function OpenSource() {
 
 /* ── Shevirah ──────────────────────────────────────────────────────── */
 
-// Screenshots from the live site, artworks engaged (hover state).
+// Screenshots from the live site (2026-11-13): each work with one light pinned
+// and its joins drawn; the text page with its artwork engaged (hover state).
 const SHEVIRAH_SHOTS = [
   {
-    src: "klippot",
-    path: "klippot/",
-    title: "Klippot",
-    caption: "Fire, the first of four corruptions",
-    alt: "Shevirah's Klippot page: a hand-drawn flame beside the line \u201cPassion, turned.\u201d",
+    src: "four-shells",
+    path: "klippot",
+    title: "The Four Shells",
+    caption: "The 288 sparks, held in four shells",
+    alt: "The Four Shells: 288 sparks in arcs inside four concentric shells, one spark pinned with its joins drawn and a panel giving its degree, letter and sefirah.",
   },
   {
-    src: "tree-of-life",
-    path: "tree-of-life/",
-    title: "The Tree of Life",
-    caption: "Ten sefirot on the Ari\u2019s twenty-two paths",
-    alt: "The Tree of Life: ten glowing spheres joined by lit paths on a starfield, with Descent, Ascent, Journey and Name controls.",
+    src: "ten-sefirot",
+    path: "tree-of-life",
+    title: "The Ten Sefirot",
+    caption: "Ten sefirot, Da\u2019at and twenty-two letters",
+    alt: "The Ten Sefirot: the tree of ten lights, Da\u2019at drawn as a ring and the letters on its paths, with Keter pinned and a panel of its sources.",
   },
   {
-    src: "tanya-small-city",
-    path: "tanya/the-small-city/",
-    title: "Tanya",
-    caption: "The Small City",
-    alt: "A Tanya teaching, The Small City: a walled city with a crown on either side, next to the paraphrased text.",
+    src: "taryag",
+    path: "mitzvot",
+    title: "Taryag: The 613",
+    caption: "248 limbs and 365 days",
+    alt: "Taryag: the 613 commandments as points, 248 in an inner disc and 365 in a ring around it, with the first commandment held and its connections listed.",
   },
   {
-    src: "etz-chaim-tzimtzum",
-    path: "etz-chaim/tzimtzum/",
-    title: "Etz Chaim",
-    caption: "The Withdrawal (tzimtzum)",
-    alt: "An Etz Chaim teaching, The Withdrawal: a dark circle opening in a field of light.",
+    src: "gates",
+    path: "gates",
+    title: "The 231 Gates",
+    caption: "Every pair of letters, on the wheel",
+    alt: "The 231 Gates: twenty-two Hebrew letters around a wheel with a gate at the middle of every chord, the gate alef-dalet pinned and the gates through each of its letters fanned out.",
   },
   {
-    src: "zohar-receive-to-bestow",
-    path: "hakdamat-hazohar/receive-to-bestow/",
-    title: "Introduction to the Zohar",
-    caption: "Receiving in Order to Give",
-    alt: "A teaching from Baal HaSulam\u2019s Introduction to the Zohar: a vessel below a point of light, joined by a dashed circle.",
+    src: "sefat-emet",
+    path: "sefat-emet/zion-in-every-thing",
+    title: "Sefat Emet",
+    caption: "Zion in Every Thing",
+    alt: "A Sefat Emet teaching, Zion in Every Thing: the reading bar and paraphrased text beside scattered shapes whose points of light are joined by fine lines.",
   },
 ] as const;
 
@@ -529,44 +530,43 @@ function Shevirah() {
         <h2 id="shevirah-h" className="c-h2">
           Shevirah
         </h2>
-        <p className="c-secmeta">16 pieces · 258 teachings, each with its own artwork</p>
+        <p className="c-secmeta">33 pieces · 463 teachings, each with its own artwork</p>
       </div>
       <p className="c-lede">
-        An interactive web series on Kabbalah, named for the breaking of the vessels. Two works,
-        Klippot and the Tree of Life, and fourteen texts from Sefer Yetzirah to Baal HaSulam, read
-        teaching by teaching.
+        An interactive web series on Kabbalah, named for the breaking of the vessels. Eleven works,
+        from The Four Shells and The Ten Sefirot to Taryag and the 231 Gates, and twenty-two texts
+        from Sefer Yetzirah to Baal HaSulam, read teaching by teaching.
       </p>
       <figure className="c-panel c-feature c-showcase">
         <div className="c-feature__copy">
           <p className="c-feature__name">How it&rsquo;s built</p>
           <ul className="c-studio__work c-showcase__notes">
             <li>
-              <span className="c-studio__client">Next.js, exported static</span>
+              <span className="c-studio__client">Next.js 16 and React 19, on Vercel</span>
               <span className="c-studio__what">
-                Served from GitHub Pages. No CSS framework and no UI library: hand-written CSS
-                and inline SVG.
+                Every page prerendered. No CSS framework and no UI library: hand-written CSS,
+                inline SVG and canvas.
               </span>
             </li>
             <li>
-              <span className="c-studio__client">Hand-drawn, animated SVG</span>
+              <span className="c-studio__client">Eleven works, one canvas each</span>
               <span className="c-studio__what">
-                Every artwork has a second state you reach by looking closer: hover, focus or
-                tap. Reduced motion gets a still frame that still reads.
+                Pin a light and its joins are drawn, to walk by pointer or keyboard. A Sod row acts
+                out teachings from the sources; an accessible list holds it all.
+              </span>
+            </li>
+            <li>
+              <span className="c-studio__client">Twenty-two texts, reading first</span>
+              <span className="c-studio__what">
+                Each teaching has its own animated SVG. A sticky bar keeps your place; progress
+                stays in your browser.
               </span>
             </li>
             <li>
               <span className="c-studio__client">Paraphrased from Sefaria</span>
               <span className="c-studio__what">
-                Each text credits the edition and license it was read from. Every Hebrew term
-                links to its page on Gamatria.
-              </span>
-            </li>
-            <li>
-              <span className="c-studio__client">The Ari&rsquo;s tree</span>
-              <span className="c-studio__what">
-                The Tree of Life places the letters on the Ari&rsquo;s paths, with
-                correspondences from the Gra&rsquo;s Sefer Yetzirah, and holds to WCAG 2.2 AA
-                contrast.
+                Each text credits the edition and license it was read from, and every count in
+                the works is computed in code. Every Hebrew term links to its page on Gamatria.
               </span>
             </li>
           </ul>
@@ -578,8 +578,8 @@ function Shevirah() {
           <Shot
             src="hub"
             w={1400}
-            h={1305}
-            alt="The Shevirah hub: \u201cWhat breaks, what holds, what returns.\u201d above tiles for Klippot and the Tree of Life."
+            h={1306}
+            alt="The Shevirah hub: the last tiles of the eleven works, The Thirteen Attributes and The Fifty Gates, above the shelf of twenty-two texts, each with its author, date and number of teachings."
           />
         </a>
       </figure>
