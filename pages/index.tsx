@@ -45,6 +45,8 @@ const NowPatterns = dynamic(() => import("@/components/Insights").then((m) => m.
 // ── SEO ───────────────────────────────────────────────────────────────────
 const SITE_URL = "https://moshemalka.com";
 const SHEVIRAH = "https://kelipot.quentin.software/";
+// "The Name Moshe", a standalone page on its own subdomain (public/name/).
+const NAME_PAGE = "https://name.moshemalka.com/";
 
 const SEO = {
   title: "Moshe Malka — Founder & principal engineer, Quentin.Code",
@@ -744,6 +746,7 @@ export default function Home({ asOf, revision, live }: Props) {
             <a href="#shevirah">Shevirah</a>
             <a href="#studio">Studio</a>
             <Link href="/study">Library</Link>
+            <a href={NAME_PAGE}>Name</a>
           </nav>
           <a className="c-btn c-btn--primary c-btn--sm" href={`mailto:${EMAIL}`}>
             Email me
