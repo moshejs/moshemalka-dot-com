@@ -115,8 +115,8 @@ describe("OSS_PACKAGES", () => {
     expect(new Set(OSS_PACKAGES.map((p) => p.name)).size).toBe(OSS_PACKAGES.length);
   });
 
-  it("features 32nds (the homepage example)", () => {
-    expect(OSS_PACKAGES.find((p) => p.name === "32nds")?.featured).toBe(true);
+  it("features us-equity-market-calendar (the homepage example)", () => {
+    expect(OSS_PACKAGES.find((p) => p.name === "us-equity-market-calendar")?.featured).toBe(true);
   });
 
   it.each(OSS_PACKAGES)("$name has a description", (p) => {
