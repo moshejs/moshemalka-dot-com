@@ -475,28 +475,28 @@ const SHEVIRAH_SHOTS = [
     path: "klippot",
     title: "The Four Shells",
     caption: "The 288 sparks, held in four shells",
-    alt: "The Four Shells: 288 sparks in arcs inside four concentric shells, one spark pinned with its joins drawn and a panel giving its degree, letter and sefirah.",
+    alt: "The Four Shells: sparks in arcs inside concentric shells around the kernel, one spark pinned and its joins drawn and labelled.",
   },
   {
     src: "ten-sefirot",
     path: "tree-of-life",
     title: "The Ten Sefirot",
     caption: "Ten sefirot, Da\u2019at and twenty-two letters",
-    alt: "The Ten Sefirot: the tree of ten lights, Da\u2019at drawn as a ring and the letters on its paths, with Keter pinned and a panel of its sources.",
+    alt: "The Ten Sefirot: the upper tree from Keter to Tiferet, Da\u2019at drawn as a ring and the letters on its paths, with Keter pinned and its joins drawn.",
   },
   {
     src: "taryag",
     path: "mitzvot",
     title: "Taryag: The 613",
     caption: "248 limbs and 365 days",
-    alt: "Taryag: the 613 commandments as points, 248 in an inner disc and 365 in a ring around it, with the first commandment held and its connections listed.",
+    alt: "Taryag: the 613 commandments as points, 248 in an inner disc and 365 in a ring around it, with the first commandment held at the centre.",
   },
   {
     src: "gates",
     path: "gates",
     title: "The 231 Gates",
     caption: "Every pair of letters, on the wheel",
-    alt: "The 231 Gates: twenty-two Hebrew letters around a wheel with a gate at the middle of every chord, the gate alef-dalet pinned and the gates through each of its letters fanned out.",
+    alt: "The 231 Gates: Hebrew letters around a wheel with a gate at the middle of every chord, the gate alef-dalet pinned and the gates through alef and through dalet fanned out.",
   },
   {
     src: "sefat-emet",
@@ -565,8 +565,8 @@ function Shevirah() {
             <li>
               <span className="c-studio__client">Paraphrased from Sefaria</span>
               <span className="c-studio__what">
-                Each text credits the edition and license it was read from, and every count in
-                the works is computed in code. Every Hebrew term links to its page on Gamatria.
+                Each text credits the edition and license it was read from. Every Hebrew term
+                links to its page on Gamatria.
               </span>
             </li>
           </ul>
@@ -579,7 +579,7 @@ function Shevirah() {
             src="hub"
             w={1400}
             h={1306}
-            alt="The Shevirah hub: the last tiles of the eleven works, The Thirteen Attributes and The Fifty Gates, above the shelf of twenty-two texts, each with its author, date and number of teachings."
+            alt="The Shevirah hub\u2019s works grid: the first six of its eleven works as tiles, from The Four Shells and The Ten Sefirot to The Forty-Nine, each with its Hebrew name, emblem and one line on what it holds. The shelf of twenty-two texts follows below, out of frame."
           />
         </a>
       </figure>
