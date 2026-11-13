@@ -31,6 +31,11 @@ const CSP = [
 
 const isProd = process.env.NODE_ENV === 'production'
 
+// "The Name Moshe" is a standalone static page (public/name/index.html, with
+// its fonts in public/name/fonts/) served at the root of its own subdomain.
+const NAME_HOST = 'name.moshemalka.com'
+const onNameHost = [{ type: 'host', value: NAME_HOST }]
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -38,6 +43,31 @@ const nextConfig = {
   // Inlined into the bundle so pages/_app.tsx can tell a Vercel build from a
   // local or CI one (Vercel sets VERCEL=1 at build time).
   env: { ON_VERCEL: process.env.VERCEL ? '1' : '' },
+  async redirects() {
+    return [
+      // The page's home is its subdomain; /name on the main site points there.
+      {
+        source: '/name',
+        missing: onNameHost,
+        destination: `https://${NAME_HOST}/`,
+        permanent: false,
+      },
+      // On the subdomain, any other page path (no dot: not a file) goes to the
+      // root, so the main site's pages and API routes aren't served there.
+      // Files (/name/fonts/*, favicons) and Next internals pass through.
+      {
+        source: '/:path((?!_next/|_vercel/)[^.]+)',
+        has: onNameHost,
+        destination: '/',
+        permanent: false,
+      },
+    ]
+  },
+  async rewrites() {
+    return {
+      beforeFiles: [{ source: '/', has: onNameHost, destination: '/name/index.html' }],
+    }
+  },
   async headers() {
     return [
       {

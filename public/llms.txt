@@ -32,6 +32,7 @@ This is the official personal site of Moshe Malka, the New York City software en
 ## Projects
 
 - [Shevirah](https://kelipot.quentin.software/): an interactive web series on Kabbalah by Moshe Malka. Eleven works, each drawn on one canvas (among them The Four Shells, The Ten Sefirot, Taryag and the 231 Gates), and twenty-two classic texts read teaching by teaching: 463 teachings, each with its own animated artwork.
+- [The Name Moshe](https://name.moshemalka.com/): an interactive investigation by Moshe Malka into where the name Moshe comes from: the verse in Exodus, the Hebrew and Egyptian theories, the manuscripts and the numbers.
 - [Quentin.Code](https://www.quentin.software/): AI-first software studio — product development, automation, and legacy modernization led by Moshe Malka. Studio work: https://www.quentin.software/work
 
 ## Profiles
