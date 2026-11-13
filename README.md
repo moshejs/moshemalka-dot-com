@@ -29,6 +29,8 @@ npm run dev
 ```
 You can now access the website at [http://localhost:3000](http://localhost:3000).
 
+The Name Moshe (`name.moshemalka.com`): a standalone static page, `public/name/index.html`, with self-hosted fonts in `public/name/fonts/` (the CSP allows fonts from `'self'` only). `next.config.js` rewrites that host's `/` to it, sends `/name` on the main site there, and keeps the main site's pages off the subdomain. The page is built outside this repo as a fragment; `node scripts/build-name-page.mjs <bundled-fragment.html>` wraps it into the committed document.
+
 Share card: `node scripts/og-card.mjs [--title "…"]` rewrites `public/og-image.jpg` by drawing the title line onto the original card in `scripts/og-card/base.jpg`.
 
 ### Technologies Used
