@@ -330,18 +330,25 @@ a:hover > .c-arrow { transform: translate(2px, -2px); }
   width: 100%;
   height: 100%;
   object-fit: contain;
+  pointer-events: none;
   transition: opacity 500ms var(--ease-out);
 }
 .c-watch3d {
   position: absolute;
   inset: 0;
+  z-index: 1;
   opacity: 0;
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: pointer;
   transition: opacity 600ms var(--ease-out);
 }
 .c-watch3d canvas { display: block; width: 100%; height: 100%; }
 .c-watch3d[data-ready="true"] { opacity: 1; }
 .c-watch3d[data-ready="true"] ~ .c-poster { opacity: 0; }
+.c-live--faraday {
+  background: var(--lightning) !important;
+  box-shadow: 0 0 8px var(--lightning);
+}
 
 /* ── Sections ─────────────────────────────────────────────── */
 

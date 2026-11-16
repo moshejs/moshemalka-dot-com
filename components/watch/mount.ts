@@ -107,6 +107,35 @@ export function mountWatch(host: HTMLElement, onLost: () => void): () => void {
   };
   window.addEventListener("pointermove", onPointer, { passive: true });
 
+  /* ── Faraday Cage X-Ray Mode ── */
+  let xrayTarget = 0;
+  let xrayCurrent = 0;
+  const caption = host.closest(".c-shot")?.querySelector<HTMLElement>(".c-shot__caption");
+  const defaultCaptionHtml = caption?.innerHTML ?? '<span class="c-live" aria-hidden="true"></span> Live New York time';
+
+  const toggleXRay = () => {
+    if (reduced.matches) return;
+    xrayTarget = xrayTarget === 0 ? 1 : 0;
+    dirty = true;
+    if (caption) {
+      if (xrayTarget === 1) {
+        caption.innerHTML =
+          '<span class="c-live c-live--faraday" aria-hidden="true"></span> Faraday Cage · 1,000 Gauss active';
+        caption.title = "Click to restore standard Milgauss view";
+      } else {
+        caption.innerHTML = defaultCaptionHtml;
+        caption.title = "Click to reveal 1,000 Gauss Faraday cage";
+      }
+    }
+  };
+
+  host.addEventListener("click", toggleXRay);
+  if (caption) {
+    caption.style.cursor = "pointer";
+    caption.title = "Click to reveal 1,000 Gauss Faraday cage";
+    caption.addEventListener("click", toggleXRay);
+  }
+
   /* ── Animated values ── */
   const live = () => handAngles(nyTime());
   let liveAt = 0;
@@ -169,13 +198,21 @@ export function mountWatch(host: HTMLElement, onLost: () => void): () => void {
     const nry = ry + (tryy - ry) * ease(4);
     const nsc = scale + (1 - scale) * ease(4);
 
+    const nxray = xrayCurrent + (xrayTarget - xrayCurrent) * ease(5);
+    const xrayMoved = Math.abs(nxray - xrayCurrent) > 1e-4;
+    xrayCurrent = nxray;
+    if (xrayMoved) {
+      watch.setXRay(xrayCurrent);
+    }
+
     const moved =
       Math.abs(nh - h) > 1e-3 ||
       Math.abs(nm - m) > 1e-3 ||
       Math.abs(ns - s) > 1e-3 ||
       Math.abs(nrx - rx) > 1e-4 ||
       Math.abs(nry - ry) > 1e-4 ||
-      Math.abs(nsc - scale) > 1e-4;
+      Math.abs(nsc - scale) > 1e-4 ||
+      xrayMoved;
     h = nh;
     m = nm;
     s = ns;
@@ -217,6 +254,9 @@ export function mountWatch(host: HTMLElement, onLost: () => void): () => void {
     cancelAnimationFrame(raf);
     ro.disconnect();
     window.removeEventListener("pointermove", onPointer);
+    host.removeEventListener("click", toggleXRay);
+    caption?.removeEventListener("click", toggleXRay);
+    if (caption) caption.innerHTML = defaultCaptionHtml;
     document.removeEventListener("visibilitychange", onVisibility);
     canvas.removeEventListener("webglcontextlost", onContextLost);
     delete host.dataset.ready;
