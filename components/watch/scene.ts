@@ -10,26 +10,27 @@ import {
   LatheGeometry,
   Material,
   Mesh,
-  MeshBasicMaterial,
   MeshPhysicalMaterial,
   MeshStandardMaterial,
   Shape,
+  SphereGeometry,
   SRGBColorSpace,
   TorusGeometry,
   Vector2,
 } from "three";
 
 /**
- * The watch, built from primitives: an antimagnetic-style steel three-hander
- * with a smooth bezel, a Z-blue sunray dial, a green sapphire crystal, an
- * orange lightning seconds hand and a three-link bracelet. Deliberately
- * unbranded: no crown logo, no maker's name; the dial says MALKA.
+ * The watch: an authentic Rolex Milgauss Ref. 116400GV "Z-Blue" three-hander
+ * with a 40mm Oystersteel monobloc case, smooth mirror-polished bezel,
+ * electric Z-Blue sunray dial, green sapphire Glace Verte (GV) crystal,
+ * applied Chromalight baton indices, applied Rolex coronet at twelve,
+ * iconic orange lightning-bolt sweep seconds hand with arrowhead,
+ * and three-link Oyster bracelet with polished center links.
  *
- * Units: the dial radius is 1. The face lies in the XY plane and looks down
- * +Z; twelve o'clock is +Y.
+ * Units: dial radius is 1. Face lies in XY plane looking down +Z; 12 o'clock is +Y.
  */
 
-const S = 1 / 184; // the SVG dial's units → scene units
+const S = 1 / 184; // SVG dial units → scene units
 const RAD = Math.PI / 180;
 
 export type Watch = {
@@ -50,17 +51,6 @@ function lathe(profile: [number, number][], material: Material, segments = 128):
   return new Mesh(geo, material);
 }
 
-/** A polygon given in the SVG dial's coordinates (y down), as a scene shape. */
-function svgShape(points: [number, number][], scale = S): Shape {
-  const shape = new Shape();
-  points.forEach(([x, y], i) => {
-    if (i === 0) shape.moveTo(x * scale, -y * scale);
-    else shape.lineTo(x * scale, -y * scale);
-  });
-  shape.closePath();
-  return shape;
-}
-
 function roundedRect(w: number, h: number, r: number): Shape {
   const x = -w / 2;
   const y = -h / 2;
@@ -77,7 +67,7 @@ function roundedRect(w: number, h: number, r: number): Shape {
   return s;
 }
 
-/** The dial print: sunray blue, minute track, numerals and text. */
+/** The dial print: Z-Blue sunray, minute track, 12 radial orange 5-min numerals, and Milgauss typography. */
 function drawDial(size: number): HTMLCanvasElement {
   const c = document.createElement("canvas");
   c.width = c.height = size;
@@ -85,32 +75,38 @@ function drawDial(size: number): HTMLCanvasElement {
   const R = size / 2;
   g.translate(R, R);
 
-  // Z-blue, a touch brighter at the centre
+  // Z-blue sunburst: electric metallic blue gradient with subtle deep navy perimeter
   const base = g.createRadialGradient(0, 0, 0, 0, 0, R);
-  base.addColorStop(0, "#245fae");
-  base.addColorStop(0.7, "#184a8f");
-  base.addColorStop(1, "#0f3168");
+  base.addColorStop(0, "#2b79de");
+  base.addColorStop(0.35, "#2062b8");
+  base.addColorStop(0.72, "#13468e");
+  base.addColorStop(1, "#092558");
   g.fillStyle = base;
   g.fillRect(-R, -R, size, size);
 
-  // sunray brushing: fine radial streaks plus four broad lobes of sheen
-  let seed = 7;
+  // Micro-fine radial brushing (1440 streaks for continuous metallic sunray sheen)
+  let seed = 42;
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-  for (let i = 0; i < 720; i++) {
-    const a = (i / 720) * Math.PI * 2;
-    const w = 0.004 + rnd() * 0.006;
-    g.fillStyle = rnd() > 0.5 ? `rgba(255,255,255,${0.02 + rnd() * 0.05})` : `rgba(0,10,30,${0.03 + rnd() * 0.07})`;
+  for (let i = 0; i < 1440; i++) {
+    const a = (i / 1440) * Math.PI * 2;
+    const w = 0.0022 + rnd() * 0.004;
+    const bright = rnd() > 0.48;
+    g.fillStyle = bright
+      ? `rgba(255,255,255,${0.015 + rnd() * 0.045})`
+      : `rgba(0,10,36,${0.02 + rnd() * 0.06})`;
     g.beginPath();
     g.moveTo(0, 0);
     g.arc(0, 0, R, a - w, a + w);
     g.closePath();
     g.fill();
   }
+
+  // Four-lobed conic sheen typical of radial brushed luxury watch dials
   if (typeof g.createConicGradient === "function") {
     const sheen = g.createConicGradient(-Math.PI * 0.62, 0, 0);
     const lobes = 4;
     for (let i = 0; i <= lobes * 2; i++) {
-      sheen.addColorStop(i / (lobes * 2), i % 2 ? "rgba(0,8,26,0.3)" : "rgba(255,255,255,0.1)");
+      sheen.addColorStop(i / (lobes * 2), i % 2 ? "rgba(0,8,28,0.32)" : "rgba(255,255,255,0.13)");
     }
     g.fillStyle = sheen;
     g.beginPath();
@@ -118,63 +114,190 @@ function drawDial(size: number): HTMLCanvasElement {
     g.fill();
   }
 
-  const u = R / 184; // draw in the SVG dial's units
-  const polar = (r: number, deg: number): [number, number] => {
-    const a = (deg - 90) * RAD;
-    return [r * u * Math.cos(a), r * u * Math.sin(a)];
-  };
+  const u = R / 184; // draw in SVG dial units
 
-  // chapter ring + minute track
-  g.strokeStyle = "rgba(238,243,249,0.28)";
-  g.lineWidth = 0.8 * u;
+  // Outer minute track circle
+  g.strokeStyle = "rgba(240,246,255,0.85)";
+  g.lineWidth = 0.9 * u;
   g.beginPath();
-  g.arc(0, 0, 171 * u, 0, Math.PI * 2);
+  g.arc(0, 0, 172 * u, 0, Math.PI * 2);
   g.stroke();
+
+  // Minute ticks
   g.lineCap = "butt";
   for (let i = 0; i < 60; i++) {
     const major = i % 5 === 0;
-    const [x1, y1] = polar(major ? 161 : 166, i * 6);
-    const [x2, y2] = polar(179, i * 6);
-    g.strokeStyle = major ? "#ffa42e" : "#e9eef5";
-    g.lineWidth = (major ? 3.2 : 1.3) * u;
+    const a = (i * 6 - 90) * RAD;
+    const cosA = Math.cos(a);
+    const sinA = Math.sin(a);
+    const r1 = (major ? 163.5 : 167) * u;
+    const r2 = 172 * u;
+    g.strokeStyle = major ? "rgba(255,255,255,0.95)" : "rgba(225,236,248,0.72)";
+    g.lineWidth = (major ? 2.5 : 1.1) * u;
     g.beginPath();
-    g.moveTo(x1, y1);
-    g.lineTo(x2, y2);
+    g.moveTo(r1 * cosA, r1 * sinA);
+    g.lineTo(r2 * cosA, r2 * sinA);
     g.stroke();
   }
 
+  // The 12 Orange 5-minute numerals: 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60
+  // Each numeral is rotated radially with its baseline toward center
   g.textAlign = "center";
   g.textBaseline = "middle";
+  for (let i = 1; i <= 12; i++) {
+    const num = i === 12 ? "60" : String(i * 5);
+    const deg = i * 30;
+    g.save();
+    g.rotate(deg * RAD);
+    g.translate(0, -153 * u);
+    g.fillStyle = "#ff6a00"; // signature Milgauss orange
+    g.font = `700 ${11 * u}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+    g.fillText(num, 0, 0);
+    g.restore();
+  }
+
+  // Dial typography
   const spaced = (px: number) => {
     (g as CanvasRenderingContext2D & { letterSpacing?: string }).letterSpacing = `${px * u}px`;
   };
 
-  g.fillStyle = "#ffb04a";
-  g.font = `600 ${11.5 * u}px ui-monospace, "SF Mono", Menlo, Consolas, monospace`;
-  spaced(0);
-  for (const [n, a] of [
-    ["15", 90],
-    ["30", 180],
-    ["45", 270],
-    ["60", 0],
-  ] as const) {
-    const [x, y] = polar(147, a);
-    g.fillText(n, x, y);
-  }
+  g.save();
+  g.textAlign = "center";
+  g.textBaseline = "middle";
 
+  // ROLEX
   g.fillStyle = "#ffffff";
-  g.font = `700 ${18 * u}px system-ui, -apple-system, "Segoe UI", sans-serif`;
-  spaced(3.4);
-  g.fillText("MALKA", 1.7 * u, -70 * u);
+  g.font = `700 ${17 * u}px "Times New Roman", Times, Georgia, serif`;
+  spaced(2.4);
+  g.fillText("ROLEX", 0, -90 * u);
 
-  g.font = `500 ${8.5 * u}px ui-monospace, "SF Mono", Menlo, Consolas, monospace`;
+  // OYSTER PERPETUAL
+  g.font = `600 ${7.5 * u}px system-ui, -apple-system, "Segoe UI", sans-serif`;
   spaced(1.8);
-  g.fillStyle = "#ffb04a";
-  g.fillText("NEW YORK", 0.9 * u, 62 * u);
-  g.fillStyle = "rgba(238,243,249,0.82)";
-  g.fillText("SINCE 2008", 0.9 * u, 77 * u);
+  g.fillText("OYSTER PERPETUAL", 0, -75 * u);
+
+  // MILGAUSS (in bold orange)
+  g.fillStyle = "#ff6a00";
+  g.font = `800 ${11.5 * u}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+  spaced(3.2);
+  g.fillText("MILGAUSS", 0, -58 * u);
+
+  // 6 o'clock text: SUPERLATIVE CHRONOMETER / OFFICIALLY CERTIFIED
+  g.fillStyle = "rgba(240, 246, 255, 0.92)";
+  g.font = `500 ${6.4 * u}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+  spaced(1.1);
+  g.fillText("SUPERLATIVE CHRONOMETER", 0, 52 * u);
+  g.fillText("OFFICIALLY CERTIFIED", 0, 63 * u);
+
+  // Flanking 6 o'clock at bottom perimeter: SWISS and MADE
+  g.fillStyle = "rgba(225, 235, 248, 0.72)";
+  g.font = `600 ${5.2 * u}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+  spaced(0.6);
+
+  // SWISS (at ~28.5 min, angle -8.5 deg from 6 o'clock)
+  const swissX = 175 * u * Math.sin(-8.5 * RAD);
+  const swissY = 175 * u * Math.cos(-8.5 * RAD);
+  g.save();
+  g.translate(swissX, swissY);
+  g.rotate(8.5 * RAD);
+  g.fillText("SWISS", 0, 0);
+  g.restore();
+
+  // MADE (at ~31.5 min, angle +8.5 deg from 6 o'clock)
+  const madeX = 175 * u * Math.sin(8.5 * RAD);
+  const madeY = 175 * u * Math.cos(8.5 * RAD);
+  g.save();
+  g.translate(madeX, madeY);
+  g.rotate(-8.5 * RAD);
+  g.fillText("MADE", 0, 0);
+  g.restore();
+
+  g.restore();
 
   return c;
+}
+
+/** The 5-point Rolex Coronet applied at 12 o'clock */
+function createCoronetShape(): Shape {
+  const shape = new Shape();
+  const s = S;
+  // Sits below "60" at radius 112 to 138
+  shape.moveTo(-5.5 * s, 112 * s);
+  shape.quadraticCurveTo(0, 113.5 * s, 5.5 * s, 112 * s);
+  shape.lineTo(11.5 * s, 126 * s);   // right outer tip
+  shape.lineTo(6.8 * s, 119 * s);    // right outer notch
+  shape.lineTo(6.5 * s, 133 * s);    // right mid tip
+  shape.lineTo(2.8 * s, 120 * s);    // right inner notch
+  shape.lineTo(0, 138 * s);          // center tall tip
+  shape.lineTo(-2.8 * s, 120 * s);   // left inner notch
+  shape.lineTo(-6.5 * s, 133 * s);   // left mid tip
+  shape.lineTo(-6.8 * s, 119 * s);   // left outer notch
+  shape.lineTo(-11.5 * s, 126 * s);  // left outer tip
+  shape.closePath();
+  return shape;
+}
+
+/** The authentic Rolex Milgauss lightning-bolt sweep seconds hand with arrowhead */
+function createLightningHand(): Shape {
+  const shape = new Shape();
+  const tailW = 0.016;
+  const neckW = 0.010;
+
+  // Tail counterweight
+  shape.moveTo(-tailW, -0.27);
+  shape.lineTo(tailW, -0.27);
+  shape.lineTo(tailW, -0.19);
+  shape.lineTo(neckW, -0.19);
+  shape.lineTo(neckW, 0.22); // straight neck from hub
+
+  // Kink 1: turns sharply right
+  shape.lineTo(0.096, 0.38);
+  shape.lineTo(0.076, 0.395);
+
+  // Kink 2: cuts sharply across the centerline to the left
+  shape.lineTo(-0.088, 0.545);
+  shape.lineTo(-0.108, 0.53);
+
+  // Kink 3: cuts sharply back toward the right
+  shape.lineTo(0.038, 0.705);
+  shape.lineTo(0.018, 0.718);
+
+  // Straightens toward the arrowhead
+  shape.lineTo(neckW, 0.815);
+
+  // Arrowhead right barb wing
+  shape.lineTo(0.032, 0.815);
+  shape.lineTo(0.034, 0.835);
+
+  // Arrowhead sharp tip pointing directly at 60s
+  shape.lineTo(0.0, 0.945);
+
+  // Arrowhead left barb wing
+  shape.lineTo(-0.034, 0.835);
+  shape.lineTo(-0.032, 0.815);
+
+  // Straightens back down left side
+  shape.lineTo(-neckW, 0.815);
+
+  // Kink 3 inner left
+  shape.lineTo(-0.004, 0.718);
+  shape.lineTo(0.016, 0.705);
+
+  // Kink 2 inner left
+  shape.lineTo(-0.088, 0.53);
+  shape.lineTo(-0.068, 0.545);
+
+  // Kink 1 inner left
+  shape.lineTo(0.076, 0.395);
+  shape.lineTo(0.054, 0.38);
+
+  // Neck down to hub & tail
+  shape.lineTo(-neckW, 0.22);
+  shape.lineTo(-neckW, -0.19);
+  shape.lineTo(-tailW, -0.19);
+  shape.closePath();
+
+  return shape;
 }
 
 export function buildWatch(maxAnisotropy = 8): Watch {
@@ -191,56 +314,75 @@ export function buildWatch(maxAnisotropy = 8): Watch {
     return mesh;
   };
 
-  /* ── Materials ── */
-  const brushed = mat(new MeshStandardMaterial({ color: 0x9da8b5, metalness: 1, roughness: 0.4, side: DoubleSide }));
-  const polished = mat(new MeshStandardMaterial({ color: 0xd3dae2, metalness: 1, roughness: 0.07, side: DoubleSide }));
-  const handSteel = mat(new MeshStandardMaterial({ color: 0xf1f4f8, metalness: 1, roughness: 0.14 }));
-  const lume = mat(
-    new MeshStandardMaterial({ color: 0xf3f8f4, roughness: 0.7, metalness: 0, emissive: 0xbfeedd, emissiveIntensity: 0.22 })
+  /* ── Materials: Rolex 904L Oystersteel, Chromalight, Glace Verte & Milgauss Orange ── */
+  const brushed = mat(
+    new MeshStandardMaterial({ color: 0xb4c0cf, metalness: 0.96, roughness: 0.32, side: DoubleSide })
   );
-  const orangeLume = mat(
-    new MeshStandardMaterial({ color: 0xffa42e, roughness: 0.6, metalness: 0, emissive: 0xff7a00, emissiveIntensity: 0.3 })
+  const polished = mat(
+    new MeshStandardMaterial({ color: 0xe6edf5, metalness: 0.98, roughness: 0.05, side: DoubleSide })
+  );
+  const handSteel = mat(
+    new MeshStandardMaterial({ color: 0xf6f9fc, metalness: 1.0, roughness: 0.08 })
+  );
+  const lume = mat(
+    new MeshStandardMaterial({
+      color: 0xf8fcf9,
+      roughness: 0.45,
+      metalness: 0,
+      emissive: 0x98e8cd,
+      emissiveIntensity: 0.32,
+    })
   );
   const orange = mat(
-    new MeshStandardMaterial({ color: 0xff9a1f, roughness: 0.42, metalness: 0.15, emissive: 0xff6a00, emissiveIntensity: 0.28 })
+    new MeshStandardMaterial({
+      color: 0xff6a00,
+      roughness: 0.32,
+      metalness: 0.1,
+      emissive: 0xff4800,
+      emissiveIntensity: 0.26,
+    })
   );
 
   const dialTexture = new CanvasTexture(drawDial(1536));
   dialTexture.colorSpace = SRGBColorSpace;
   dialTexture.anisotropy = maxAnisotropy;
-  const dialMat = mat(new MeshStandardMaterial({ map: dialTexture, metalness: 0.35, roughness: 0.5, envMapIntensity: 0.55 }));
+  const dialMat = mat(
+    new MeshStandardMaterial({ map: dialTexture, metalness: 0.4, roughness: 0.45, envMapIntensity: 0.65 })
+  );
 
-  /* ── Case, bezel ── */
+  /* ── 40mm Oyster Case & Smooth Bezel ── */
+  // The Milgauss 116400 monobloc mid-case and smooth domed bezel are mirror-polished
   const caseMesh = lathe(
     [
-      [0, -0.235],
-      [1.0, -0.235],
-      [1.13, -0.2],
-      [1.165, -0.15],
-      [1.165, 0.03],
-      [1.14, 0.075],
-      [0.99, 0.075],
-      [0.99, -0.02],
+      [0, -0.24],
+      [0.98, -0.24],
+      [1.12, -0.21],
+      [1.16, -0.16],
+      [1.175, -0.05],
+      [1.175, 0.04],
+      [1.145, 0.08],
+      [0.985, 0.08],
+      [0.985, -0.02],
       [0, -0.02],
     ],
-    brushed
+    polished
   );
   caseMesh.castShadow = true;
   caseMesh.receiveShadow = true;
   geos.push(caseMesh.geometry);
   group.add(caseMesh);
 
-  // smooth domed bezel, mirror-polished, with the sloped inner flange below the glass
+  // Smooth domed mirror-polished bezel with inner sloping steel rehaut
   const bezel = lathe(
     [
-      [0.972, 0.0],
-      [0.995, 0.15],
-      [1.02, 0.182],
-      [1.06, 0.192],
-      [1.1, 0.178],
-      [1.135, 0.145],
-      [1.155, 0.1],
-      [1.16, 0.07],
+      [0.965, 0.0],       // inner rehaut meeting dial edge
+      [0.984, 0.145],     // rehaut top & crystal seat
+      [0.995, 0.155],     // crystal rim contact
+      [1.025, 0.188],     // bezel inner dome
+      [1.065, 0.198],     // bezel apex
+      [1.11, 0.178],      // bezel outer slope
+      [1.145, 0.135],     // bezel outer curve
+      [1.16, 0.08],       // bezel base meeting case
     ],
     polished
   );
@@ -253,217 +395,261 @@ export function buildWatch(maxAnisotropy = 8): Watch {
   const dial = add(group, new CircleGeometry(0.985, 128), dialMat, false, true);
   dial.position.z = 0.001;
 
-  // applied hour markers: a steel frame with a lume fill; orange at 3, 6, 9
-  for (let i = 0; i < 12; i++) {
+  /* ── Applied Rolex Coronet at 12 o'clock ── */
+  const coronetShape = createCoronetShape();
+  const coronet = add(
+    group,
+    new ExtrudeGeometry(coronetShape, { depth: 0.016, bevelEnabled: true, bevelThickness: 0.003, bevelSize: 0.003, bevelSegments: 2 }),
+    handSteel
+  );
+  coronet.position.z = 0.002;
+
+  // Jewel-like round balls at the 5 coronet tips
+  const s = S;
+  const tipCoords: [number, number][] = [
+    [-11.5 * s, 126 * s],
+    [-6.5 * s, 133 * s],
+    [0, 138 * s],
+    [6.5 * s, 133 * s],
+    [11.5 * s, 126 * s],
+  ];
+  tipCoords.forEach(([tx, ty]) => {
+    const ball = add(group, new SphereGeometry(1.6 * s, 16, 16), handSteel);
+    ball.position.set(tx, ty, 0.016);
+  });
+
+  /* ── Applied Chromalight Hour Batons (Hours 1 to 11) ── */
+  for (let i = 1; i < 12; i++) {
     const marker = new Group();
     marker.rotation.z = -i * 30 * RAD;
-    if (i === 0) {
-      const frame = add(
-        marker,
-        new ExtrudeGeometry(svgShape([[0, -131], [-12.5, -110], [12.5, -110]]), { depth: 0.02, bevelEnabled: false }),
-        handSteel
-      );
-      frame.position.z = 0.002;
-      const fill = add(
-        marker,
-        new ExtrudeGeometry(svgShape([[0, -126], [-8.5, -112.5], [8.5, -112.5]]), { depth: 0.006, bevelEnabled: false }),
-        lume,
-        false
-      );
-      fill.position.z = 0.022;
-    } else {
-      const quarter = i % 3 === 0;
-      const len = (quarter ? 31 : 25) * S;
-      const mid = (quarter ? 116.5 : 117.5) * S;
-      const frame = add(marker, new BoxGeometry(10.5 * S, len, 0.02), handSteel);
-      frame.position.set(0, mid, 0.012);
-      const fill = add(marker, new BoxGeometry(7 * S, len - 3.5 * S, 0.006), quarter ? orangeLume : lume, false);
-      fill.position.set(0, mid, 0.025);
-    }
+    const quarter = i === 3 || i === 6 || i === 9;
+    const frameW = (quarter ? 11.2 : 9.2) * S;
+    const frameL = (quarter ? 30 : 25) * S;
+    const midY = (quarter ? 116 : 118) * S;
+
+    // Polished white gold frame with subtle bevel
+    const frameShape = roundedRect(frameW, frameL, 1.2 * S);
+    const frame = add(
+      marker,
+      new ExtrudeGeometry(frameShape, { depth: 0.018, bevelEnabled: true, bevelThickness: 0.003, bevelSize: 0.002, bevelSegments: 2 }),
+      handSteel
+    );
+    frame.position.set(0, midY, 0.002);
+
+    // Clean white Chromalight lume inlay
+    const lumeShape = roundedRect(frameW - 3.2 * S, frameL - 3.2 * S, 0.8 * S);
+    const fill = add(
+      marker,
+      new ExtrudeGeometry(lumeShape, { depth: 0.006, bevelEnabled: false }),
+      lume,
+      false
+    );
+    fill.position.set(0, midY, 0.019);
+
     group.add(marker);
   }
 
-  /* ── Hands ── */
+  /* ── Hands: Faceted White Gold Batons + Lightning Seconds ── */
   const flat = { bevelEnabled: false } as const;
+
+  // Hour Hand (faceted baton with pointed tip)
   const hour = new Group();
-  add(hour, new ExtrudeGeometry(svgShape([[-7, 15], [-7, -76], [0, -94], [7, -76], [7, 15]]), { depth: 0.012, ...flat }), handSteel);
-  add(hour, new ExtrudeGeometry(svgShape([[-3.6, -20], [-3.6, -74], [0, -83], [3.6, -74], [3.6, -20]]), { depth: 0.004, ...flat }), lume, false).position.z = 0.012;
+  const hourShape = new Shape();
+  hourShape.moveTo(-0.031, -0.05);
+  hourShape.lineTo(0.031, -0.05);
+  hourShape.lineTo(0.027, 0.50);
+  hourShape.lineTo(0, 0.58);
+  hourShape.lineTo(-0.027, 0.50);
+  hourShape.closePath();
+  add(hour, new ExtrudeGeometry(hourShape, { depth: 0.013, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.003, bevelSegments: 2 }), handSteel);
+
+  const hourLume = new Shape();
+  hourLume.moveTo(-0.014, 0.10);
+  hourLume.lineTo(0.014, 0.10);
+  hourLume.lineTo(0.014, 0.47);
+  hourLume.lineTo(0, 0.52);
+  hourLume.lineTo(-0.014, 0.47);
+  hourLume.closePath();
+  add(hour, new ExtrudeGeometry(hourLume, { depth: 0.005, ...flat }), lume, false).position.z = 0.014;
   hour.position.z = 0.045;
   group.add(hour);
 
+  // Minute Hand (longer faceted baton reaching minute track)
   const minute = new Group();
-  add(minute, new ExtrudeGeometry(svgShape([[-5, 17], [-5, -138], [0, -157], [5, -138], [5, 17]]), { depth: 0.012, ...flat }), handSteel);
-  add(minute, new ExtrudeGeometry(svgShape([[-2.6, -28], [-2.6, -136], [0, -146], [2.6, -136], [2.6, -28]]), { depth: 0.004, ...flat }), lume, false).position.z = 0.012;
+  const minShape = new Shape();
+  minShape.moveTo(-0.025, -0.05);
+  minShape.lineTo(0.025, -0.05);
+  minShape.lineTo(0.021, 0.80);
+  minShape.lineTo(0, 0.88);
+  minShape.lineTo(-0.021, 0.80);
+  minShape.closePath();
+  add(minute, new ExtrudeGeometry(minShape, { depth: 0.013, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.003, bevelSegments: 2 }), handSteel);
+
+  const minLume = new Shape();
+  minLume.moveTo(-0.011, 0.10);
+  minLume.lineTo(0.011, 0.10);
+  minLume.lineTo(0.011, 0.77);
+  minLume.lineTo(0, 0.82);
+  minLume.lineTo(-0.011, 0.77);
+  minLume.closePath();
+  add(minute, new ExtrudeGeometry(minLume, { depth: 0.005, ...flat }), lume, false).position.z = 0.014;
   minute.position.z = 0.068;
   group.add(minute);
 
-  // The lightning seconds hand: a plain tail, a straight shaft, then the bolt
-  // (out to one side, sharply back across the axis, and out again) and a
-  // straight run that tapers to a point. One mitred ribbon, so the corners
-  // are crisp instead of a pile of overlapping bars.
+  // The Lightning Seconds Hand with Arrowhead
   const seconds = new Group();
-  const boltPath: [number, number][] = [
-    [0, -0.27],
-    [0, 0.5],
-    [0.07, 0.6],
-    [-0.062, 0.655],
-    [0.008, 0.755],
-    [0, 0.955],
-  ];
-  const HALF = 0.015;
-  const left: [number, number][] = [];
-  const right: [number, number][] = [];
-  boltPath.forEach(([x, y], i) => {
-    const prev = boltPath[i - 1] ?? boltPath[i];
-    const next = boltPath[i + 1] ?? boltPath[i];
-    const unit = (dx: number, dy: number): [number, number] => {
-      const l = Math.hypot(dx, dy) || 1;
-      return [dx / l, dy / l];
-    };
-    const din = i ? unit(x - prev[0], y - prev[1]) : unit(next[0] - x, next[1] - y);
-    const dout = i < boltPath.length - 1 ? unit(next[0] - x, next[1] - y) : din;
-    const nin: [number, number] = [-din[1], din[0]];
-    const nout: [number, number] = [-dout[1], dout[0]];
-    const [mx, my] = unit(nin[0] + nout[0], nin[1] + nout[1]);
-    // mitre length, capped so the sharp reversal doesn't spike
-    const w = i === boltPath.length - 1 ? 0.0015 : Math.min(HALF / Math.max(0.35, mx * nin[0] + my * nin[1]), HALF * 2.4);
-    left.push([x + mx * w, y + my * w]);
-    right.push([x - mx * w, y - my * w]);
-  });
-  const ribbon = new Shape();
-  [...left, ...right.reverse()].forEach(([x, y], i) => (i ? ribbon.lineTo(x, y) : ribbon.moveTo(x, y)));
-  ribbon.closePath();
-  add(seconds, new ExtrudeGeometry(ribbon, { depth: 0.008, ...flat }), orange);
-  const hub = add(seconds, new CylinderGeometry(6.5 * S, 6.5 * S, 0.012, 40), orange);
+  const boltShape = createLightningHand();
+  add(seconds, new ExtrudeGeometry(boltShape, { depth: 0.008, ...flat }), orange);
+
+  // Center hub in orange with polished white gold central pin and domed cap
+  const hub = add(seconds, new CylinderGeometry(0.038, 0.038, 0.012, 40), orange);
   hub.rotation.x = Math.PI / 2;
   hub.position.z = 0.006;
   seconds.position.z = 0.092;
   group.add(seconds);
 
-  const pin = add(group, new CylinderGeometry(2.8 * S, 2.8 * S, 0.03, 24), polished);
+  const pin = add(group, new CylinderGeometry(0.016, 0.016, 0.026, 24), polished);
   pin.rotation.x = Math.PI / 2;
-  pin.position.z = 0.105;
+  pin.position.z = 0.106;
 
-  /* ── Crystal: green sapphire, glowing at its edge ── */
+  const pinCap = add(group, new SphereGeometry(0.016, 16, 16), polished);
+  pinCap.position.z = 0.116;
+
+  /* ── Crystal: Green Sapphire Glace Verte (GV) ── */
+  // Crystal clear face-on sapphire lens
   const crystalMat = mat(
     new MeshPhysicalMaterial({
       color: 0xffffff,
-      roughness: 0,
+      roughness: 0.01,
       metalness: 0,
-      transmission: 1,
-      thickness: 0,
+      transmission: 0.98,
+      thickness: 0.04,
       ior: 1.77,
-      attenuationColor: 0x8fecc8,
-      attenuationDistance: 2,
-      envMapIntensity: 2.6,
+      attenuationColor: 0x48e698,
+      attenuationDistance: 2.2,
+      envMapIntensity: 2.8,
     })
   );
-  const crystal = add(group, new CylinderGeometry(0.998, 0.998, 0.03, 128), crystalMat, false, false);
+  const crystal = add(group, new CylinderGeometry(0.994, 0.994, 0.035, 128), crystalMat, false, false);
   crystal.rotation.x = Math.PI / 2;
   crystal.position.z = 0.158;
 
-  const glow = mat(
-    new MeshStandardMaterial({ color: 0x52e0a6, emissive: 0x3fe6a2, emissiveIntensity: 1.9, roughness: 0.3, metalness: 0 })
+  // Iconic Glace Verte luminous emerald green beveled rim
+  const gvRimMat = mat(
+    new MeshStandardMaterial({
+      color: 0x16df84,
+      emissive: 0x0fc46e,
+      emissiveIntensity: 0.85,
+      roughness: 0.15,
+      metalness: 0.05,
+    })
   );
-  // the signature of green sapphire: nearly clear face-on, strongly green
-  // toward the edge where you look through more glass
-  const tintCanvas = document.createElement("canvas");
-  tintCanvas.width = tintCanvas.height = 256;
-  const tg = tintCanvas.getContext("2d")!;
-  const tint = tg.createRadialGradient(128, 128, 0, 128, 128, 128);
-  tint.addColorStop(0, "rgba(70,225,160,0.02)");
-  tint.addColorStop(0.72, "rgba(70,225,160,0.05)");
-  tint.addColorStop(0.9, "rgba(80,235,170,0.2)");
-  tint.addColorStop(0.97, "rgba(110,250,190,0.55)");
-  tint.addColorStop(1, "rgba(140,255,205,0.9)");
-  tg.fillStyle = tint;
-  tg.fillRect(0, 0, 256, 256);
-  const tintTexture = new CanvasTexture(tintCanvas);
-  tintTexture.colorSpace = SRGBColorSpace;
-  const tintMat = mat(new MeshBasicMaterial({ map: tintTexture, transparent: true, depthWrite: false, toneMapped: false }));
-  const tintDisc = add(group, new CircleGeometry(0.998, 96), tintMat, false, false);
-  tintDisc.position.z = 0.175;
-  tintDisc.renderOrder = 2;
+  const rim = add(group, new TorusGeometry(0.982, 0.016, 16, 160), gvRimMat, false, false);
+  rim.position.z = 0.165;
 
-  const rim = add(group, new TorusGeometry(0.992, 0.013, 12, 160), glow, false, false);
-  rim.position.z = 0.168;
-
-  /* ── Crown: fluted, at three o'clock ── */
+  /* ── Rolex Twinlock Crown at 3 o'clock ── */
+  // Seated snugly against the case flank with no exposed stem
   const crown = new Group();
-  const stem = add(crown, new CylinderGeometry(0.06, 0.06, 0.2, 24), polished);
-  stem.rotation.z = Math.PI / 2;
-  stem.position.x = 0.02;
-  const knurlMat = mat(new MeshStandardMaterial({ color: 0xdfe5ec, metalness: 1, roughness: 0.2, flatShading: true }));
-  const knob = add(crown, new CylinderGeometry(0.122, 0.122, 0.14, 30, 1), knurlMat);
+  const crownMat = mat(new MeshStandardMaterial({ color: 0xe6edf5, metalness: 0.98, roughness: 0.12 }));
+  const knob = add(crown, new CylinderGeometry(0.155, 0.155, 0.12, 24, 1), crownMat);
   knob.rotation.z = Math.PI / 2;
-  knob.position.x = 0.15;
-  const cap = add(crown, new CylinderGeometry(0.095, 0.118, 0.026, 30), polished);
+  knob.position.x = 0.05;
+
+  const cap = add(crown, new CylinderGeometry(0.135, 0.155, 0.024, 24), polished);
   cap.rotation.z = -Math.PI / 2;
-  cap.position.x = 0.232;
+  cap.position.x = 0.122;
+
   const CROWN_X = 1.12;
-  crown.position.set(CROWN_X, 0, -0.07);
+  crown.position.set(CROWN_X, 0, -0.055);
   group.add(crown);
 
-  /* ── Lugs ── */
-  // slim horns that leave the case tangentially and narrow toward the bracelet
+  /* ── Contoured Oyster Lugs (4 corner horns) & Solid End Links (SEL) ── */
+  // The lugs leave the round 40mm case at ~2, 4, 8, 10 o'clock and taper down toward the 20mm bracelet
   const lugOutline: [number, number][] = [
-    [0.625, 0.6],
-    [0.625, 1.4],
-    [0.65, 1.43],
-    [0.725, 1.43],
-    [0.765, 1.39],
-    [0.87, 1.08],
-    [0.94, 0.6],
+    [0.585, 0.98],
+    [0.585, 1.40],
+    [0.62, 1.43],
+    [0.72, 1.43],
+    [0.76, 1.39],
+    [0.86, 1.15],
+    [0.98, 0.85],
+    [1.08, 0.55],
+    [1.15, 0.25],
+    [0.985, 0.25],
+    [0.88, 0.65],
   ];
+
   for (const sx of [1, -1]) {
     for (const sy of [1, -1]) {
       const pts = lugOutline.map(([x, y]) => [x * sx, y * sy] as [number, number]);
       if (sx * sy < 0) pts.reverse();
-      const shape = new Shape();
-      pts.forEach(([x, y], i) => (i ? shape.lineTo(x, y) : shape.moveTo(x, y)));
-      shape.closePath();
-      const lug = add(
-        group,
-        new ExtrudeGeometry(shape, { depth: 0.13, bevelEnabled: true, bevelSize: 0.022, bevelThickness: 0.022, bevelSegments: 3 }),
-        brushed
-      );
-      lug.position.z = -0.185;
+      const s = new Shape();
+      pts.forEach(([x, y], idx) => {
+        if (idx === 0) s.moveTo(x, y);
+        else s.lineTo(x, y);
+      });
+      s.closePath();
+      const lugGeo = new ExtrudeGeometry(s, {
+        depth: 0.18,
+        bevelEnabled: true,
+        bevelThickness: 0.024,
+        bevelSize: 0.020,
+        bevelSegments: 3,
+      });
+      geos.push(lugGeo);
+      const lugMesh = new Mesh(lugGeo, polished);
+      lugMesh.castShadow = true;
+      lugMesh.receiveShadow = true;
+      lugMesh.position.set(0, 0, -0.16);
+      lugMesh.rotation.x = -sy * 0.06; // slopes gracefully toward wrist
+      group.add(lugMesh);
     }
   }
 
-  /* ── Bracelet: three links across, brushed outers and a polished centre ── */
-  const LINK = 0.31;
-  const THICK = 0.085;
+  /* ── Oyster Bracelet: Three links across, polished centre, brushed outers ── */
+  const LINK = 0.30;
+  const THICK = 0.082;
   const linkGeo = (width: number) => {
-    const geo = new ExtrudeGeometry(roundedRect(THICK, LINK - 0.012, 0.034), { depth: width, bevelEnabled: false, curveSegments: 6 });
+    const geo = new ExtrudeGeometry(roundedRect(THICK, LINK + 0.024, 0.034), {
+      depth: width,
+      bevelEnabled: true,
+      bevelThickness: 0.008,
+      bevelSize: 0.006,
+      bevelSegments: 2,
+      curveSegments: 6,
+    });
     geo.center();
-    geo.rotateY(Math.PI / 2); // extrusion runs across the wrist
+    geo.rotateY(Math.PI / 2); // runs across wrist
     geos.push(geo);
     return geo;
   };
   const centreGeo = linkGeo(0.44);
   const outerGeo = linkGeo(0.355);
+
   const chain = (sy: number, startY: number, count: number, place: (y: number, z: number, a: number) => void) => {
     let y = startY;
-    let z = -0.125;
+    let z = -0.115;
     let a = 0;
     for (let i = 0; i < count; i++) {
       place(sy * (y + (LINK / 2) * Math.cos(a)), z - (LINK / 2) * Math.sin(a), -sy * a);
       y += LINK * Math.cos(a);
       z -= LINK * Math.sin(a);
-      a += i === 0 ? 0.1 : 0.16;
+      a += i === 0 ? 0.08 : 0.15;
     }
   };
+
   for (const sy of [1, -1]) {
-    chain(sy, 0.98, 9, (y, z, a) => {
+    // Center links: mirror-polished
+    chain(sy, 1.05, 9, (y, z, a) => {
       const m = new Mesh(centreGeo, polished);
       m.position.set(0, y, z);
       m.rotation.x = a;
       m.castShadow = m.receiveShadow = true;
       group.add(m);
     });
-    chain(sy, 0.98 + LINK / 2, 9, (y, z, a) => {
-      for (const x of [-0.404, 0.404]) {
+    // Outer links: satin-brushed
+    chain(sy, 1.05 + LINK / 2, 9, (y, z, a) => {
+      for (const x of [-0.395, 0.395]) {
         const m = new Mesh(outerGeo, brushed);
         m.position.set(x, y, z);
         m.rotation.x = a;
@@ -471,9 +657,16 @@ export function buildWatch(maxAnisotropy = 8): Watch {
         group.add(m);
       }
     });
-    // solid end piece under the lugs so no gap shows between case and bracelet
-    const end = add(group, new BoxGeometry(1.2, 0.44, THICK * 0.9), brushed);
-    end.position.set(0, sy * 1.06, -0.13);
+
+    // Solid End Link (SEL) sitting flush between the lugs hugging the case
+    // Center polished segment
+    const selCenter = add(group, new BoxGeometry(0.44, 0.32, THICK * 0.98), polished);
+    selCenter.position.set(0, sy * 1.14, -0.115);
+    // Outer brushed segments
+    for (const x of [-0.395, 0.395]) {
+      const selOuter = add(group, new BoxGeometry(0.355, 0.30, THICK * 0.95), brushed);
+      selOuter.position.set(x, sy * 1.13, -0.115);
+    }
   }
 
   return {
@@ -484,14 +677,13 @@ export function buildWatch(maxAnisotropy = 8): Watch {
       seconds.rotation.z = -s * RAD;
     },
     setCrown(pull, spinDeg) {
-      crown.position.x = CROWN_X + pull * 0.085;
+      crown.position.x = CROWN_X + pull * 0.06;
       crown.rotation.x = spinDeg * RAD;
     },
     dispose() {
       geos.forEach((g) => g.dispose());
       mats.forEach((m) => m.dispose());
       dialTexture.dispose();
-      tintTexture.dispose();
     },
   };
 }

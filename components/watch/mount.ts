@@ -47,11 +47,11 @@ export function mountWatch(host: HTMLElement, onLost: () => void): () => void {
   const scene = new Scene();
   const pmrem = new PMREMGenerator(renderer);
   const room = new RoomEnvironment();
-  const env = pmrem.fromScene(room, 0.03);
+  const env = pmrem.fromScene(room, 0.04);
   scene.environment = env.texture;
-  scene.environmentIntensity = 0.55;
+  scene.environmentIntensity = 0.75;
 
-  const key = new DirectionalLight(0xffffff, 1.7);
+  const key = new DirectionalLight(0xffffff, 1.8);
   key.position.set(-2.6, 3.4, 5.5);
   key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024);
@@ -65,6 +65,10 @@ export function mountWatch(host: HTMLElement, onLost: () => void): () => void {
   key.shadow.normalBias = 0.012;
   key.shadow.radius = 5;
   scene.add(key);
+
+  const fill = new DirectionalLight(0xe8f0fc, 0.85);
+  fill.position.set(3.2, -1.8, 4.5);
+  scene.add(fill);
 
   const camera = new PerspectiveCamera(26, 1, 0.1, 50);
   camera.position.set(0, 0, 10.6);
