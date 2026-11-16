@@ -351,18 +351,23 @@ export function buildWatch(maxAnisotropy = 8): Watch {
   );
 
   /* ── 40mm Oyster Case & Smooth Bezel ── */
-  // The Milgauss 116400 monobloc mid-case and smooth domed bezel are mirror-polished
+  // The Milgauss 116400 has a famously thick 13.1mm profile with tall slab-sided
+  // mirror-polished case flanks and a bold domed bezel to house its magnetic shield.
   const caseMesh = lathe(
     [
-      [0, -0.24],
-      [0.98, -0.24],
-      [1.12, -0.21],
-      [1.16, -0.16],
-      [1.175, -0.05],
-      [1.175, 0.04],
-      [1.145, 0.08],
-      [0.985, 0.08],
-      [0.985, -0.02],
+      [0, -0.44],         // domed caseback center
+      [0.45, -0.43],      // caseback inner dome
+      [0.85, -0.40],      // caseback outer dome
+      [1.08, -0.36],      // caseback seat
+      [1.21, -0.32],      // under-case bevel
+      [1.285, -0.26],     // lower flank curve
+      [1.305, -0.18],     // vertical slab flank bottom
+      [1.31, -0.06],      // vertical slab flank middle
+      [1.305, 0.02],      // vertical slab flank top
+      [1.29, 0.07],       // upper flank curve
+      [1.265, 0.10],      // flank meeting bezel base
+      [0.985, 0.08],      // upper rehaut seat
+      [0.985, -0.02],     // dial seating ledge
       [0, -0.02],
     ],
     polished
@@ -376,13 +381,13 @@ export function buildWatch(maxAnisotropy = 8): Watch {
   const bezel = lathe(
     [
       [0.965, 0.0],       // inner rehaut meeting dial edge
-      [0.984, 0.145],     // rehaut top & crystal seat
-      [0.995, 0.155],     // crystal rim contact
-      [1.025, 0.188],     // bezel inner dome
-      [1.065, 0.198],     // bezel apex
-      [1.11, 0.178],      // bezel outer slope
-      [1.145, 0.135],     // bezel outer curve
-      [1.16, 0.08],       // bezel base meeting case
+      [0.985, 0.165],     // rehaut top & crystal seat
+      [1.005, 0.185],     // crystal rim contact
+      [1.055, 0.22],      // bezel inner dome
+      [1.135, 0.235],     // bezel apex
+      [1.205, 0.205],     // bezel outer slope
+      [1.245, 0.155],     // bezel outer curve
+      [1.265, 0.10],      // bezel base meeting case
     ],
     polished
   );
@@ -523,16 +528,16 @@ export function buildWatch(maxAnisotropy = 8): Watch {
       roughness: 0.01,
       metalness: 0,
       transmission: 0.98,
-      thickness: 0.04,
+      thickness: 0.045,
       ior: 1.77,
       attenuationColor: 0x48e698,
       attenuationDistance: 2.2,
       envMapIntensity: 2.8,
     })
   );
-  const crystal = add(group, new CylinderGeometry(0.994, 0.994, 0.035, 128), crystalMat, false, false);
+  const crystal = add(group, new CylinderGeometry(1.005, 1.005, 0.04, 128), crystalMat, false, false);
   crystal.rotation.x = Math.PI / 2;
-  crystal.position.z = 0.158;
+  crystal.position.z = 0.185;
 
   // Iconic Glace Verte luminous emerald green beveled rim
   const gvRimMat = mat(
@@ -544,39 +549,39 @@ export function buildWatch(maxAnisotropy = 8): Watch {
       metalness: 0.05,
     })
   );
-  const rim = add(group, new TorusGeometry(0.982, 0.016, 16, 160), gvRimMat, false, false);
-  rim.position.z = 0.165;
+  const rim = add(group, new TorusGeometry(0.995, 0.016, 16, 160), gvRimMat, false, false);
+  rim.position.z = 0.192;
 
   /* ── Rolex Twinlock Crown at 3 o'clock ── */
-  // Seated snugly against the case flank with no exposed stem
+  // Seated snugly against the thick 13.1mm case flank with no exposed stem
   const crown = new Group();
   const crownMat = mat(new MeshStandardMaterial({ color: 0xe6edf5, metalness: 0.98, roughness: 0.12 }));
-  const knob = add(crown, new CylinderGeometry(0.155, 0.155, 0.12, 24, 1), crownMat);
+  const knob = add(crown, new CylinderGeometry(0.185, 0.185, 0.14, 24, 1), crownMat);
   knob.rotation.z = Math.PI / 2;
-  knob.position.x = 0.05;
+  knob.position.x = 0.06;
 
-  const cap = add(crown, new CylinderGeometry(0.135, 0.155, 0.024, 24), polished);
+  const cap = add(crown, new CylinderGeometry(0.16, 0.185, 0.03, 24), polished);
   cap.rotation.z = -Math.PI / 2;
-  cap.position.x = 0.122;
+  cap.position.x = 0.145;
 
-  const CROWN_X = 1.12;
-  crown.position.set(CROWN_X, 0, -0.055);
+  const CROWN_X = 1.25;
+  crown.position.set(CROWN_X, 0, -0.09);
   group.add(crown);
 
   /* ── Contoured Oyster Lugs (4 corner horns) & Solid End Links (SEL) ── */
-  // The lugs leave the round 40mm case at ~2, 4, 8, 10 o'clock and taper down toward the 20mm bracelet
+  // The lugs leave the thick 40mm case at ~2, 4, 8, 10 o'clock with substantial depth
   const lugOutline: [number, number][] = [
     [0.585, 0.98],
-    [0.585, 1.40],
-    [0.62, 1.43],
-    [0.72, 1.43],
-    [0.76, 1.39],
-    [0.86, 1.15],
-    [0.98, 0.85],
-    [1.08, 0.55],
-    [1.15, 0.25],
-    [0.985, 0.25],
-    [0.88, 0.65],
+    [0.585, 1.48],
+    [0.62, 1.50],
+    [0.76, 1.50],
+    [0.82, 1.46],
+    [0.94, 1.24],
+    [1.08, 0.94],
+    [1.20, 0.62],
+    [1.28, 0.28],
+    [1.05, 0.28],
+    [0.88, 0.68],
   ];
 
   for (const sx of [1, -1]) {
@@ -590,31 +595,31 @@ export function buildWatch(maxAnisotropy = 8): Watch {
       });
       s.closePath();
       const lugGeo = new ExtrudeGeometry(s, {
-        depth: 0.18,
+        depth: 0.30,
         bevelEnabled: true,
-        bevelThickness: 0.024,
-        bevelSize: 0.020,
+        bevelThickness: 0.032,
+        bevelSize: 0.026,
         bevelSegments: 3,
       });
       geos.push(lugGeo);
       const lugMesh = new Mesh(lugGeo, polished);
       lugMesh.castShadow = true;
       lugMesh.receiveShadow = true;
-      lugMesh.position.set(0, 0, -0.16);
-      lugMesh.rotation.x = -sy * 0.06; // slopes gracefully toward wrist
+      lugMesh.position.set(0, 0, -0.24);
+      lugMesh.rotation.x = -sy * 0.07; // slopes gracefully toward wrist
       group.add(lugMesh);
     }
   }
 
   /* ── Oyster Bracelet: Three links across, polished centre, brushed outers ── */
-  const LINK = 0.30;
-  const THICK = 0.082;
+  const LINK = 0.32;
+  const THICK = 0.12;
   const linkGeo = (width: number) => {
-    const geo = new ExtrudeGeometry(roundedRect(THICK, LINK + 0.024, 0.034), {
+    const geo = new ExtrudeGeometry(roundedRect(THICK, LINK + 0.024, 0.04), {
       depth: width,
       bevelEnabled: true,
-      bevelThickness: 0.008,
-      bevelSize: 0.006,
+      bevelThickness: 0.012,
+      bevelSize: 0.008,
       bevelSegments: 2,
       curveSegments: 6,
     });
@@ -623,12 +628,12 @@ export function buildWatch(maxAnisotropy = 8): Watch {
     geos.push(geo);
     return geo;
   };
-  const centreGeo = linkGeo(0.44);
-  const outerGeo = linkGeo(0.355);
+  const centreGeo = linkGeo(0.46);
+  const outerGeo = linkGeo(0.37);
 
   const chain = (sy: number, startY: number, count: number, place: (y: number, z: number, a: number) => void) => {
     let y = startY;
-    let z = -0.115;
+    let z = -0.15;
     let a = 0;
     for (let i = 0; i < count; i++) {
       place(sy * (y + (LINK / 2) * Math.cos(a)), z - (LINK / 2) * Math.sin(a), -sy * a);
@@ -640,7 +645,7 @@ export function buildWatch(maxAnisotropy = 8): Watch {
 
   for (const sy of [1, -1]) {
     // Center links: mirror-polished
-    chain(sy, 1.05, 9, (y, z, a) => {
+    chain(sy, 1.12, 9, (y, z, a) => {
       const m = new Mesh(centreGeo, polished);
       m.position.set(0, y, z);
       m.rotation.x = a;
@@ -648,8 +653,8 @@ export function buildWatch(maxAnisotropy = 8): Watch {
       group.add(m);
     });
     // Outer links: satin-brushed
-    chain(sy, 1.05 + LINK / 2, 9, (y, z, a) => {
-      for (const x of [-0.395, 0.395]) {
+    chain(sy, 1.12 + LINK / 2, 9, (y, z, a) => {
+      for (const x of [-0.415, 0.415]) {
         const m = new Mesh(outerGeo, brushed);
         m.position.set(x, y, z);
         m.rotation.x = a;
@@ -660,12 +665,12 @@ export function buildWatch(maxAnisotropy = 8): Watch {
 
     // Solid End Link (SEL) sitting flush between the lugs hugging the case
     // Center polished segment
-    const selCenter = add(group, new BoxGeometry(0.44, 0.32, THICK * 0.98), polished);
-    selCenter.position.set(0, sy * 1.14, -0.115);
+    const selCenter = add(group, new BoxGeometry(0.46, 0.36, THICK * 0.98), polished);
+    selCenter.position.set(0, sy * 1.18, -0.15);
     // Outer brushed segments
-    for (const x of [-0.395, 0.395]) {
-      const selOuter = add(group, new BoxGeometry(0.355, 0.30, THICK * 0.95), brushed);
-      selOuter.position.set(x, sy * 1.13, -0.115);
+    for (const x of [-0.415, 0.415]) {
+      const selOuter = add(group, new BoxGeometry(0.37, 0.34, THICK * 0.95), brushed);
+      selOuter.position.set(x, sy * 1.17, -0.15);
     }
   }
 
