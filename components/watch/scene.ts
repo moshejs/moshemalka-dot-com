@@ -39,8 +39,6 @@ export type Watch = {
   setHands(hourDeg: number, minuteDeg: number, secondDeg: number): void;
   /** pull 0..1 = crown pushed in..pulled out to set; spin in degrees. */
   setCrown(pull: number, spinDeg: number): void;
-  /** 0 = standard solid view; 1 = internal Faraday cage X-ray view. */
-  setXRay(amount: number): void;
   dispose(): void;
 };
 
@@ -302,90 +300,6 @@ function createLightningHand(): Shape {
   return shape;
 }
 
-/** The inner Faraday cage caseback texture: circular brushed soft iron stamped with the Rolex \vec{B} magnetic flux vector symbol. */
-function drawFaradayShield(size: number): HTMLCanvasElement {
-  const c = document.createElement("canvas");
-  c.width = c.height = size;
-  const g = c.getContext("2d")!;
-  const R = size / 2;
-  g.translate(R, R);
-
-  // Soft iron ferromagnetic brushed background
-  const bg = g.createRadialGradient(0, 0, 0, 0, 0, R);
-  bg.addColorStop(0, "#4a5360");
-  bg.addColorStop(0.65, "#3b434e");
-  bg.addColorStop(1, "#282e37");
-  g.fillStyle = bg;
-  g.fillRect(-R, -R, size, size);
-
-  // Concentric machining grain of the ferromagnetic inner shield
-  let seed = 137;
-  const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-  for (let r = 10; r < R; r += 2) {
-    g.strokeStyle = rnd() > 0.48 ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.045)";
-    g.lineWidth = 1 + rnd() * 1.5;
-    g.beginPath();
-    g.arc(0, 0, r, 0, Math.PI * 2);
-    g.stroke();
-  }
-
-  const scale = size / 512;
-
-  // The iconic Rolex Milgauss magnetic flux density vector: \vec{B}
-  // Stamped into the soft-iron inner caseback
-  g.fillStyle = "#9db2c9";
-  g.textAlign = "center";
-  g.textBaseline = "middle";
-  g.font = `bold ${Math.round(108 * scale)}px "Times New Roman", Georgia, serif`;
-  g.fillText("B", 0, 16 * scale);
-
-  // Vector arrow above B (\vec{B})
-  const arrowY = -52 * scale;
-  const arrowW = 84 * scale;
-  const arrowX = -arrowW / 2;
-  g.strokeStyle = "#9db2c9";
-  g.lineWidth = 6 * scale;
-  g.lineCap = "round";
-  g.lineJoin = "round";
-  g.beginPath();
-  g.moveTo(arrowX, arrowY);
-  g.lineTo(arrowX + arrowW, arrowY);
-  g.stroke();
-
-  // Arrowhead pointing right
-  g.beginPath();
-  g.moveTo(arrowX + arrowW - 14 * scale, arrowY - 9 * scale);
-  g.lineTo(arrowX + arrowW + 2 * scale, arrowY);
-  g.lineTo(arrowX + arrowW - 14 * scale, arrowY + 9 * scale);
-  g.stroke();
-
-  // Perimeter circular engraving: "• ROLEX MILGAUSS • 1000 GAUSS • FERROMAGNETIC SHIELD •"
-  g.font = `600 ${Math.round(15 * scale)}px system-ui, -apple-system, sans-serif`;
-  g.fillStyle = "rgba(157, 178, 201, 0.75)";
-  const text = "• ROLEX MILGAUSS • 1000 GAUSS • FERROMAGNETIC SHIELD •";
-  const textRadius = R * 0.82;
-  const step = (Math.PI * 2) / text.length;
-  for (let i = 0; i < text.length; i++) {
-    const angle = i * step - Math.PI / 2;
-    g.save();
-    g.rotate(angle);
-    g.translate(0, -textRadius);
-    g.fillText(text[i], 0, 0);
-    g.restore();
-  }
-
-  // Two tool notches on the perimeter (at 9 and 3 o'clock) for the Rolex inner shield tool
-  g.fillStyle = "#151820";
-  for (const angle of [0, Math.PI]) {
-    g.save();
-    g.rotate(angle);
-    g.fillRect(R * 0.88, -10 * scale, R * 0.12, 20 * scale);
-    g.restore();
-  }
-
-  return c;
-}
-
 export function buildWatch(maxAnisotropy = 8): Watch {
   const group = new Group();
   const geos: BufferGeometry[] = [];
@@ -436,86 +350,11 @@ export function buildWatch(maxAnisotropy = 8): Watch {
     new MeshStandardMaterial({ map: dialTexture, metalness: 0.4, roughness: 0.45, envMapIntensity: 0.65 })
   );
 
-  const faradayTexture = new CanvasTexture(drawFaradayShield(1024));
-  faradayTexture.colorSpace = SRGBColorSpace;
-  faradayTexture.anisotropy = maxAnisotropy;
-
-  const softIron = mat(
-    new MeshStandardMaterial({
-      color: 0x485260,
-      metalness: 0.88,
-      roughness: 0.55,
-      side: DoubleSide,
-    })
-  );
-  const movementPlate = mat(
-    new MeshStandardMaterial({
-      color: 0xdde4ec,
-      metalness: 0.94,
-      roughness: 0.22,
-    })
-  );
-  const gold = mat(
-    new MeshStandardMaterial({
-      color: 0xdfb448,
-      metalness: 0.88,
-      roughness: 0.28,
-    })
-  );
-  const ruby = mat(
-    new MeshPhysicalMaterial({
-      color: 0xe01658,
-      metalness: 0.1,
-      roughness: 0.1,
-      transmission: 0.7,
-      ior: 1.76,
-    })
-  );
-  const parachromBlue = mat(
-    new MeshStandardMaterial({
-      color: 0x1b5ed6,
-      metalness: 0.82,
-      roughness: 0.25,
-      emissive: 0x0f429c,
-      emissiveIntensity: 0.4,
-    })
-  );
-  const faradayCapMat = mat(
-    new MeshStandardMaterial({
-      map: faradayTexture,
-      metalness: 0.88,
-      roughness: 0.45,
-      side: DoubleSide,
-      envMapIntensity: 0.7,
-    })
-  );
-  const fluxMat = mat(
-    new MeshStandardMaterial({
-      color: 0x38bdf8,
-      emissive: 0x0284c7,
-      emissiveIntensity: 0.85,
-      roughness: 0.2,
-      transparent: true,
-      opacity: 0,
-    })
-  );
-  const caseGhost = mat(
-    new MeshStandardMaterial({
-      color: 0x94a3b8,
-      metalness: 0.9,
-      roughness: 0.2,
-      transparent: true,
-      opacity: 0.32,
-      side: DoubleSide,
-    })
-  );
-
   /* ── 40mm Oyster Case & Smooth Bezel ── */
-  // The Milgauss 116400 monobloc mid-case and smooth domed bezel are mirror-polished.
-  // Hollowed out to seat the internal Faraday cage and movement.
+  // The Milgauss 116400 monobloc mid-case and smooth domed bezel are mirror-polished
   const caseMesh = lathe(
     [
-      [0.86, -0.24],
+      [0, -0.24],
       [0.98, -0.24],
       [1.12, -0.21],
       [1.16, -0.16],
@@ -523,9 +362,8 @@ export function buildWatch(maxAnisotropy = 8): Watch {
       [1.175, 0.04],
       [1.145, 0.08],
       [0.985, 0.08],
-      [0.95, -0.01],
-      [0.95, -0.19],
-      [0.86, -0.21],
+      [0.985, -0.02],
+      [0, -0.02],
     ],
     polished
   );
@@ -553,116 +391,9 @@ export function buildWatch(maxAnisotropy = 8): Watch {
   geos.push(bezel.geometry);
   group.add(bezel);
 
-  /* ── Internal Faraday Cage (Soft-Iron Magnetic Shield) & Calibre 3131 ── */
-  // The defining engineering innovation of the Rolex Milgauss: a two-piece
-  // ferromagnetic soft-iron shield hermetically sealing the movement to resist 1,000 Gauss.
-  const faradayGroup = new Group();
-
-  // Part 1: Soft-iron container cup enclosing the movement sides and dial bed
-  const faradayCup = lathe(
-    [
-      [0.10, -0.008],
-      [0.94, -0.008],
-      [0.94, -0.185],
-      [0.86, -0.185],
-      [0.86, -0.025],
-      [0.10, -0.025],
-    ],
-    softIron
-  );
-  geos.push(faradayCup.geometry);
-  faradayGroup.add(faradayCup);
-
-  // Calibre 3131 movement plate inside the soft-iron cage
-  const calMainplate = add(faradayGroup, new CylinderGeometry(0.84, 0.84, 0.018, 64), movementPlate);
-  calMainplate.rotation.x = Math.PI / 2;
-  calMainplate.position.z = -0.06;
-
-  // Balance wheel assembly with paramagnetic blue Parachrom hairspring
-  const balanceGroup = new Group();
-  balanceGroup.position.set(0.32, -0.22, -0.09);
-
-  // Golden balance wheel rim and spokes
-  add(balanceGroup, new TorusGeometry(0.18, 0.012, 10, 36), gold);
-  add(balanceGroup, new BoxGeometry(0.36, 0.02, 0.008), gold);
-  add(balanceGroup, new BoxGeometry(0.02, 0.36, 0.008), gold);
-
-  // Paramagnetic blue Parachrom hairspring (Rolex niobium-zirconium alloy)
-  const hairspringGroup = new Group();
-  for (let r = 0.035; r <= 0.145; r += 0.024) {
-    add(hairspringGroup, new TorusGeometry(r, 0.004, 6, 24), parachromBlue);
-  }
-  balanceGroup.add(hairspringGroup);
-
-  // Balance bridge with ruby jewel
-  const bridge = add(balanceGroup, new BoxGeometry(0.24, 0.08, 0.016), movementPlate);
-  bridge.position.set(0, 0, 0.012);
-  const rubyJewel = add(balanceGroup, new SphereGeometry(0.018, 12, 12), ruby);
-  rubyJewel.position.set(0, 0, 0.018);
-  faradayGroup.add(balanceGroup);
-
-  // Oscillating rotor weight with cutouts
-  const rotorShape = new Shape();
-  rotorShape.absarc(0, 0, 0.80, -Math.PI * 0.15, Math.PI * 1.15, false);
-  rotorShape.absarc(0, 0, 0.28, Math.PI * 1.15, -Math.PI * 0.15, true);
-  rotorShape.closePath();
-  const rotor = add(
-    faradayGroup,
-    new ExtrudeGeometry(rotorShape, { depth: 0.015, bevelEnabled: true, bevelThickness: 0.003, bevelSize: 0.002, bevelSegments: 2 }),
-    movementPlate
-  );
-  rotor.position.z = -0.135;
-
-  // Part 2: Inner soft-iron caseback cover stamped with the \vec{B} magnetic flux density vector arrow
-  const faradayCap = add(faradayGroup, new CircleGeometry(0.85, 64), faradayCapMat);
-  faradayCap.position.z = -0.178;
-
-  // 1,000 Gauss magnetic flux field lines (visualized during X-ray inspection mode)
-  const fluxGroup = new Group();
-  for (let i = 0; i < 4; i++) {
-    const a = (i / 4) * Math.PI;
-    const fluxRing = new Mesh(new TorusGeometry(1.02 + i * 0.015, 0.006, 8, 80), fluxMat);
-    fluxRing.rotation.set(0.18, a, 0.1);
-    fluxGroup.add(fluxRing);
-    geos.push(fluxRing.geometry);
-  }
-  fluxGroup.visible = false;
-  faradayGroup.add(fluxGroup);
-
-  group.add(faradayGroup);
-
-  /* ── Outer Oyster Caseback ── */
-  // The outer screw-down Oystersteel caseback enclosing the inner Faraday shield
-  const casebackMedallion = lathe(
-    [
-      [0, -0.245],
-      [0.68, -0.242],
-      [0.78, -0.235],
-      [0.86, -0.22],
-    ],
-    brushed
-  );
-  geos.push(casebackMedallion.geometry);
-  group.add(casebackMedallion);
-
-  // Ring of 60 coin-edge flutes for the Rolex Oyster case wrench
-  const casebackFlutes = lathe(
-    [
-      [0.78, -0.236],
-      [0.86, -0.222],
-      [0.88, -0.218],
-      [0.86, -0.212],
-    ],
-    polished,
-    60
-  );
-  geos.push(casebackFlutes.geometry);
-  group.add(casebackFlutes);
-
   /* ── Dial ── */
   const dial = add(group, new CircleGeometry(0.985, 128), dialMat, false, true);
   dial.position.z = 0.001;
-  dial.renderOrder = 1;
 
   /* ── Applied Rolex Coronet at 12 o'clock ── */
   const coronetShape = createCoronetShape();
@@ -672,7 +403,6 @@ export function buildWatch(maxAnisotropy = 8): Watch {
     handSteel
   );
   coronet.position.z = 0.002;
-  coronet.renderOrder = 2;
 
   // Jewel-like round balls at the 5 coronet tips
   const s = S;
@@ -742,7 +472,6 @@ export function buildWatch(maxAnisotropy = 8): Watch {
   hourLume.closePath();
   add(hour, new ExtrudeGeometry(hourLume, { depth: 0.005, ...flat }), lume, false).position.z = 0.014;
   hour.position.z = 0.045;
-  hour.renderOrder = 3;
   group.add(hour);
 
   // Minute Hand (longer faceted baton reaching minute track)
@@ -765,7 +494,6 @@ export function buildWatch(maxAnisotropy = 8): Watch {
   minLume.closePath();
   add(minute, new ExtrudeGeometry(minLume, { depth: 0.005, ...flat }), lume, false).position.z = 0.014;
   minute.position.z = 0.068;
-  minute.renderOrder = 3;
   group.add(minute);
 
   // The Lightning Seconds Hand with Arrowhead
@@ -778,17 +506,14 @@ export function buildWatch(maxAnisotropy = 8): Watch {
   hub.rotation.x = Math.PI / 2;
   hub.position.z = 0.006;
   seconds.position.z = 0.092;
-  seconds.renderOrder = 3;
   group.add(seconds);
 
   const pin = add(group, new CylinderGeometry(0.016, 0.016, 0.026, 24), polished);
   pin.rotation.x = Math.PI / 2;
   pin.position.z = 0.106;
-  pin.renderOrder = 3;
 
   const pinCap = add(group, new SphereGeometry(0.016, 16, 16), polished);
   pinCap.position.z = 0.116;
-  pinCap.renderOrder = 3;
 
   /* ── Crystal: Green Sapphire Glace Verte (GV) ── */
   // Crystal clear face-on sapphire lens
@@ -808,7 +533,6 @@ export function buildWatch(maxAnisotropy = 8): Watch {
   const crystal = add(group, new CylinderGeometry(0.994, 0.994, 0.035, 128), crystalMat, false, false);
   crystal.rotation.x = Math.PI / 2;
   crystal.position.z = 0.158;
-  crystal.renderOrder = 2;
 
   // Iconic Glace Verte luminous emerald green beveled rim
   const gvRimMat = mat(
@@ -822,7 +546,6 @@ export function buildWatch(maxAnisotropy = 8): Watch {
   );
   const rim = add(group, new TorusGeometry(0.982, 0.016, 16, 160), gvRimMat, false, false);
   rim.position.z = 0.165;
-  rim.renderOrder = 2;
 
   /* ── Rolex Twinlock Crown at 3 o'clock ── */
   // Seated snugly against the case flank with no exposed stem
@@ -952,30 +675,15 @@ export function buildWatch(maxAnisotropy = 8): Watch {
       hour.rotation.z = -h * RAD;
       minute.rotation.z = -m * RAD;
       seconds.rotation.z = -s * RAD;
-      // Calibre 3131 balance wheel oscillation (8 beats per second)
-      balanceGroup.rotation.z = Math.sin(s * 16 * RAD) * 0.35;
     },
     setCrown(pull, spinDeg) {
       crown.position.x = CROWN_X + pull * 0.06;
       crown.rotation.x = spinDeg * RAD;
     },
-    setXRay(amount: number) {
-      const x = Math.max(0, Math.min(1, amount));
-      const active = x > 0.001;
-      dialMat.opacity = 1 - x * 0.86;
-      dialMat.transparent = active;
-      crystalMat.opacity = 1 - x * 0.72;
-      crystalMat.transparent = active;
-      caseMesh.material = x > 0.05 ? caseGhost : polished;
-      bezel.material = x > 0.05 ? caseGhost : polished;
-      fluxGroup.visible = active;
-      fluxMat.opacity = x * 0.85;
-    },
     dispose() {
       geos.forEach((g) => g.dispose());
       mats.forEach((m) => m.dispose());
       dialTexture.dispose();
-      faradayTexture.dispose();
     },
   };
 }
