@@ -181,6 +181,8 @@ const LINKEDIN = "https://www.linkedin.com/in/moshenyc/";
 const GITHUB = "https://github.com/moshejs";
 const STUDIO = "https://www.quentin.software/";
 const STUDIO_WORK = "https://www.quentin.software/work";
+// The studio's own contact form: the one place a project starts.
+const STUDIO_CONTACT = "https://www.quentin.software/#contact";
 const NPM_PROFILE = "https://www.npmjs.com/~moshejs";
 
 /* ── Icons: authored, one 1.5 stroke ───────────────────────────────── */
@@ -623,8 +625,12 @@ function Studio() {
             </a>
             .
           </p>
-          <a className="c-btn c-btn--secondary" href={STUDIO} target="_blank" rel="noopener noreferrer">
-            Hire the studio {Icon.arrow}
+          <p className="c-studio__text">
+            Founders and CTOs can hire me for consulting or a build through the studio. To start,
+            tell me what you&rsquo;re building on the studio&rsquo;s contact form.
+          </p>
+          <a className="c-btn c-btn--primary" href={STUDIO_CONTACT} target="_blank" rel="noopener noreferrer">
+            Start a project {Icon.arrow}
           </a>
         </div>
         <ul className="c-studio__work" aria-label="Recent studio work">
