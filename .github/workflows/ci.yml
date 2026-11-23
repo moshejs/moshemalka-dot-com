@@ -97,7 +97,7 @@ jobs:
           npx --yes wait-on -t 60000 http://localhost:3000
           node scripts/smoke.mjs http://localhost:3000 smoke ${SMOKE_PATHS}
         env:
-          SMOKE_PATHS: "/study"
+          SMOKE_PATHS: "/study /products /products/hebrabic"
       - name: Upload smoke screenshots
         if: always()
         uses: actions/upload-artifact@v4

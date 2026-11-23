@@ -35,6 +35,22 @@ This is the official personal site of Moshe Malka, the New York City software en
 - [The Name Moshe](https://name.moshemalka.com/): an interactive investigation by Moshe Malka into where the name Moshe comes from: the verse in Exodus, the Hebrew and Egyptian theories, the manuscripts and the numbers.
 - [Quentin.Code](https://www.quentin.software/): AI-first software studio — product development, automation, and legacy modernization led by Moshe Malka. Studio work: https://www.quentin.software/work
 
+## Products
+
+- [Products](https://moshemalka.com/products): the products Moshe Malka builds and runs himself, one page each, with a link to try it
+- [Hebrabic](https://moshemalka.com/products/hebrabic): Arabic and Hebrew, taught from either side (https://hebrabic.com/)
+- [Cognata](https://moshemalka.com/products/cognata): Six Latin daughters and English, through each other (https://www.cognata.app/)
+- [Ojalá](https://moshemalka.com/products/ojala): The Arabic hiding inside Spanish (https://www.ojala.uno/)
+- [Lexodus](https://moshemalka.com/products/lexodus): An animated atlas of where words wandered (https://lexodus.quentin.software/)
+- [Medical Companions](https://moshemalka.com/products/medical-companions): Animated, cited guides to how diseases work (https://www.medcompanions.org/)
+- [Retake](https://moshemalka.com/products/retake): Tracked changes for one hard reply (https://retake.quentin.software/)
+- [Told in Passing](https://moshemalka.com/products/told-in-passing): Two short stories, each in a reader built around it (https://told-in-passing.quentin.software/)
+- [Bookstore](https://moshemalka.com/products/bookstore): An Anki add-on where your reviews build a bookshop (https://www.quentin.software/blog/anki-bookstore)
+- [Shevirah](https://moshemalka.com/products/shevirah): Kabbalistic inquiries, animated (https://kelipot.quentin.software/)
+- [Two Libertines](https://moshemalka.com/products/two-libertines): Casanova and Don Juan, behind a two-door foyer (https://casanova.quentin.software/)
+- [Under the Sycamore](https://moshemalka.com/products/under-the-sycamore): A journey after The Alchemist, in your browser (https://under-the-sycamore.quentin.software/)
+- [One Hundred Lines](https://moshemalka.com/products/one-hundred-lines): A hundred one-line drawings, judged by a panel of agents (https://moshejs.github.io/one-hundred-lines/)
+
 ## Profiles
 
 - [LinkedIn](https://www.linkedin.com/in/moshenyc/)
