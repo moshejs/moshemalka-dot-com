@@ -910,6 +910,9 @@ export default function Home({ asOf, revision, live }: Props) {
                 <Link href="/study">The Study</Link>
               </li>
               <li>
+                <Link href="/products">Products</Link>
+              </li>
+              <li>
                 <a href={GITHUB} target="_blank" rel="noopener noreferrer">
                   GitHub {Icon.arrow}
                 </a>

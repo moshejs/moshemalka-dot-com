@@ -5,7 +5,9 @@
       "startServerReadyPattern": "Ready",
       "url": [
         "http://localhost:3000/",
-        "http://localhost:3000/study"
+        "http://localhost:3000/study",
+        "http://localhost:3000/products",
+        "http://localhost:3000/products/hebrabic"
       ],
       "numberOfRuns": 3,
       "settings": {
